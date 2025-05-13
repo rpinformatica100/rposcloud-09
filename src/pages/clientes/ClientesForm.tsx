@@ -41,21 +41,21 @@ const ClientesForm = () => {
     queryKey: ['cliente', id],
     queryFn: () => fetchCliente(id!),
     enabled: isEdicao,
-    onSuccess: (data) => {
-      if (data) {
-        setCliente(data);
+    meta: {
+      onSuccess: (data) => {
+        if (data) {
+          setCliente(data);
+        }
       }
-    },
-    onError: (error) => {
-      console.error("Erro ao carregar cliente:", error);
-      navigate("/app/clientes");
-      toast({
-        title: "Cliente não encontrado",
-        description: "O cliente solicitado não foi encontrado",
-        variant: "destructive",
-      });
     }
   });
+
+  // React to data changes
+  useEffect(() => {
+    if (clienteData) {
+      setCliente(clienteData);
+    }
+  }, [clienteData]);
 
   // Mutations for insert and update
   const insertMutation = useMutation({

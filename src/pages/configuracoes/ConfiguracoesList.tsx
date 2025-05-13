@@ -17,11 +17,15 @@ const ConfiguracoesList = () => {
   // Fetch configurações
   const { data, isLoading, error } = useQuery({
     queryKey: ['configuracoes'],
-    queryFn: fetchConfiguracoes,
-    onSuccess: (data) => {
+    queryFn: fetchConfiguracoes
+  });
+
+  // React to data changes
+  useEffect(() => {
+    if (data) {
       setConfiguracoes(data);
     }
-  });
+  }, [data]);
 
   // Update mutation
   const updateMutation = useMutation({
