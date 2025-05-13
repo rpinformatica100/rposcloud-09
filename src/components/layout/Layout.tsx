@@ -16,6 +16,7 @@ const Layout = () => {
     }
   }, [isAuthenticated, navigate]);
 
+  // Não renderiza nada enquanto verifica a autenticação
   if (!isAuthenticated) {
     return null;
   }
