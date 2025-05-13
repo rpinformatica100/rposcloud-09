@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogIn } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -15,7 +15,6 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,24 +23,19 @@ const Login = () => {
     try {
       const success = await login(email, senha);
       if (success) {
-        toast({
-          title: "Login realizado com sucesso",
+        toast.success("Login realizado com sucesso", {
           description: "Bem-vindo ao Sistema de Ordens de Serviço",
         });
         navigate("/app");
       } else {
-        toast({
-          title: "Erro ao fazer login",
+        toast.error("Erro ao fazer login", {
           description: "Verifique suas credenciais e tente novamente",
-          variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Erro ao fazer login:", error);
-      toast({
-        title: "Erro ao fazer login",
+      toast.error("Erro ao fazer login", {
         description: "Ocorreu um erro ao processar sua solicitação",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -85,9 +79,6 @@ const Login = () => {
                   onChange={(e) => setSenha(e.target.value)}
                   required
                 />
-              </div>
-              <div className="text-sm text-gray-500">
-                Para teste, use: teste@sistema.com / 123456
               </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">

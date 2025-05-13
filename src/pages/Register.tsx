@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserPlus } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const Register = () => {
   const [nome, setNome] = useState("");
@@ -17,17 +17,14 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { registrar } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validar senhas
     if (senha !== confirmarSenha) {
-      toast({
-        title: "Erro de validação",
+      toast.error("Erro de validação", {
         description: "As senhas não coincidem",
-        variant: "destructive",
       });
       return;
     }
@@ -37,24 +34,19 @@ const Register = () => {
     try {
       const success = await registrar(nome, email, senha);
       if (success) {
-        toast({
-          title: "Registro realizado com sucesso",
+        toast.success("Registro realizado com sucesso", {
           description: "Bem-vindo ao Sistema de Ordens de Serviço",
         });
         navigate("/app");
       } else {
-        toast({
-          title: "Erro ao registrar",
+        toast.error("Erro ao registrar", {
           description: "Não foi possível criar sua conta",
-          variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Erro ao registrar:", error);
-      toast({
-        title: "Erro ao registrar",
+      toast.error("Erro ao registrar", {
         description: "Ocorreu um erro ao processar sua solicitação",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);

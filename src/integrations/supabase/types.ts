@@ -298,6 +298,33 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          cargo: string | null
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          cargo?: string | null
+          created_at?: string
+          email: string
+          id: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          cargo?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,0 +1,373 @@
+
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { ArrowLeft, Edit, AlertTriangle, Loader2 } from "lucide-react";
+import PrintOrderButton from "@/components/ordens/PrintOrderButton";
+import { formatCurrency, formatDate } from "@/lib/formatters";
+
+const OrdensView = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const fetchOrdem = async () => {
+    const { data, error } = await supabase
+      .from('ordens')
+      .select(`
+        *,
+        cliente:cliente_id (*)
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data;
+  };
+
+  const fetchItens = async () => {
+    const { data, error } = await supabase
+      .from('ordem_itens')
+      .select(`
+        *,
+        produto:produto_id (
+          nome,
+          tipo
+        )
+      `)
+      .eq('ordem_id', id);
+
+    if (error) throw error;
+    return data;
+  };
+
+  // Consulta para buscar dados da ordem
+  const { 
+    data: ordem, 
+    isLoading: isLoadingOrdem,
+    error: ordemError
+  } = useQuery({
+    queryKey: ['ordem', id],
+    queryFn: fetchOrdem,
+    enabled: !!id
+  });
+
+  // Consulta para buscar itens da ordem
+  const {
+    data: itens = [],
+    isLoading: isLoadingItens,
+    error: itensError
+  } = useQuery({
+    queryKey: ['ordem-itens', id],
+    queryFn: fetchItens,
+    enabled: !!id
+  });
+
+  if (isLoadingOrdem || isLoadingItens) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Carregando dados da ordem...</span>
+      </div>
+    );
+  }
+
+  if (ordemError || !ordem) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <AlertTriangle className="h-10 w-10 text-destructive mb-4" />
+        <h2 className="text-xl font-semibold mb-2">Erro ao carregar ordem</h2>
+        <p className="text-muted-foreground mb-4">
+          Não foi possível carregar os dados da ordem de serviço.
+        </p>
+        <Button onClick={() => navigate("/app/ordens")}>Voltar para lista</Button>
+      </div>
+    );
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'aberta':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">Aberta</Badge>;
+      case 'em_andamento':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">Em andamento</Badge>;
+      case 'concluida':
+        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Concluída</Badge>;
+      case 'cancelada':
+        return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">Cancelada</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const getPrioridadeBadge = (prioridade: string) => {
+    switch (prioridade) {
+      case 'baixa':
+        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Baixa</Badge>;
+      case 'media':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">Média</Badge>;
+      case 'alta':
+        return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">Alta</Badge>;
+      default:
+        return <Badge variant="outline">{prioridade}</Badge>;
+    }
+  };
+
+  return (
+    <div className="container mx-auto py-6">
+      <div className="flex justify-between items-center mb-6">
+        <Button onClick={() => navigate("/app/ordens")} variant="outline" size="sm">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar
+        </Button>
+        <div className="flex gap-2">
+          <PrintOrderButton ordem={ordem} itens={itens} cliente={ordem.cliente} />
+          
+          <Button onClick={() => navigate(`/app/ordens/editar/${id}`)}>
+            <Edit className="mr-2 h-4 w-4" />
+            Editar
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Coluna principal */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Cabeçalho da OS */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-2xl">
+                    Ordem de Serviço #{ordem.numero}
+                  </CardTitle>
+                  <p className="text-muted-foreground mt-1">
+                    {formatDate(ordem.data_abertura || '')}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div>
+                    Status: {getStatusBadge(ordem.status)}
+                  </div>
+                  <div>
+                    Prioridade: {getPrioridadeBadge(ordem.prioridade)}
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-medium">Descrição</h3>
+                  <p className="text-muted-foreground mt-1">
+                    {ordem.descricao || "Sem descrição"}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                  <div>
+                    <span className="font-medium">Data de Abertura:</span>{" "}
+                    {formatDate(ordem.data_abertura || '')}
+                  </div>
+                  {ordem.data_previsao && (
+                    <div>
+                      <span className="font-medium">Previsão de Conclusão:</span>{" "}
+                      {formatDate(ordem.data_previsao)}
+                    </div>
+                  )}
+                  {ordem.data_conclusao && (
+                    <div>
+                      <span className="font-medium">Data de Conclusão:</span>{" "}
+                      {formatDate(ordem.data_conclusao)}
+                    </div>
+                  )}
+                  {ordem.responsavel && (
+                    <div>
+                      <span className="font-medium">Responsável:</span>{" "}
+                      {ordem.responsavel}
+                    </div>
+                  )}
+                </div>
+
+                {ordem.observacoes && (
+                  <div>
+                    <h3 className="font-medium">Observações</h3>
+                    <p className="text-muted-foreground mt-1 whitespace-pre-line">
+                      {ordem.observacoes}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Itens da OS */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle>Itens</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {itens.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">
+                  Nenhum item adicionado a esta ordem de serviço
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {itens.map((item, index) => (
+                    <div key={item.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-medium">
+                            {item.produto?.nome || "Produto não encontrado"}
+                          </h4>
+                          <p className="text-sm text-muted-foreground">
+                            {item.produto?.tipo === "produto" ? "Produto" : "Serviço"}
+                          </p>
+                          {item.observacao && (
+                            <p className="text-sm mt-1">{item.observacao}</p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">
+                            {formatCurrency(item.valor_total)}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {item.quantidade} x {formatCurrency(item.valor_unitario)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="flex justify-end pt-4 border-t">
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">Total</p>
+                      <p className="text-xl font-semibold">
+                        {formatCurrency(ordem.valor_total || 0)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Coluna lateral */}
+        <div className="space-y-6">
+          {/* Dados do cliente */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle>Cliente</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {ordem.cliente ? (
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="font-medium">{ordem.cliente.nome}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {ordem.cliente.tipo === "pessoa_fisica"
+                        ? "Pessoa Física"
+                        : "Pessoa Jurídica"}
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-2 text-sm">
+                    {ordem.cliente.documento && (
+                      <div>
+                        <span className="font-medium">
+                          {ordem.cliente.tipo === "pessoa_fisica"
+                            ? "CPF:"
+                            : "CNPJ:"}
+                        </span>{" "}
+                        {ordem.cliente.documento}
+                      </div>
+                    )}
+                    {ordem.cliente.email && (
+                      <div>
+                        <span className="font-medium">Email:</span>{" "}
+                        {ordem.cliente.email}
+                      </div>
+                    )}
+                    {ordem.cliente.telefone && (
+                      <div>
+                        <span className="font-medium">Telefone:</span>{" "}
+                        {ordem.cliente.telefone}
+                      </div>
+                    )}
+                  </div>
+
+                  {(ordem.cliente.endereco ||
+                    ordem.cliente.cidade ||
+                    ordem.cliente.estado) && (
+                    <>
+                      <Separator />
+                      <div className="space-y-1 text-sm">
+                        {ordem.cliente.endereco && (
+                          <div>{ordem.cliente.endereco}</div>
+                        )}
+                        <div>
+                          {[
+                            ordem.cliente.cidade,
+                            ordem.cliente.estado,
+                            ordem.cliente.cep,
+                          ]
+                            .filter(Boolean)
+                            .join(" - ")}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  <div className="pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => navigate(`/app/clientes/editar/${ordem.cliente.id}`)}
+                    >
+                      Ver detalhes do cliente
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-center py-4">
+                  Nenhum cliente vinculado
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Ações rápidas */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle>Ações</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start" 
+                  onClick={() => navigate(`/app/ordens/editar/${id}`)}
+                >
+                  <Edit className="mr-2 h-4 w-4" />
+                  Editar Ordem de Serviço
+                </Button>
+                <PrintOrderButton ordem={ordem} itens={itens} cliente={ordem.cliente} />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default OrdensView;
