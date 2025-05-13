@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -431,7 +430,6 @@ const OrdensForm = () => {
                         <SelectValue placeholder="Selecione um produto/serviço" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="" disabled>Selecione...</SelectItem>
                         {produtos.filter(p => p.ativo).map((produto) => (
                           <SelectItem key={produto.id} value={produto.id}>
                             {produto.nome} ({produto.tipo === "produto" ? "Produto" : "Serviço"})
