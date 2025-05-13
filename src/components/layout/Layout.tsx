@@ -21,7 +21,7 @@ const Layout = () => {
   }
 
   return (
-    <SidebarProvider collapsedWidth={60}>
+    <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full">
         <Sidebar />
         

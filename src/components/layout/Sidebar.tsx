@@ -26,10 +26,13 @@ import {
 } from "lucide-react";
 
 const Sidebar = () => {
-  const { collapsed } = useSidebar();
+  const { state } = useSidebar();
   const location = useLocation();
   const { usuario, logout } = useAuth();
   const navigate = useLocation();
+  
+  // O sidebar está colapsado se o estado for "collapsed"
+  const isCollapsed = state === "collapsed";
   
   // Verifica se o caminho atual está dentro de um grupo
   const isPathInGroup = (paths: string[]) => {
@@ -62,18 +65,19 @@ const Sidebar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    // O 'navigate' é realmente um useLocation, então não podemos usá-lo para navegar
+    window.location.href = "/login";
   };
 
   return (
     <SidebarContainer
       className={`border-r border-sidebar-border bg-sidebar transition-all duration-300 ${
-        collapsed ? "w-16" : "w-64"
+        isCollapsed ? "w-16" : "w-64"
       }`}
-      collapsible
+      collapsible="icon"
     >
       <div className="flex items-center justify-between h-16 px-3 border-b border-sidebar-border">
-        {!collapsed && (
+        {!isCollapsed && (
           <div className="text-xl font-semibold text-sidebar-foreground">
             Sistema OS
           </div>
@@ -87,10 +91,7 @@ const Sidebar = () => {
 
       <SidebarContent>
         {/* Dashboard */}
-        <SidebarGroup
-          open={openGroups.dashboard}
-          onOpenChange={() => toggleGroup("dashboard")}
-        >
+        <SidebarGroup defaultOpen={openGroups.dashboard}>
           <SidebarGroupLabel className="hidden">Dashboard</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -98,7 +99,7 @@ const Sidebar = () => {
                 <SidebarMenuButton asChild>
                   <NavLink to="/app" end className={getNavClass}>
                     <Home size={20} />
-                    {!collapsed && <span>Dashboard</span>}
+                    {!isCollapsed && <span>Dashboard</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -107,12 +108,9 @@ const Sidebar = () => {
         </SidebarGroup>
 
         {/* Clientes */}
-        <SidebarGroup
-          open={openGroups.clientes}
-          onOpenChange={() => toggleGroup("clientes")}
-        >
+        <SidebarGroup defaultOpen={openGroups.clientes}>
           <SidebarGroupLabel>
-            {!collapsed && "Clientes & Fornecedores"}
+            {!isCollapsed && "Clientes & Fornecedores"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -120,11 +118,11 @@ const Sidebar = () => {
                 <SidebarMenuButton asChild>
                   <NavLink to="/app/clientes" end className={getNavClass}>
                     <Users size={20} />
-                    {!collapsed && <span>Lista de Clientes</span>}
+                    {!isCollapsed && <span>Lista de Clientes</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {!collapsed && (
+              {!isCollapsed && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -141,12 +139,9 @@ const Sidebar = () => {
         </SidebarGroup>
 
         {/* Produtos */}
-        <SidebarGroup
-          open={openGroups.produtos}
-          onOpenChange={() => toggleGroup("produtos")}
-        >
+        <SidebarGroup defaultOpen={openGroups.produtos}>
           <SidebarGroupLabel>
-            {!collapsed && "Produtos & Serviços"}
+            {!isCollapsed && "Produtos & Serviços"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -154,11 +149,11 @@ const Sidebar = () => {
                 <SidebarMenuButton asChild>
                   <NavLink to="/app/produtos" end className={getNavClass}>
                     <ShoppingCart size={20} />
-                    {!collapsed && <span>Lista de Produtos</span>}
+                    {!isCollapsed && <span>Lista de Produtos</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {!collapsed && (
+              {!isCollapsed && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -175,12 +170,9 @@ const Sidebar = () => {
         </SidebarGroup>
 
         {/* Ordens */}
-        <SidebarGroup
-          open={openGroups.ordens}
-          onOpenChange={() => toggleGroup("ordens")}
-        >
+        <SidebarGroup defaultOpen={openGroups.ordens}>
           <SidebarGroupLabel>
-            {!collapsed && "Ordens de Serviço"}
+            {!isCollapsed && "Ordens de Serviço"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -188,11 +180,11 @@ const Sidebar = () => {
                 <SidebarMenuButton asChild>
                   <NavLink to="/app/ordens" end className={getNavClass}>
                     <FileText size={20} />
-                    {!collapsed && <span>Lista de Ordens</span>}
+                    {!isCollapsed && <span>Lista de Ordens</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {!collapsed && (
+              {!isCollapsed && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink to="/app/ordens/nova" className={getNavClass}>
@@ -206,12 +198,9 @@ const Sidebar = () => {
         </SidebarGroup>
 
         {/* Financeiro */}
-        <SidebarGroup
-          open={openGroups.financeiro}
-          onOpenChange={() => toggleGroup("financeiro")}
-        >
+        <SidebarGroup defaultOpen={openGroups.financeiro}>
           <SidebarGroupLabel>
-            {!collapsed && "Financeiro"}
+            {!isCollapsed && "Financeiro"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -219,7 +208,7 @@ const Sidebar = () => {
                 <SidebarMenuButton asChild>
                   <NavLink to="/app/financeiro" className={getNavClass}>
                     <CreditCard size={20} />
-                    {!collapsed && <span>Movimentos</span>}
+                    {!isCollapsed && <span>Movimentos</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -228,12 +217,9 @@ const Sidebar = () => {
         </SidebarGroup>
 
         {/* Configurações */}
-        <SidebarGroup
-          open={openGroups.configuracoes}
-          onOpenChange={() => toggleGroup("configuracoes")}
-        >
+        <SidebarGroup defaultOpen={openGroups.configuracoes}>
           <SidebarGroupLabel>
-            {!collapsed && "Configurações"}
+            {!isCollapsed && "Configurações"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -241,7 +227,7 @@ const Sidebar = () => {
                 <SidebarMenuButton asChild>
                   <NavLink to="/app/configuracoes" className={getNavClass}>
                     <Settings size={20} />
-                    {!collapsed && <span>Configurações Gerais</span>}
+                    {!isCollapsed && <span>Configurações Gerais</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -252,7 +238,7 @@ const Sidebar = () => {
 
       <div className="mt-auto p-3 border-t border-sidebar-border">
         <div className="flex items-center space-x-2">
-          {!collapsed && (
+          {!isCollapsed && (
             <div className="flex-1">
               <p className="text-sm font-medium text-sidebar-foreground">
                 {usuario?.nome}
