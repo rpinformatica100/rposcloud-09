@@ -1,17 +1,47 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { configuracoesData } from "@/data/dados";
-import { Configuracao } from "@/types";
+import { ConfiguracaoRow, fetchConfiguracoes, upsertConfiguracoes } from "@/integrations/supabase/helpers";
 import { Settings, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const ConfiguracoesList = () => {
-  const [configuracoes, setConfiguracoes] = useState<Configuracao[]>(configuracoesData);
+  const [configuracoes, setConfiguracoes] = useState<ConfiguracaoRow[]>([]);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch configurações
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['configuracoes'],
+    queryFn: fetchConfiguracoes,
+    onSuccess: (data) => {
+      setConfiguracoes(data);
+    }
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: upsertConfiguracoes,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['configuracoes'] });
+      toast({
+        title: "Configurações salvas",
+        description: "As configurações foram atualizadas com sucesso",
+      });
+    },
+    onError: (error) => {
+      console.error("Erro ao salvar configurações:", error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar as configurações",
+        variant: "destructive",
+      });
+    }
+  });
 
   const handleInputChange = (id: string, valor: string) => {
     setConfiguracoes(configuracoes.map(config => {
@@ -23,15 +53,7 @@ const ConfiguracoesList = () => {
   };
 
   const handleSalvar = () => {
-    // Em uma aplicação real, aqui enviaria dados para API
-    
-    // Simular atualização no array local
-    configuracoesData.splice(0, configuracoesData.length, ...configuracoes);
-    
-    toast({
-      title: "Configurações salvas",
-      description: "As configurações foram atualizadas com sucesso",
-    });
+    updateMutation.mutate(configuracoes);
   };
 
   // Agrupar configurações por tipo (com base na chave)
@@ -47,11 +69,38 @@ const ConfiguracoesList = () => {
     config => !config.chave.startsWith('empresa_') && !config.chave.startsWith('numeracao_')
   );
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold tracking-tight">Carregando configurações...</h1>
+      </div>
+    );
+  }
+
+  if (error) {
+    console.error("Erro ao carregar configurações:", error);
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
+        <Card>
+          <CardContent className="py-10">
+            <div className="text-center text-muted-foreground">
+              <p>Erro ao carregar configurações. Por favor, tente novamente.</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
-        <Button onClick={handleSalvar}>
+        <Button 
+          onClick={handleSalvar}
+          disabled={updateMutation.isPending}
+        >
           <Save className="mr-2 h-4 w-4" />
           Salvar Alterações
         </Button>
@@ -76,6 +125,11 @@ const ConfiguracoesList = () => {
               />
             </div>
           ))}
+          {configEmpresa.length === 0 && (
+            <div className="text-center py-4 text-muted-foreground">
+              <p>Nenhuma configuração de empresa encontrada</p>
+            </div>
+          )}
         </CardContent>
       </Card>
       
@@ -101,6 +155,11 @@ const ConfiguracoesList = () => {
               </p>
             </div>
           ))}
+          {configNumeracao.length === 0 && (
+            <div className="text-center py-4 text-muted-foreground">
+              <p>Nenhuma configuração de numeração encontrada</p>
+            </div>
+          )}
         </CardContent>
       </Card>
       
@@ -146,8 +205,8 @@ const ConfiguracoesList = () => {
               <span>Sistema OS</span>
             </div>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between py-2 border-b">
-              <span className="font-medium">Usuário de Teste:</span>
-              <span>teste@sistema.com / 123456</span>
+              <span className="font-medium">Suporte:</span>
+              <span>suporte@sistema-os.com</span>
             </div>
           </div>
         </CardContent>

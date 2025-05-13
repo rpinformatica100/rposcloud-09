@@ -8,20 +8,21 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { clientesData } from "@/data/dados";
-import { Cliente } from "@/types";
-import { gerarId } from "@/lib/utils";
+import { 
+  ClienteRow, ClienteInsert, fetchCliente, insertCliente, updateCliente 
+} from "@/integrations/supabase/helpers";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Save } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const ClientesForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const isEdicao = !!id;
   
-  const clienteVazio: Cliente = {
-    id: "",
+  const clienteVazio: ClienteInsert = {
     nome: "",
     tipo: "cliente",
     email: "",
@@ -31,26 +32,73 @@ const ClientesForm = () => {
     cidade: "",
     estado: "",
     cep: "",
-    dataCadastro: new Date().toISOString(),
   };
 
-  const [cliente, setCliente] = useState<Cliente>(clienteVazio);
+  const [cliente, setCliente] = useState<ClienteInsert>(clienteVazio);
 
-  useEffect(() => {
-    if (isEdicao) {
-      const clienteEncontrado = clientesData.find(c => c.id === id);
-      if (clienteEncontrado) {
-        setCliente(clienteEncontrado);
-      } else {
-        navigate("/app/clientes");
-        toast({
-          title: "Cliente não encontrado",
-          description: "O cliente solicitado não foi encontrado",
-          variant: "destructive",
-        });
+  // Fetch cliente if in edit mode
+  const { data: clienteData, isLoading } = useQuery({
+    queryKey: ['cliente', id],
+    queryFn: () => fetchCliente(id!),
+    enabled: isEdicao,
+    onSuccess: (data) => {
+      if (data) {
+        setCliente(data);
       }
+    },
+    onError: (error) => {
+      console.error("Erro ao carregar cliente:", error);
+      navigate("/app/clientes");
+      toast({
+        title: "Cliente não encontrado",
+        description: "O cliente solicitado não foi encontrado",
+        variant: "destructive",
+      });
     }
-  }, [id, isEdicao, navigate]);
+  });
+
+  // Mutations for insert and update
+  const insertMutation = useMutation({
+    mutationFn: insertCliente,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clientes'] });
+      toast({
+        title: "Cliente adicionado",
+        description: "O cliente foi adicionado com sucesso",
+      });
+      navigate("/app/clientes");
+    },
+    onError: (error) => {
+      console.error("Erro ao adicionar cliente:", error);
+      toast({
+        title: "Erro ao adicionar",
+        description: "Não foi possível adicionar o cliente",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, cliente }: { id: string, cliente: ClienteInsert }) => 
+      updateCliente(id, cliente),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clientes'] });
+      queryClient.invalidateQueries({ queryKey: ['cliente', id] });
+      toast({
+        title: "Cliente atualizado",
+        description: "Os dados do cliente foram atualizados",
+      });
+      navigate("/app/clientes");
+    },
+    onError: (error) => {
+      console.error("Erro ao atualizar cliente:", error);
+      toast({
+        title: "Erro ao atualizar",
+        description: "Não foi possível atualizar o cliente",
+        variant: "destructive",
+      });
+    }
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -68,38 +116,22 @@ const ClientesForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Em uma aplicação real, aqui enviaria dados para API
-    // Simulando adição/atualização no array local
-    
     if (!isEdicao) {
       // Adicionar novo cliente
-      const novoCliente = {
-        ...cliente,
-        id: gerarId(),
-        dataCadastro: new Date().toISOString(),
-      };
-      
-      clientesData.push(novoCliente);
-      
-      toast({
-        title: "Cliente adicionado",
-        description: "O cliente foi adicionado com sucesso",
-      });
-    } else {
+      insertMutation.mutate(cliente);
+    } else if (id) {
       // Atualizar cliente existente
-      const index = clientesData.findIndex(c => c.id === id);
-      if (index !== -1) {
-        clientesData[index] = cliente;
-      }
-      
-      toast({
-        title: "Cliente atualizado",
-        description: "Os dados do cliente foram atualizados",
-      });
+      updateMutation.mutate({ id, cliente });
     }
-    
-    navigate("/app/clientes");
   };
+
+  if (isEdicao && isLoading) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold tracking-tight">Carregando...</h1>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -161,9 +193,8 @@ const ClientesForm = () => {
                 <Input 
                   id="documento" 
                   name="documento" 
-                  value={cliente.documento} 
+                  value={cliente.documento || ''} 
                   onChange={handleInputChange}
-                  required
                 />
               </div>
               
@@ -173,7 +204,7 @@ const ClientesForm = () => {
                   id="email" 
                   name="email" 
                   type="email"
-                  value={cliente.email} 
+                  value={cliente.email || ''} 
                   onChange={handleInputChange}
                 />
               </div>
@@ -183,7 +214,7 @@ const ClientesForm = () => {
                 <Input 
                   id="telefone" 
                   name="telefone" 
-                  value={cliente.telefone} 
+                  value={cliente.telefone || ''} 
                   onChange={handleInputChange}
                 />
               </div>
@@ -199,7 +230,7 @@ const ClientesForm = () => {
                     id="endereco" 
                     name="endereco" 
                     placeholder="Rua, Avenida, etc."
-                    value={cliente.endereco} 
+                    value={cliente.endereco || ''} 
                     onChange={handleInputChange}
                   />
                 </div>
@@ -209,7 +240,7 @@ const ClientesForm = () => {
                   <Input 
                     id="cidade" 
                     name="cidade" 
-                    value={cliente.cidade} 
+                    value={cliente.cidade || ''} 
                     onChange={handleInputChange}
                   />
                 </div>
@@ -217,7 +248,7 @@ const ClientesForm = () => {
                 <div className="space-y-2">
                   <Label htmlFor="estado">Estado</Label>
                   <Select 
-                    value={cliente.estado} 
+                    value={cliente.estado || ''} 
                     onValueChange={handleEstadoChange}
                   >
                     <SelectTrigger id="estado">
@@ -260,7 +291,7 @@ const ClientesForm = () => {
                   <Input 
                     id="cep" 
                     name="cep" 
-                    value={cliente.cep} 
+                    value={cliente.cep || ''} 
                     onChange={handleInputChange}
                   />
                 </div>
@@ -288,7 +319,10 @@ const ClientesForm = () => {
             >
               Cancelar
             </Button>
-            <Button type="submit">
+            <Button 
+              type="submit"
+              disabled={insertMutation.isPending || updateMutation.isPending}
+            >
               <Save className="mr-2 h-4 w-4" />
               {isEdicao ? "Atualizar" : "Salvar"}
             </Button>

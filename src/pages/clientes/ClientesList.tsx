@@ -1,44 +1,84 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TabsContent, Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { clientesData } from "@/data/dados";
-import { Cliente } from "@/types";
+import { ClienteRow, fetchClientes, deleteCliente } from "@/integrations/supabase/helpers";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { UserPlus, Search, Edit, Trash, User, Building, Mail, Phone } from "lucide-react";
 import { formatarData } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 const ClientesList = () => {
-  const [clientes, setClientes] = useState<Cliente[]>(clientesData);
   const [filtro, setFiltro] = useState("");
   const [tabAtual, setTabAtual] = useState("todos");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const handleExcluir = (id: string) => {
-    if (confirm("Tem certeza que deseja excluir este cliente?")) {
-      setClientes(clientes.filter(cliente => cliente.id !== id));
+  // Fetch clientes from Supabase
+  const { data: clientes = [], isLoading, error } = useQuery({
+    queryKey: ['clientes'],
+    queryFn: fetchClientes
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: deleteCliente,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clientes'] });
       toast({
         title: "Cliente excluído",
         description: "O cliente foi excluído com sucesso",
       });
+    },
+    onError: (error) => {
+      console.error("Erro ao excluir cliente:", error);
+      toast({
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir o cliente",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleExcluir = (id: string) => {
+    if (confirm("Tem certeza que deseja excluir este cliente?")) {
+      deleteMutation.mutate(id);
     }
   };
 
   // Filtrar clientes conforme busca e tab selecionada
-  const clientesFiltrados = clientes.filter(cliente => {
+  const clientesFiltrados = clientes.filter((cliente: ClienteRow) => {
     // Filtro por texto
-    const matchesSearch = cliente.nome.toLowerCase().includes(filtro.toLowerCase()) || 
-                         cliente.email.toLowerCase().includes(filtro.toLowerCase()) || 
-                         cliente.documento.toLowerCase().includes(filtro.toLowerCase());
+    const matchesSearch = 
+      cliente.nome?.toLowerCase().includes(filtro.toLowerCase()) || 
+      cliente.email?.toLowerCase().includes(filtro.toLowerCase()) || 
+      cliente.documento?.toLowerCase().includes(filtro.toLowerCase()) || 
+      false;
     
     // Filtro por tipo
     if (tabAtual === "todos") return matchesSearch;
     return matchesSearch && cliente.tipo === tabAtual;
   });
+
+  if (error) {
+    console.error("Erro ao carregar clientes:", error);
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold tracking-tight">Clientes e Fornecedores</h1>
+        <Card>
+          <CardContent className="py-10">
+            <div className="text-center text-muted-foreground">
+              <p>Erro ao carregar clientes. Por favor, tente novamente.</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -65,7 +105,6 @@ const ClientesList = () => {
                 className="md:w-[300px]"
                 value={filtro}
                 onChange={(e) => setFiltro(e.target.value)}
-                startContent={<Search className="h-4 w-4 text-muted-foreground" />}
               />
             </div>
           </div>
@@ -80,7 +119,11 @@ const ClientesList = () => {
             </TabsList>
 
             <TabsContent value={tabAtual}>
-              {clientesFiltrados.length > 0 ? (
+              {isLoading ? (
+                <div className="text-center py-10">
+                  <p>Carregando clientes...</p>
+                </div>
+              ) : clientesFiltrados.length > 0 ? (
                 <div className="rounded-md border">
                   <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-6 p-4 bg-muted/50 font-medium text-sm">
                     <div className="md:col-span-2">Nome</div>
@@ -90,7 +133,7 @@ const ClientesList = () => {
                     <div className="text-right">Ações</div>
                   </div>
 
-                  {clientesFiltrados.map((cliente) => (
+                  {clientesFiltrados.map((cliente: ClienteRow) => (
                     <div 
                       key={cliente.id} 
                       className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-6 p-4 border-t items-center"
@@ -138,7 +181,7 @@ const ClientesList = () => {
                         </div>
                       </div>
                       <div className="hidden lg:block text-muted-foreground">
-                        {formatarData(cliente.dataCadastro)}
+                        {cliente.data_cadastro ? formatarData(cliente.data_cadastro) : '-'}
                       </div>
                       <div className="flex justify-end gap-2 mt-2 md:mt-0">
                         <Button
