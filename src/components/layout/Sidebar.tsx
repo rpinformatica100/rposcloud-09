@@ -5,6 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Sidebar as SidebarContainer,
   SidebarContent,
+  SidebarHeader,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -38,24 +40,6 @@ const Sidebar = () => {
     return paths.some(path => location.pathname.startsWith(path));
   };
 
-  // Estado para controlar os grupos expandidos
-  const [openGroups, setOpenGroups] = useState({
-    dashboard: location.pathname === "/app",
-    clientes: isPathInGroup(["/app/clientes"]),
-    produtos: isPathInGroup(["/app/produtos"]),
-    ordens: isPathInGroup(["/app/ordens"]),
-    financeiro: isPathInGroup(["/app/financeiro"]),
-    configuracoes: isPathInGroup(["/app/configuracoes"]),
-  });
-
-  // Função para alternar a abertura de um grupo
-  const toggleGroup = (group: keyof typeof openGroups) => {
-    setOpenGroups(prev => ({
-      ...prev,
-      [group]: !prev[group]
-    }));
-  };
-
   // Estilo para os links ativos
   const getNavClass = ({ isActive }: { isActive: boolean }) =>
     isActive
@@ -74,18 +58,16 @@ const Sidebar = () => {
       }`}
       collapsible="icon"
     >
-      <div className="flex items-center justify-between h-16 px-3 border-b border-sidebar-border">
+      <SidebarHeader className="flex items-center justify-between h-16 px-3 border-b border-sidebar-border">
         {!isCollapsed && (
           <div className="text-xl font-semibold text-sidebar-foreground">
             Sistema OS
           </div>
         )}
-        <SidebarTrigger asChild>
-          <button className="p-2 rounded-md hover:bg-sidebar-accent">
-            <Menu size={20} />
-          </button>
+        <SidebarTrigger>
+          <Menu size={20} />
         </SidebarTrigger>
-      </div>
+      </SidebarHeader>
 
       <SidebarContent>
         {/* Dashboard */}
@@ -234,7 +216,7 @@ const Sidebar = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      <div className="mt-auto p-3 border-t border-sidebar-border">
+      <SidebarFooter className="mt-auto p-3 border-t border-sidebar-border">
         <div className="flex items-center space-x-2">
           {!isCollapsed && (
             <div className="flex-1">
@@ -253,7 +235,7 @@ const Sidebar = () => {
             <LogOut size={20} />
           </button>
         </div>
-      </div>
+      </SidebarFooter>
     </SidebarContainer>
   );
 };
