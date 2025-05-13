@@ -29,7 +29,6 @@ const Sidebar = () => {
   const { state } = useSidebar();
   const location = useLocation();
   const { usuario, logout } = useAuth();
-  const navigate = useLocation();
   
   // O sidebar está colapsado se o estado for "collapsed"
   const isCollapsed = state === "collapsed";
@@ -65,7 +64,6 @@ const Sidebar = () => {
 
   const handleLogout = () => {
     logout();
-    // O 'navigate' é realmente um useLocation, então não podemos usá-lo para navegar
     window.location.href = "/login";
   };
 
@@ -91,7 +89,7 @@ const Sidebar = () => {
 
       <SidebarContent>
         {/* Dashboard */}
-        <SidebarGroup defaultOpen={openGroups.dashboard}>
+        <SidebarGroup>
           <SidebarGroupLabel className="hidden">Dashboard</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -108,7 +106,7 @@ const Sidebar = () => {
         </SidebarGroup>
 
         {/* Clientes */}
-        <SidebarGroup defaultOpen={openGroups.clientes}>
+        <SidebarGroup>
           <SidebarGroupLabel>
             {!isCollapsed && "Clientes & Fornecedores"}
           </SidebarGroupLabel>
@@ -139,7 +137,7 @@ const Sidebar = () => {
         </SidebarGroup>
 
         {/* Produtos */}
-        <SidebarGroup defaultOpen={openGroups.produtos}>
+        <SidebarGroup>
           <SidebarGroupLabel>
             {!isCollapsed && "Produtos & Serviços"}
           </SidebarGroupLabel>
@@ -170,7 +168,7 @@ const Sidebar = () => {
         </SidebarGroup>
 
         {/* Ordens */}
-        <SidebarGroup defaultOpen={openGroups.ordens}>
+        <SidebarGroup>
           <SidebarGroupLabel>
             {!isCollapsed && "Ordens de Serviço"}
           </SidebarGroupLabel>
@@ -198,7 +196,7 @@ const Sidebar = () => {
         </SidebarGroup>
 
         {/* Financeiro */}
-        <SidebarGroup defaultOpen={openGroups.financeiro}>
+        <SidebarGroup>
           <SidebarGroupLabel>
             {!isCollapsed && "Financeiro"}
           </SidebarGroupLabel>
@@ -217,7 +215,7 @@ const Sidebar = () => {
         </SidebarGroup>
 
         {/* Configurações */}
-        <SidebarGroup defaultOpen={openGroups.configuracoes}>
+        <SidebarGroup>
           <SidebarGroupLabel>
             {!isCollapsed && "Configurações"}
           </SidebarGroupLabel>
