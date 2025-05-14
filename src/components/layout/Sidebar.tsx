@@ -54,11 +54,11 @@ const Sidebar = () => {
     return paths.some(path => location.pathname.startsWith(path));
   };
 
-  // Estilo para os links ativos
+  // Estilo para os links ativos e inativos
   const getNavClass = ({ isActive }: { isActive: boolean }) =>
     isActive
-      ? "flex items-center w-full space-x-3 py-2 px-3 rounded-md bg-primary text-primary-foreground font-medium"
-      : "flex items-center w-full space-x-3 py-2 px-3 rounded-md hover:bg-slate-200/50 text-slate-700";
+      ? "flex items-center w-full space-x-3 py-2 px-3 rounded-md bg-primary/20 text-white font-medium"
+      : "flex items-center w-full space-x-3 py-2 px-3 rounded-md hover:bg-primary/30 text-gray-200";
 
   const handleLogout = () => {
     logout();
@@ -66,8 +66,8 @@ const Sidebar = () => {
   };
 
   // Styles for submenus
-  const submenuButton = "flex items-center justify-between w-full py-2 px-3 rounded-md hover:bg-slate-200/50 text-slate-700";
-  const submenuActive = "bg-primary text-primary-foreground font-medium";
+  const submenuButton = "flex items-center justify-between w-full py-2 px-3 rounded-md hover:bg-primary/30 text-gray-200";
+  const submenuActive = "bg-primary/20 text-white font-medium";
   
   const getInitials = (name: string = "") => {
     return name
@@ -79,16 +79,16 @@ const Sidebar = () => {
   
   return (
     <SidebarContainer
-      className={`border-r bg-white transition-all duration-300 ${
+      className={`border-r bg-gray-800 transition-all duration-300 ${
         isCollapsed ? "w-16" : "w-64"
       }`}
       collapsible="icon"
     >
-      <SidebarHeader className="flex items-center justify-between h-16 px-4 border-b">
+      <SidebarHeader className="flex items-center justify-between h-16 px-4 border-b border-gray-700">
         {!isCollapsed ? (
-          <Link to="/" className="text-xl font-semibold text-primary flex items-center">
+          <Link to="/" className="text-xl font-semibold text-white flex items-center">
             <div className="bg-primary text-white rounded-md w-8 h-8 flex items-center justify-center mr-2">OS</div>
-            <span className="text-primary font-bold">Sistema OS</span>
+            <span className="text-white font-bold">Sistema OS</span>
           </Link>
         ) : (
           <Link to="/" className="flex justify-center w-full">
@@ -96,11 +96,11 @@ const Sidebar = () => {
           </Link>
         )}
         <SidebarTrigger>
-          <Menu size={20} className="text-slate-600" />
+          <Menu size={20} className="text-gray-300 hover:text-white" />
         </SidebarTrigger>
       </SidebarHeader>
 
-      <SidebarContent className="bg-white">
+      <SidebarContent className="bg-gray-800">
         {/* Dashboard */}
         <SidebarGroup>
           <SidebarGroupContent className="px-3 py-2">
@@ -119,7 +119,7 @@ const Sidebar = () => {
 
         {/* Ordens */}
         <SidebarGroup>
-          <SidebarGroupLabel className={isCollapsed ? "opacity-0" : "text-xs font-medium text-slate-500 px-3 py-2"}>
+          <SidebarGroupLabel className={isCollapsed ? "opacity-0" : "text-xs font-medium text-gray-400 px-3 py-2"}>
             {!isCollapsed && "Ordens de Serviço"}
           </SidebarGroupLabel>
           <SidebarGroupContent className="px-3 py-1">
@@ -169,7 +169,7 @@ const Sidebar = () => {
 
         {/* Clientes */}
         <SidebarGroup>
-          <SidebarGroupLabel className={isCollapsed ? "opacity-0" : "text-xs font-medium text-slate-500 px-3 py-2"}>
+          <SidebarGroupLabel className={isCollapsed ? "opacity-0" : "text-xs font-medium text-gray-400 px-3 py-2"}>
             {!isCollapsed && "Cadastros"}
           </SidebarGroupLabel>
           <SidebarGroupContent className="px-3 py-1">
@@ -266,7 +266,7 @@ const Sidebar = () => {
 
         {/* Financeiro */}
         <SidebarGroup>
-          <SidebarGroupLabel className={isCollapsed ? "opacity-0" : "text-xs font-medium text-slate-500 px-3 py-2"}>
+          <SidebarGroupLabel className={isCollapsed ? "opacity-0" : "text-xs font-medium text-gray-400 px-3 py-2"}>
             {!isCollapsed && "Financeiro"}
           </SidebarGroupLabel>
           <SidebarGroupContent className="px-3 py-1">
@@ -285,7 +285,7 @@ const Sidebar = () => {
 
         {/* Configurações */}
         <SidebarGroup>
-          <SidebarGroupLabel className={isCollapsed ? "opacity-0" : "text-xs font-medium text-slate-500 px-3 py-2"}>
+          <SidebarGroupLabel className={isCollapsed ? "opacity-0" : "text-xs font-medium text-gray-400 px-3 py-2"}>
             {!isCollapsed && "Configurações"}
           </SidebarGroupLabel>
           <SidebarGroupContent className="px-3 py-1">
@@ -334,26 +334,26 @@ const Sidebar = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="mt-auto p-4 border-t">
+      <SidebarFooter className="mt-auto p-4 border-t border-gray-700">
         <div className="flex items-center space-x-3">
-          <Avatar className="h-9 w-9 border-2 border-primary/10">
-            <AvatarFallback className="bg-primary/10 text-primary">
+          <Avatar className="h-9 w-9 border-2 border-primary/20">
+            <AvatarFallback className="bg-primary/20 text-primary">
               {getInitials(profile?.nome)}
             </AvatarFallback>
           </Avatar>
           
           {!isCollapsed && (
             <div className="flex-1">
-              <p className="text-sm font-medium text-slate-800 truncate">
+              <p className="text-sm font-medium text-white truncate">
                 {profile?.nome}
               </p>
-              <p className="text-xs text-slate-500 truncate">
+              <p className="text-xs text-gray-400 truncate">
                 {profile?.cargo || profile?.email}
               </p>
             </div>
           )}
           <button 
-            className="p-2 rounded-md text-slate-600 hover:bg-slate-100 flex items-center justify-center"
+            className="p-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-white flex items-center justify-center"
             onClick={handleLogout}
             title="Sair"
           >
