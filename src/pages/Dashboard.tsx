@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { usuario } = useAuth();
+  const { profile } = useAuth();
   
   // Status das ordens para o gráfico de pizza
   const statusOrdens = [
@@ -47,11 +46,11 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <div className="text-sm text-muted-foreground">
-          Bem-vindo(a), {usuario?.nome || "Usuário"}
-        </div>
+        <p className="text-muted-foreground">
+          Bem-vindo(a), {profile?.nome || "Usuário"}!
+        </p>
       </div>
 
       {/* Cards informativos */}
