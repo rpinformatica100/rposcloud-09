@@ -90,7 +90,7 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
   });
 
   // Process config data when it changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (configData) {
       const info: EmpresaConfig = {};
       configData.forEach(config => {
@@ -151,6 +151,13 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
     printWindow.document.write(getOrderHtml(true));
     printWindow.document.close();
     
+    // Trigger print after window is loaded
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+    };
+    
     // Fecha o diálogo após abrir a janela de impressão
     setIsDialogOpen(false);
   };
@@ -172,11 +179,13 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
     printWindow.document.close();
     
     // Automatic PDF print dialog
-    setTimeout(() => {
-      printWindow.print();
-      // Close dialog after print
-      setIsDialogOpen(false);
-    }, 500);
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print();
+        // Close dialog after print
+        setIsDialogOpen(false);
+      }, 500);
+    };
   };
 
   // Generate HTML content for the order
@@ -427,6 +436,12 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
           <p>Documento gerado em ${new Date().toLocaleString('pt-BR')}</p>
           ${empresaInfo.observacoes ? `<p>${empresaInfo.observacoes}</p>` : ''}
         </div>
+
+        <script>
+          window.onload = function() {
+            ${forPrinting || forDownload ? 'setTimeout(function() { window.print(); }, 1000);' : ''}
+          }
+        </script>
       </body>
       </html>
     `;

@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Sidebar as SidebarContainer,
@@ -29,10 +29,8 @@ import {
   Menu,
   LogOut,
   ChevronDown,
-  UserCircle,
-  Building,
-  Image
 } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const Sidebar = () => {
   const { state } = useSidebar();
@@ -59,41 +57,53 @@ const Sidebar = () => {
   // Estilo para os links ativos
   const getNavClass = ({ isActive }: { isActive: boolean }) =>
     isActive
-      ? "w-full flex items-center space-x-2 py-2 px-3 rounded-md bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-      : "w-full flex items-center space-x-2 py-2 px-3 rounded-md hover:bg-sidebar-accent/50 text-sidebar-foreground";
+      ? "flex items-center w-full space-x-3 py-2 px-3 rounded-md bg-primary text-primary-foreground font-medium"
+      : "flex items-center w-full space-x-3 py-2 px-3 rounded-md hover:bg-slate-200/50 text-slate-700";
 
   const handleLogout = () => {
     logout();
-    window.location.href = "/login";
+    window.location.href = "/"; // Redirecionar para a landing page após logout
   };
 
   // Styles for submenus
-  const submenuButton = "flex items-center justify-between w-full py-2 px-3 rounded-md hover:bg-sidebar-accent/50 text-sidebar-foreground";
-  const submenuActive = "bg-sidebar-accent text-sidebar-accent-foreground font-medium";
+  const submenuButton = "flex items-center justify-between w-full py-2 px-3 rounded-md hover:bg-slate-200/50 text-slate-700";
+  const submenuActive = "bg-primary text-primary-foreground font-medium";
+  
+  const getInitials = (name: string = "") => {
+    return name
+      .split(" ")
+      .map(part => part.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join("");
+  };
   
   return (
     <SidebarContainer
-      className={`border-r border-sidebar-border bg-primary/5 transition-all duration-300 ${
+      className={`border-r bg-white transition-all duration-300 ${
         isCollapsed ? "w-16" : "w-64"
       }`}
       collapsible="icon"
     >
-      <SidebarHeader className="flex items-center justify-between h-16 px-3 border-b border-sidebar-border">
-        {!isCollapsed && (
-          <div className="text-xl font-semibold text-primary">
-            Sistema OS
-          </div>
+      <SidebarHeader className="flex items-center justify-between h-16 px-4 border-b">
+        {!isCollapsed ? (
+          <Link to="/" className="text-xl font-semibold text-primary flex items-center">
+            <div className="bg-primary text-white rounded-md w-8 h-8 flex items-center justify-center mr-2">OS</div>
+            <span className="text-primary font-bold">Sistema OS</span>
+          </Link>
+        ) : (
+          <Link to="/" className="flex justify-center w-full">
+            <div className="bg-primary text-white rounded-md w-8 h-8 flex items-center justify-center">OS</div>
+          </Link>
         )}
         <SidebarTrigger>
-          <Menu size={20} />
+          <Menu size={20} className="text-slate-600" />
         </SidebarTrigger>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="bg-white">
         {/* Dashboard */}
         <SidebarGroup>
-          <SidebarGroupLabel className="hidden">Dashboard</SidebarGroupLabel>
-          <SidebarGroupContent>
+          <SidebarGroupContent className="px-3 py-2">
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
@@ -107,12 +117,62 @@ const Sidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Ordens */}
+        <SidebarGroup>
+          <SidebarGroupLabel className={isCollapsed ? "opacity-0" : "text-xs font-medium text-slate-500 px-3 py-2"}>
+            {!isCollapsed && "Ordens de Serviço"}
+          </SidebarGroupLabel>
+          <SidebarGroupContent className="px-3 py-1">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                {isCollapsed ? (
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/app/ordens" className={getNavClass}>
+                      <FileText size={20} />
+                    </NavLink>
+                  </SidebarMenuButton>
+                ) : (
+                  <button 
+                    className={`${submenuButton} ${isPathInGroup(['/app/ordens']) ? submenuActive : ''}`}
+                    onClick={() => toggleSubmenu('ordens')}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <FileText size={20} />
+                      <span>Ordens</span>
+                    </div>
+                    <ChevronDown size={16} className={`transition-transform ${openSubmenus.ordens ? 'rotate-180' : ''}`} />
+                  </button>
+                )}
+              </SidebarMenuItem>
+              
+              {!isCollapsed && openSubmenus.ordens && (
+                <SidebarMenuSub>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton asChild>
+                      <NavLink to="/app/ordens" end className={getNavClass}>
+                        Lista de Ordens
+                      </NavLink>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton asChild>
+                      <NavLink to="/app/ordens/nova" className={getNavClass}>
+                        Nova Ordem
+                      </NavLink>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                </SidebarMenuSub>
+              )}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         {/* Clientes */}
         <SidebarGroup>
-          <SidebarGroupLabel>
-            {!isCollapsed && "Clientes & Fornecedores"}
+          <SidebarGroupLabel className={isCollapsed ? "opacity-0" : "text-xs font-medium text-slate-500 px-3 py-2"}>
+            {!isCollapsed && "Cadastros"}
           </SidebarGroupLabel>
-          <SidebarGroupContent>
+          <SidebarGroupContent className="px-3 py-1">
             <SidebarMenu>
               <SidebarMenuItem>
                 {isCollapsed ? (
@@ -126,7 +186,7 @@ const Sidebar = () => {
                     className={`${submenuButton} ${isPathInGroup(['/app/clientes']) ? submenuActive : ''}`}
                     onClick={() => toggleSubmenu('clientes')}
                   >
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-3">
                       <Users size={20} />
                       <span>Clientes</span>
                     </div>
@@ -159,10 +219,7 @@ const Sidebar = () => {
 
         {/* Produtos */}
         <SidebarGroup>
-          <SidebarGroupLabel>
-            {!isCollapsed && "Produtos & Serviços"}
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
+          <SidebarGroupContent className="px-3 py-1">
             <SidebarMenu>
               <SidebarMenuItem>
                 {isCollapsed ? (
@@ -176,7 +233,7 @@ const Sidebar = () => {
                     className={`${submenuButton} ${isPathInGroup(['/app/produtos']) ? submenuActive : ''}`}
                     onClick={() => toggleSubmenu('produtos')}
                   >
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-3">
                       <ShoppingCart size={20} />
                       <span>Produtos</span>
                     </div>
@@ -207,62 +264,12 @@ const Sidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Ordens */}
-        <SidebarGroup>
-          <SidebarGroupLabel>
-            {!isCollapsed && "Ordens de Serviço"}
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                {isCollapsed ? (
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/app/ordens" className={getNavClass}>
-                      <FileText size={20} />
-                    </NavLink>
-                  </SidebarMenuButton>
-                ) : (
-                  <button 
-                    className={`${submenuButton} ${isPathInGroup(['/app/ordens']) ? submenuActive : ''}`}
-                    onClick={() => toggleSubmenu('ordens')}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <FileText size={20} />
-                      <span>Ordens</span>
-                    </div>
-                    <ChevronDown size={16} className={`transition-transform ${openSubmenus.ordens ? 'rotate-180' : ''}`} />
-                  </button>
-                )}
-              </SidebarMenuItem>
-              
-              {!isCollapsed && openSubmenus.ordens && (
-                <SidebarMenuSub>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild>
-                      <NavLink to="/app/ordens" end className={getNavClass}>
-                        Lista de Ordens
-                      </NavLink>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild>
-                      <NavLink to="/app/ordens/nova" className={getNavClass}>
-                        Nova Ordem
-                      </NavLink>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                </SidebarMenuSub>
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
         {/* Financeiro */}
         <SidebarGroup>
-          <SidebarGroupLabel>
+          <SidebarGroupLabel className={isCollapsed ? "opacity-0" : "text-xs font-medium text-slate-500 px-3 py-2"}>
             {!isCollapsed && "Financeiro"}
           </SidebarGroupLabel>
-          <SidebarGroupContent>
+          <SidebarGroupContent className="px-3 py-1">
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
@@ -278,10 +285,10 @@ const Sidebar = () => {
 
         {/* Configurações */}
         <SidebarGroup>
-          <SidebarGroupLabel>
+          <SidebarGroupLabel className={isCollapsed ? "opacity-0" : "text-xs font-medium text-slate-500 px-3 py-2"}>
             {!isCollapsed && "Configurações"}
           </SidebarGroupLabel>
-          <SidebarGroupContent>
+          <SidebarGroupContent className="px-3 py-1">
             <SidebarMenu>
               <SidebarMenuItem>
                 {isCollapsed ? (
@@ -295,7 +302,7 @@ const Sidebar = () => {
                     className={`${submenuButton} ${isPathInGroup(['/app/configuracoes']) ? submenuActive : ''}`}
                     onClick={() => toggleSubmenu('configuracoes')}
                   >
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-3">
                       <Settings size={20} />
                       <span>Configurações</span>
                     </div>
@@ -327,23 +334,30 @@ const Sidebar = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="mt-auto p-3 border-t border-sidebar-border">
-        <div className="flex items-center space-x-2">
+      <SidebarFooter className="mt-auto p-4 border-t">
+        <div className="flex items-center space-x-3">
+          <Avatar className="h-9 w-9 border-2 border-primary/10">
+            <AvatarFallback className="bg-primary/10 text-primary">
+              {getInitials(profile?.nome)}
+            </AvatarFallback>
+          </Avatar>
+          
           {!isCollapsed && (
             <div className="flex-1">
-              <p className="text-sm font-medium text-sidebar-foreground">
+              <p className="text-sm font-medium text-slate-800 truncate">
                 {profile?.nome}
               </p>
-              <p className="text-xs text-sidebar-foreground/70">
-                {profile?.cargo}
+              <p className="text-xs text-slate-500 truncate">
+                {profile?.cargo || profile?.email}
               </p>
             </div>
           )}
           <button 
-            className="p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent flex items-center justify-center"
+            className="p-2 rounded-md text-slate-600 hover:bg-slate-100 flex items-center justify-center"
             onClick={handleLogout}
+            title="Sair"
           >
-            <LogOut size={20} />
+            <LogOut size={18} />
           </button>
         </div>
       </SidebarFooter>

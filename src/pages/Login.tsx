@@ -46,7 +46,10 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-blue-200 p-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-blue-800">Sistema OS</h1>
+          <Link to="/" className="inline-flex items-center justify-center mb-2">
+            <div className="bg-primary text-white rounded-md w-10 h-10 flex items-center justify-center mr-2">OS</div>
+            <h1 className="text-3xl font-bold text-primary">Sistema OS</h1>
+          </Link>
           <p className="text-gray-600 mt-1">Entre para gerenciar suas ordens de serviço</p>
         </div>
         
@@ -92,7 +95,7 @@ const Login = () => {
               </Button>
               <div className="text-center text-sm">
                 Não tem uma conta?{" "}
-                <Link to="/registrar" className="text-blue-600 hover:underline">
+                <Link to="/registrar" className="text-primary hover:underline">
                   Registre-se
                 </Link>
               </div>
