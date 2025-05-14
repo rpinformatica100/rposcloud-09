@@ -111,11 +111,14 @@ const PerfilEmpresa = () => {
           setLogoUrl(urlData.publicUrl);
         } else {
           // If logo config doesn't exist, create a new one
+          // Include the required fields for ConfiguracaoRow
           const newConfig: ConfiguracaoRow = {
             id: crypto.randomUUID(),
             chave: 'empresa_logo',
             valor: urlData.publicUrl,
-            descricao: 'Logo da empresa'
+            descricao: 'Logo da empresa',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           };
           setConfiguracoes([...configuracoes, newConfig]);
           setLogoUrl(urlData.publicUrl);

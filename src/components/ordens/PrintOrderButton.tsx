@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Printer, Download, Eye, Link2 } from "lucide-react";
@@ -86,16 +86,20 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
 
       if (error) throw error;
       return data;
-    },
-    onSuccess: (data) => {
+    }
+  });
+
+  // Process config data when it changes
+  React.useEffect(() => {
+    if (configData) {
       const info: EmpresaConfig = {};
-      data.forEach(config => {
+      configData.forEach(config => {
         const key = config.chave.replace('empresa_', '') as keyof EmpresaConfig;
         info[key] = config.valor;
       });
       setEmpresaInfo(info);
     }
-  });
+  }, [configData]);
 
   // Generate a shareable link for the order
   const generateShareableLink = () => {
