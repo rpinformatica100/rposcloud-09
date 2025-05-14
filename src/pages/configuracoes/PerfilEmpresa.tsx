@@ -254,16 +254,17 @@ const PerfilEmpresa = () => {
                   <p className="mb-4">Nenhuma informação da empresa encontrada.</p>
                   <Button 
                     onClick={() => {
-                      const defaultFields = [
-                        { id: crypto.randomUUID(), chave: 'empresa_nome', valor: '', descricao: 'Nome da Empresa' },
-                        { id: crypto.randomUUID(), chave: 'empresa_cnpj', valor: '', descricao: 'CNPJ' },
-                        { id: crypto.randomUUID(), chave: 'empresa_endereco', valor: '', descricao: 'Endereço' },
-                        { id: crypto.randomUUID(), chave: 'empresa_cidade', valor: '', descricao: 'Cidade' },
-                        { id: crypto.randomUUID(), chave: 'empresa_estado', valor: '', descricao: 'Estado' },
-                        { id: crypto.randomUUID(), chave: 'empresa_telefone', valor: '', descricao: 'Telefone' },
-                        { id: crypto.randomUUID(), chave: 'empresa_email', valor: '', descricao: 'Email' },
-                        { id: crypto.randomUUID(), chave: 'empresa_site', valor: '', descricao: 'Site' },
-                        { id: crypto.randomUUID(), chave: 'empresa_observacoes', valor: '', descricao: 'Observações' },
+                      const currentDate = new Date().toISOString();
+                      const defaultFields: ConfiguracaoRow[] = [
+                        { id: crypto.randomUUID(), chave: 'empresa_nome', valor: '', descricao: 'Nome da Empresa', created_at: currentDate, updated_at: currentDate },
+                        { id: crypto.randomUUID(), chave: 'empresa_cnpj', valor: '', descricao: 'CNPJ', created_at: currentDate, updated_at: currentDate },
+                        { id: crypto.randomUUID(), chave: 'empresa_endereco', valor: '', descricao: 'Endereço', created_at: currentDate, updated_at: currentDate },
+                        { id: crypto.randomUUID(), chave: 'empresa_cidade', valor: '', descricao: 'Cidade', created_at: currentDate, updated_at: currentDate },
+                        { id: crypto.randomUUID(), chave: 'empresa_estado', valor: '', descricao: 'Estado', created_at: currentDate, updated_at: currentDate },
+                        { id: crypto.randomUUID(), chave: 'empresa_telefone', valor: '', descricao: 'Telefone', created_at: currentDate, updated_at: currentDate },
+                        { id: crypto.randomUUID(), chave: 'empresa_email', valor: '', descricao: 'Email', created_at: currentDate, updated_at: currentDate },
+                        { id: crypto.randomUUID(), chave: 'empresa_site', valor: '', descricao: 'Site', created_at: currentDate, updated_at: currentDate },
+                        { id: crypto.randomUUID(), chave: 'empresa_observacoes', valor: '', descricao: 'Observações', created_at: currentDate, updated_at: currentDate },
                       ];
                       setConfiguracoes([...configuracoes, ...defaultFields]);
                     }}
