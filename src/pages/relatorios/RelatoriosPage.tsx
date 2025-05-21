@@ -20,7 +20,9 @@ import {
   FileText, 
   Download, 
   DollarSign, 
-  CreditCard 
+  CreditCard,
+  FileSpreadsheet,
+  FileArchive // Using FileArchive as a placeholder for FilePdf, assuming FilePdf is not available
 } from "lucide-react";
 import { formatarMoeda } from "@/lib/utils";
 import { formatDate } from "@/lib/formatters";
@@ -44,6 +46,9 @@ import {
 import { DateRange } from "react-day-picker";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
 const CORES = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"];
 
 interface CategoriaFinanceira {
@@ -55,6 +60,13 @@ interface EvolucaoFinanceira {
   receitas: number;
   despesas: number;
   saldo: number;
+}
+
+// Extend jsPDF with autoTable - necessary for TypeScript
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
 }
 
 const RelatoriosPage = () => {
@@ -130,12 +142,12 @@ const RelatoriosPage = () => {
       // Agrupar por mês
       const agrupado = ordensFiltered
         .filter(o => o.status === "concluida")
-        .reduce((acc, ordem) => {
+        .reduce((acc: Record<string, number>, ordem) => {
           const mes = new Date(ordem.dataAbertura).toLocaleString('pt-BR', { month: 'short', year: 'numeric' });
           if (!acc[mes]) acc[mes] = 0;
           acc[mes] += ordem.valorTotal;
           return acc;
-        }, {});
+        }, {} as Record<string, number>);
         
       // Converter para array
       return Object.entries(agrupado).map(([name, value]) => ({ name, value }));
@@ -227,8 +239,18 @@ const RelatoriosPage = () => {
       // Ordenar e converter para array
       return Object.entries(agrupado)
         .sort((a, b) => {
-          const dataA = new Date(a[0].split(' ')[0] + ' ' + a[0].split(' ')[1]);
-          const dataB = new Date(b[0].split(' ')[0] + ' ' + b[0].split(' ')[1]);
+          // Extract month and year for proper date comparison
+          const [mesA, , anoA] = a[0].split(' ');
+          const [mesB, , anoB] = b[0].split(' ');
+
+          const meses: { [key: string]: number } = {
+            jan: 0, fev: 1, mar: 2, abr: 3, mai: 4, jun: 5,
+            jul: 6, ago: 7, set: 8, out: 9, nov: 10, dez: 11
+          };
+          
+          const dataA = new Date(parseInt(anoA), meses[mesA.toLowerCase()]);
+          const dataB = new Date(parseInt(anoB), meses[mesB.toLowerCase()]);
+          
           return dataA.getTime() - dataB.getTime();
         })
         .map(([name, { receitas, despesas, saldo }]) => ({
@@ -293,6 +315,35 @@ const RelatoriosPage = () => {
     
     exportarCSV(dados, 'relatorio-ordens');
   };
+
+  // Exportar dados de ordens para PDF
+  const exportarOrdensPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Relatório de Ordens de Serviço", 14, 16);
+
+    const tableColumn = ["Número", "Cliente", "Data Abertura", "Status", "Responsável", "Valor Total"];
+    const tableRows: any[][] = [];
+
+    ordensFiltered.forEach(ordem => {
+      const cliente = clientesData.find(c => c.id === ordem.clienteId);
+      const ordemData = [
+        ordem.numero,
+        cliente?.nome || 'N/A',
+        formatDate(ordem.dataAbertura),
+        ordem.status,
+        ordem.responsavel,
+        formatarMoeda(ordem.valorTotal)
+      ];
+      tableRows.push(ordemData);
+    });
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+    });
+    doc.save('relatorio-ordens.pdf');
+  };
   
   // Exportar dados financeiros para CSV
   const exportarFinanceiroCSV = () => {
@@ -307,6 +358,33 @@ const RelatoriosPage = () => {
     }));
     
     exportarCSV(dados, 'relatorio-financeiro');
+  };
+
+  // Exportar dados financeiros para PDF
+  const exportarFinanceiroPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Relatório Financeiro", 14, 16);
+
+    const tableColumn = ["Data", "Descrição", "Categoria", "Status", "Valor"];
+    const tableRows: any[][] = [];
+
+    movimentosFiltered.forEach(movimento => {
+      const movimentoData = [
+        formatDate(movimento.data),
+        movimento.descricao,
+        movimento.categoria,
+        movimento.pago ? "Pago" : "Pendente",
+        `${movimento.tipo === "receita" ? "+" : "-"}${formatarMoeda(movimento.valor)}`
+      ];
+      tableRows.push(movimentoData);
+    });
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+    });
+    doc.save('relatorio-financeiro.pdf');
   };
 
   return (
@@ -368,10 +446,16 @@ const RelatoriosPage = () => {
               </Select>
             </div>
             
-            <Button onClick={exportarOrdensCSV} variant="outline" size="sm" className="ml-auto">
-              <Download className="mr-2 h-4 w-4" />
-              Exportar CSV
-            </Button>
+            <div className="ml-auto flex gap-2">
+              <Button onClick={exportarOrdensCSV} variant="outline" size="sm">
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Exportar CSV
+              </Button>
+              <Button onClick={exportarOrdensPDF} variant="outline" size="sm">
+                <FileArchive className="mr-2 h-4 w-4" /> {/* Changed icon to FileArchive as FilePdf might not be in lucide */}
+                Exportar PDF
+              </Button>
+            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -570,10 +654,16 @@ const RelatoriosPage = () => {
               </Select>
             </div>
             
-            <Button onClick={exportarFinanceiroCSV} variant="outline" size="sm" className="ml-auto">
-              <Download className="mr-2 h-4 w-4" />
-              Exportar CSV
-            </Button>
+            <div className="ml-auto flex gap-2">
+              <Button onClick={exportarFinanceiroCSV} variant="outline" size="sm">
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Exportar CSV
+              </Button>
+              <Button onClick={exportarFinanceiroPDF} variant="outline" size="sm">
+                <FileArchive className="mr-2 h-4 w-4" /> {/* Changed icon */}
+                Exportar PDF
+              </Button>
+            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
