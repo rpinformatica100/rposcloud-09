@@ -60,17 +60,7 @@ const OrdensView = () => {
         observacoes: mockOrdem.observacoes,
         valor_total: mockOrdem.valorTotal,
         responsavel: mockOrdem.responsavel,
-        cliente: mockCliente ? {
-          id: mockCliente.id,
-          nome: mockCliente.nome,
-          documento: mockCliente.documento,
-          telefone: mockCliente.telefone,
-          email: mockCliente.email,
-          endereco: mockCliente.endereco,
-          cidade: mockCliente.cidade,
-          estado: mockCliente.estado,
-          cep: mockCliente.cep
-        } : undefined
+        cliente: mockCliente
       };
     }
   };
@@ -349,11 +339,6 @@ const OrdensView = () => {
                 <div className="space-y-3">
                   <div>
                     <h3 className="font-medium">{ordem.cliente.nome}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {ordem.cliente.tipo === "pessoa_fisica"
-                        ? "Pessoa Física"
-                        : "Pessoa Jurídica"}
-                    </p>
                   </div>
 
                   <Separator />
@@ -362,9 +347,7 @@ const OrdensView = () => {
                     {ordem.cliente.documento && (
                       <div>
                         <span className="font-medium">
-                          {ordem.cliente.tipo === "pessoa_fisica"
-                            ? "CPF:"
-                            : "CNPJ:"}
+                          Documento:
                         </span>{" "}
                         {ordem.cliente.documento}
                       </div>
