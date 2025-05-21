@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -494,14 +493,15 @@ const OrdensForm = () => {
                             <SelectValue placeholder="Selecione um produto/serviço" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="" disabled>Selecione um item</SelectItem>
-                            <SelectItem value="" disabled>-- Produtos --</SelectItem>
+                            {/* Fix: Remove SelectItem with empty value */}
+                            <SelectItem value="header-1" disabled>Selecione um item</SelectItem>
+                            <SelectItem value="header-2" disabled>-- Produtos --</SelectItem>
                             {produtos.filter(p => p.ativo && p.tipo === "produto").map((produto) => (
                               <SelectItem key={produto.id} value={produto.id}>
                                 {produto.nome}
                               </SelectItem>
                             ))}
-                            <SelectItem value="" disabled>-- Serviços --</SelectItem>
+                            <SelectItem value="header-3" disabled>-- Serviços --</SelectItem>
                             {produtos.filter(p => p.ativo && p.tipo === "servico").map((produto) => (
                               <SelectItem key={produto.id} value={produto.id}>
                                 {produto.nome}
