@@ -49,6 +49,7 @@ import AssistenciasList from './pages/admin/AssistenciasList';
 import PlanosList from './pages/admin/PlanosList';
 import PagamentosList from './pages/admin/PagamentosList';
 import ConfigAdmin from './pages/admin/ConfigAdmin';
+import AdminRelatoriosPage from './pages/admin/AdminRelatoriosPage';
 
 const queryClient = new QueryClient();
 
@@ -143,6 +144,7 @@ function App() {
                 <Route path="assistencias" element={<AssistenciasList />} />
                 <Route path="planos" element={<PlanosList />} />
                 <Route path="pagamentos" element={<PagamentosList />} />
+                <Route path="relatorios" element={<AdminRelatoriosPage />} />
                 <Route path="configuracoes" element={<ConfigAdmin />} />
               </Route>
               

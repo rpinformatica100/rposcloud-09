@@ -1,4 +1,3 @@
-
 import { NavLink, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -18,6 +17,7 @@ import {
   LogOut,
   ChevronLeft,
   ShieldCheck,
+  BarChart2
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
@@ -33,6 +33,7 @@ const AdminSidebar = () => {
     { title: "Assistências", path: "/admin/assistencias", icon: Users },
     { title: "Planos", path: "/admin/planos", icon: Package },
     { title: "Pagamentos", path: "/admin/pagamentos", icon: CreditCard },
+    { title: "Relatórios", path: "/admin/relatorios", icon: BarChart2 },
     { title: "Configurações", path: "/admin/configuracoes", icon: Settings },
   ];
 
@@ -96,7 +97,7 @@ const AdminSidebar = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                end={item.path === "/admin"}
+                end={item.path === "/admin" || item.path === "/admin/relatorios"}
                 className={({ isActive }) => `
                   flex items-center px-3 py-2.5 mx-2 my-1 rounded-lg
                   ${isActive 

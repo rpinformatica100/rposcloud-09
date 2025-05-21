@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -13,7 +12,8 @@ import {
   Users,
   FileText,
   Package,
-  CreditCard
+  CreditCard,
+  BarChart2
 } from "lucide-react";
 
 // Import the new components
@@ -33,6 +33,7 @@ const Sidebar = () => {
     { title: "Ordens de Serviço", path: "/ordens", icon: FileText },
     { title: "Produtos", path: "/produtos", icon: Package },
     { title: "Financeiro", path: "/financeiro", icon: CreditCard },
+    { title: "Relatórios", path: "/relatorios", icon: BarChart2 },
   ];
 
   return (
