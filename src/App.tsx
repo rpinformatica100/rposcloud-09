@@ -16,6 +16,7 @@ import NotFound from './pages/NotFound';
 
 // App Layout
 import Layout from './components/layout/Layout';
+import AdminLayout from './components/layout/AdminLayout';
 
 // App Pages
 import Dashboard from './pages/Dashboard';
@@ -30,6 +31,13 @@ import FinanceiroList from './pages/financeiro/FinanceiroList';
 import FinanceiroForm from './pages/financeiro/FinanceiroForm';
 import ConfiguracoesList from "./pages/configuracoes/ConfiguracoesList";
 import PerfilEmpresa from "./pages/configuracoes/PerfilEmpresa";
+
+// Admin Pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AssistenciasList from './pages/admin/AssistenciasList';
+import PlanosList from './pages/admin/PlanosList';
+import PagamentosList from './pages/admin/PagamentosList';
+import ConfigAdmin from './pages/admin/ConfigAdmin';
 
 const queryClient = new QueryClient();
 
@@ -66,6 +74,15 @@ function App() {
                 
                 <Route path="configuracoes" element={<ConfiguracoesList />} />
                 <Route path="configuracoes/perfil" element={<PerfilEmpresa />} />
+              </Route>
+              
+              {/* Admin Routes (require admin authentication) */}
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="assistencias" element={<AssistenciasList />} />
+                <Route path="planos" element={<PlanosList />} />
+                <Route path="pagamentos" element={<PagamentosList />} />
+                <Route path="configuracoes" element={<ConfigAdmin />} />
               </Route>
               
               <Route path="*" element={<NotFound />} />

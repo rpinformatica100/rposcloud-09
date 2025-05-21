@@ -8,6 +8,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   login: (email: string, senha: string) => Promise<boolean>;
   registrar: (nome: string, email: string, senha: string) => Promise<boolean>;
   logout: () => Promise<void>;
@@ -20,6 +21,7 @@ interface ProfileType {
   nome: string;
   email: string;
   cargo: string;
+  role?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -31,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<ProfileType | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Função para buscar o perfil do usuário
@@ -68,9 +71,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setTimeout(async () => {
             const userProfile = await fetchProfile(newSession.user.id);
             setProfile(userProfile);
+            
+            // Verificar se o usuário é administrador com base no papel (role)
+            setIsAdmin(userProfile?.role === 'admin');
           }, 0);
         } else {
           setProfile(null);
+          setIsAdmin(false);
         }
 
         setLoading(false);
@@ -87,6 +94,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (currentSession?.user) {
         fetchProfile(currentSession.user.id).then(userProfile => {
           setProfile(userProfile);
+          
+          // Verificar se o usuário é administrador com base no papel (role)
+          setIsAdmin(userProfile?.role === 'admin');
         });
       }
 
@@ -114,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data?.user) {
         const userProfile = await fetchProfile(data.user.id);
         setProfile(userProfile);
+        setIsAdmin(userProfile?.role === 'admin');
         return true;
       }
 
@@ -133,6 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         options: {
           data: {
             nome: nome,
+            role: 'user', // Definir papel como 'user' por padrão
           },
         },
       });
@@ -155,6 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await supabase.auth.signOut();
       setProfile(null);
+      setIsAdmin(false);
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
       toast.error("Ocorreu um erro ao fazer logout");
@@ -165,7 +178,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider value={{ 
       user, 
       session, 
-      isAuthenticated, 
+      isAuthenticated,
+      isAdmin,
       login, 
       registrar, 
       logout, 

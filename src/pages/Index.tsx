@@ -11,13 +11,14 @@ import {
   Users, 
   Wallet,
   Info,
-  CheckCircle
+  CheckCircle,
+  ShieldCheck
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isAdmin } = useAuth();
 
   // Dados dos planos de pagamento
   const plans = [
@@ -98,6 +99,24 @@ const Index = () => {
                     Criar Conta
                   </Button>
                 </>
+              ) : isAdmin ? (
+                <div className="flex gap-4">
+                  <Button
+                    size="lg"
+                    onClick={() => navigate("/app")}
+                    className="min-w-[160px]"
+                  >
+                    Acessar Sistema
+                  </Button>
+                  <Button
+                    size="lg"
+                    onClick={() => navigate("/admin")}
+                    className="min-w-[160px] bg-gray-800 hover:bg-gray-700"
+                  >
+                    <ShieldCheck className="mr-2 h-5 w-5" />
+                    Painel Admin
+                  </Button>
+                </div>
               ) : (
                 <Button
                   size="lg"
@@ -315,7 +334,7 @@ const Index = () => {
             <div className="md:w-1/2">
               <h2 className="text-3xl font-bold text-primary mb-4">Painel de Administração Completo</h2>
               <p className="text-muted-foreground mb-6">
-                Nosso sistema inclui um poderoso painel de administração que permite gerenciar todos os aspectos do seu negócio, incluindo:
+                Nosso sistema inclui um poderoso painel de administração para assistências técnicas gerenciarem todos os aspectos do negócio:
               </p>
               <ul className="space-y-3">
                 <li className="flex items-start">
@@ -332,11 +351,11 @@ const Index = () => {
                 </li>
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-primary mr-2 mt-0.5" />
-                  <span>Integração com outros sistemas</span>
+                  <span>Gerenciamento completo de ordens de serviço</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-primary mr-2 mt-0.5" />
-                  <span>Backup e restauração de dados</span>
+                  <span>Controle financeiro detalhado</span>
                 </li>
               </ul>
               <Button className="mt-6" onClick={() => navigate("/app/configuracoes")}>
@@ -346,25 +365,101 @@ const Index = () => {
             <div className="md:w-1/2 bg-slate-100 rounded-lg p-6">
               <div className="border border-border bg-card rounded-md shadow-sm p-4">
                 <div className="flex items-center justify-between mb-4 pb-2 border-b">
-                  <h3 className="font-medium">Painel de Administração</h3>
+                  <h3 className="font-medium">Painel da Assistência Técnica</h3>
                   <Settings className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-2 bg-slate-50 rounded-md">
-                    <span className="font-medium">Usuários</span>
-                    <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded">258</span>
+                    <span className="font-medium">Clientes</span>
+                    <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded">158</span>
                   </div>
                   <div className="flex items-center justify-between p-2 bg-slate-50 rounded-md">
                     <span className="font-medium">Ordens Ativas</span>
                     <span className="text-sm bg-amber-100 text-amber-800 px-2 py-1 rounded">43</span>
                   </div>
                   <div className="flex items-center justify-between p-2 bg-slate-50 rounded-md">
-                    <span className="font-medium">Clientes</span>
-                    <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded">189</span>
+                    <span className="font-medium">Ordens Concluídas</span>
+                    <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">189</span>
                   </div>
                   <div className="flex items-center justify-between p-2 bg-slate-50 rounded-md">
                     <span className="font-medium">Faturamento Mensal</span>
-                    <span className="text-sm bg-emerald-100 text-emerald-800 px-2 py-1 rounded">R$ 45.890,00</span>
+                    <span className="text-sm bg-emerald-100 text-emerald-800 px-2 py-1 rounded">R$ 15.890,00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Master Admin Panel Section */}
+      <section className="w-full px-4 py-12 md:py-24 bg-gray-50">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col md:flex-row-reverse items-center gap-8">
+            <div className="md:w-1/2">
+              <div className="inline-flex mb-2 items-center rounded-md bg-gray-800 px-3 py-1 text-sm text-white">
+                <ShieldCheck className="mr-1 h-4 w-4" />
+                <span>Exclusivo para Administradores</span>
+              </div>
+              <h2 className="text-3xl font-bold mb-4">Painel de Administração Master</h2>
+              <p className="text-muted-foreground mb-6">
+                O Sistema OS também oferece um painel de administração master para o dono do site gerenciar todas as assistências técnicas, planos e pagamentos:
+              </p>
+              <ul className="space-y-3">
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-primary mr-2 mt-0.5" />
+                  <span>Gestão completa das assistências cadastradas</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-primary mr-2 mt-0.5" />
+                  <span>Configuração e controle de planos de pagamento</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-primary mr-2 mt-0.5" />
+                  <span>Monitoramento de pagamentos e faturamento</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-primary mr-2 mt-0.5" />
+                  <span>Dashboard com métricas e análises</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-primary mr-2 mt-0.5" />
+                  <span>Controle total do sistema e configurações</span>
+                </li>
+              </ul>
+              {isAdmin && (
+                <Button 
+                  className="mt-6 bg-gray-800 hover:bg-gray-700" 
+                  onClick={() => navigate("/admin")}
+                >
+                  <ShieldCheck className="mr-2 h-4 w-4" /> Acessar Painel Admin
+                </Button>
+              )}
+            </div>
+            <div className="md:w-1/2 bg-gray-800 rounded-lg p-6 text-white">
+              <div className="border border-gray-700 bg-gray-900 rounded-md shadow-sm p-4">
+                <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-700">
+                  <div className="flex items-center">
+                    <ShieldCheck className="h-5 w-5 mr-2" />
+                    <h3 className="font-medium">Painel de Administração Master</h3>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-2 bg-gray-800 rounded-md">
+                    <span className="font-medium">Total de Assistências</span>
+                    <span className="text-sm bg-gray-700 text-white px-2 py-1 rounded">24</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-gray-800 rounded-md">
+                    <span className="font-medium">Planos Ativos</span>
+                    <span className="text-sm bg-gray-700 text-white px-2 py-1 rounded">3</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-gray-800 rounded-md">
+                    <span className="font-medium">Total de Pagamentos</span>
+                    <span className="text-sm bg-gray-700 text-white px-2 py-1 rounded">68</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-gray-800 rounded-md">
+                    <span className="font-medium">Receita Total</span>
+                    <span className="text-sm bg-emerald-800 text-white px-2 py-1 rounded">R$ 12.450,75</span>
                   </div>
                 </div>
               </div>
