@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import PrintOrderButton from "@/components/ordens/PrintOrderButton";
 import FinalizarOrdemModal from "@/components/ordens/FinalizarOrdemModal";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import { ordensData, clientesData } from "@/data/dados"; // Import mock data
+import { OrdemServico } from "@/types";
 
 const OrdensView = () => {
   const { id } = useParams<{ id: string }>();
@@ -120,7 +122,8 @@ const OrdensView = () => {
   const { 
     data: ordem, 
     isLoading: isLoadingOrdem,
-    error: ordemError
+    error: ordemError,
+    refetch: refetchOrdem
   } = useQuery({
     queryKey: ['ordem', id],
     queryFn: fetchOrdem,
@@ -192,7 +195,7 @@ const OrdensView = () => {
     }
   };
 
-  const handleFinalizarOrdem = (ordemAtualizada) => {
+  const handleFinalizarOrdem = (ordemAtualizada: OrdemServico) => {
     // Atualizar os dados da ordem nos dados mockados
     const index = ordensData.findIndex(o => o.id === id);
     if (index !== -1) {
@@ -208,8 +211,34 @@ const OrdensView = () => {
     }
     
     // Recarregar dados
-    ordem.refetch();
+    refetchOrdem();
   };
+
+  // Map the database format to our OrdemServico type for the FinalizarOrdemModal
+  const mapToOrdemServico = (): OrdemServico => {
+    return {
+      id: ordem.id,
+      numero: ordem.numero,
+      clienteId: ordem.cliente_id,
+      status: ordem.status as 'aberta' | 'andamento' | 'concluida' | 'cancelada',
+      dataAbertura: ordem.data_abertura,
+      dataPrevisao: ordem.data_previsao,
+      dataConclusao: ordem.data_conclusao,
+      descricao: ordem.descricao,
+      responsavel: ordem.responsavel,
+      prioridade: ordem.prioridade as 'baixa' | 'media' | 'alta' | 'urgente',
+      itens: [],
+      valorTotal: ordem.valor_total || 0,
+      observacoes: ordem.observacoes,
+      solucao: ordem.solucao,
+      formaPagamento: ordem.forma_pagamento,
+      integradoFinanceiro: ordem.integrado_financeiro,
+      movimentoFinanceiroId: ordem.movimento_financeiro_id,
+      cliente: ordem.cliente
+    };
+  };
+
+  const ordemFormatada = mapToOrdemServico();
 
   return (
     <div className="container mx-auto py-6">
@@ -219,7 +248,7 @@ const OrdensView = () => {
           Voltar
         </Button>
         <div className="flex gap-2">
-          <PrintOrderButton ordem={ordem} itens={itens} cliente={ordem.cliente} />
+          <PrintOrderButton ordem={ordemFormatada} itens={itens} cliente={ordem.cliente} />
           
           <Button onClick={() => navigate(`/ordens/editar/${id}`)}>
             <Edit className="mr-2 h-4 w-4" />
@@ -456,7 +485,7 @@ const OrdensView = () => {
                   <Edit className="mr-2 h-4 w-4" />
                   Editar Ordem de Serviço
                 </Button>
-                <PrintOrderButton ordem={ordem} itens={itens} cliente={ordem.cliente} />
+                <PrintOrderButton ordem={ordemFormatada} itens={itens} cliente={ordem.cliente} />
               </div>
             </CardContent>
           </Card>
@@ -505,7 +534,7 @@ const OrdensView = () => {
       {/* Modal de finalização */}
       {ordem && (
         <FinalizarOrdemModal 
-          ordem={ordem} 
+          ordem={ordemFormatada} 
           isOpen={finalizarModalOpen} 
           onClose={() => setFinalizarModalOpen(false)}
           onSave={handleFinalizarOrdem}
@@ -516,3 +545,4 @@ const OrdensView = () => {
 };
 
 export default OrdensView;
+

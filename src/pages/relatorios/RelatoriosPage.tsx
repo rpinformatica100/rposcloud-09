@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -46,6 +45,17 @@ import { DateRange } from "react-day-picker";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 
 const CORES = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"];
+
+interface CategoriaFinanceira {
+  receitas: number;
+  despesas: number;
+}
+
+interface EvolucaoFinanceira {
+  receitas: number;
+  despesas: number;
+  saldo: number;
+}
 
 const RelatoriosPage = () => {
   const [activeTab, setActiveTab] = useState("ordens");
@@ -179,7 +189,7 @@ const RelatoriosPage = () => {
   // Dados para gráficos financeiros
   const dadosGraficosFinanceiro = {
     categorias: (() => {
-      const agrupado = movimentosFiltered.reduce((acc, mov) => {
+      const agrupado = movimentosFiltered.reduce((acc: Record<string, CategoriaFinanceira>, mov) => {
         if (!acc[mov.categoria]) {
           acc[mov.categoria] = { receitas: 0, despesas: 0 };
         }
@@ -200,16 +210,17 @@ const RelatoriosPage = () => {
     
     evolucao: (() => {
       // Agrupar por mês
-      const agrupado = movimentosFiltered.reduce((acc, mov) => {
+      const agrupado = movimentosFiltered.reduce((acc: Record<string, EvolucaoFinanceira>, mov) => {
         const mes = new Date(mov.data).toLocaleString('pt-BR', { month: 'short', year: 'numeric' });
         if (!acc[mes]) {
-          acc[mes] = { receitas: 0, despesas: 0 };
+          acc[mes] = { receitas: 0, despesas: 0, saldo: 0 };
         }
         if (mov.tipo === "receita") {
           acc[mes].receitas += mov.valor;
         } else {
           acc[mes].despesas += mov.valor;
         }
+        acc[mes].saldo = acc[mes].receitas - acc[mes].despesas;
         return acc;
       }, {});
       
@@ -220,11 +231,11 @@ const RelatoriosPage = () => {
           const dataB = new Date(b[0].split(' ')[0] + ' ' + b[0].split(' ')[1]);
           return dataA.getTime() - dataB.getTime();
         })
-        .map(([name, { receitas, despesas }]) => ({
+        .map(([name, { receitas, despesas, saldo }]) => ({
           name,
           receitas,
           despesas,
-          saldo: receitas - despesas
+          saldo
         }));
     })()
   };
@@ -314,7 +325,6 @@ const RelatoriosPage = () => {
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             className="w-full sm:w-[250px]"
-            startContent={<Search className="h-4 w-4 text-muted-foreground" />}
           />
         </div>
       </div>
