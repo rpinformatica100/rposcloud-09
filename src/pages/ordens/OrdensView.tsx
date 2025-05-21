@@ -1,616 +1,76 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Edit, AlertTriangle, Loader2, Check, DollarSign } from "lucide-react";
-import PrintOrderButton from "@/components/ordens/PrintOrderButton";
+import { useState } from "react";
+import { useParams } from "react-router-dom";
+import { useOrdemData } from "@/hooks/ordens/useOrdemData";
+import { OrdemServico } from "@/types";
+import { OrdemHeader } from "@/components/ordens/view/OrdemHeader";
+import { OrdemItens } from "@/components/ordens/view/OrdemItens";
+import { ClienteCard } from "@/components/ordens/view/ClienteCard";
+import { AcoesCard } from "@/components/ordens/view/AcoesCard";
+import { DetalhesFinalizacao } from "@/components/ordens/view/DetalhesFinalizacao";
+import { OrdemViewLoader } from "@/components/ordens/view/OrdemViewLoader";
 import FinalizarOrdemModal from "@/components/ordens/FinalizarOrdemModal";
-import { formatCurrency, formatDate } from "@/lib/formatters";
-import { ordensData, clientesData } from "@/data/dados"; // Import mock data
-import { OrdemServico, Cliente, OrdemDB, ClienteDB, OrdemItemDB } from "@/types";
 
 const OrdensView = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [finalizarModalOpen, setFinalizarModalOpen] = useState(false);
-
-  // Function to convert database ordem format to app format
-  const mapDbOrdemToApp = (dbOrdem: OrdemDB): OrdemServico => {
-    const ordem: OrdemServico = {
-      id: dbOrdem.id,
-      numero: dbOrdem.numero,
-      clienteId: dbOrdem.cliente_id,
-      status: dbOrdem.status as 'aberta' | 'andamento' | 'concluida' | 'cancelada',
-      dataAbertura: dbOrdem.data_abertura || '',
-      dataPrevisao: dbOrdem.data_previsao,
-      dataConclusao: dbOrdem.data_conclusao,
-      descricao: dbOrdem.descricao || '',
-      responsavel: dbOrdem.responsavel || '',
-      prioridade: dbOrdem.prioridade as 'baixa' | 'media' | 'alta' | 'urgente',
-      itens: [],
-      valorTotal: dbOrdem.valor_total || 0,
-      observacoes: dbOrdem.observacoes,
-      assistenciaId: dbOrdem.assistencia_id,
-      solucao: dbOrdem.solucao,
-      formaPagamento: dbOrdem.forma_pagamento,
-      integradoFinanceiro: dbOrdem.integrado_financeiro,
-      movimentoFinanceiroId: dbOrdem.movimento_financeiro_id
-    };
-
-    // Map cliente if available
-    if (dbOrdem.cliente) {
-      ordem.cliente = mapDbClienteToApp(dbOrdem.cliente);
-    }
-
-    return ordem;
-  };
-
-  // Function to convert database cliente format to app format
-  const mapDbClienteToApp = (dbCliente: ClienteDB): Cliente => {
-    return {
-      id: dbCliente.id,
-      nome: dbCliente.nome,
-      tipo: (dbCliente.tipo === 'cliente' || dbCliente.tipo === 'fornecedor') 
-        ? dbCliente.tipo 
-        : 'cliente',
-      email: dbCliente.email || '',
-      telefone: dbCliente.telefone || '',
-      documento: dbCliente.documento || '',
-      endereco: dbCliente.endereco || '',
-      cidade: dbCliente.cidade || '',
-      estado: dbCliente.estado || '',
-      cep: dbCliente.cep || '',
-      observacoes: dbCliente.observacoes,
-      dataCadastro: dbCliente.data_cadastro || ''
-    };
-  };
-
-  // Function to convert database item format to app format
-  const mapDbItemToApp = (dbItem: OrdemItemDB) => {
-    return {
-      id: dbItem.id,
-      produtoId: dbItem.produto_id,
-      quantidade: dbItem.quantidade,
-      valorUnitario: dbItem.valor_unitario,
-      valorTotal: dbItem.valor_total,
-      observacao: dbItem.observacao,
-      produto: dbItem.produto ? {
-        id: dbItem.produto_id,
-        nome: dbItem.produto.nome,
-        tipo: dbItem.produto.tipo as 'produto' | 'servico',
-        descricao: '',
-        preco: dbItem.valor_unitario,
-        ativo: true
-      } : undefined
-    };
-  };
-
-  // First try to fetch from Supabase, fallback to mock data if that fails
-  const fetchOrdem = async () => {
-    try {
-      // Try to fetch from Supabase first
-      const { data, error } = await supabase
-        .from('ordens')
-        .select(`
-          *,
-          cliente:cliente_id (*)
-        `)
-        .eq('id', id)
-        .single();
-
-      if (error) {
-        console.log("Supabase error:", error);
-        throw error;
-      }
-      
-      if (data) {
-        // Return the database object directly
-        return data as OrdemDB;
-      }
-      
-      // If no data from Supabase, fall back to mock data
-      throw new Error("No data from Supabase");
-    } catch (error) {
-      console.log("Falling back to mock data");
-      // Fall back to mock data
-      const mockOrdem = ordensData.find(o => o.id === id);
-      if (!mockOrdem) throw new Error("Ordem não encontrada");
-      
-      const mockCliente = clientesData.find(c => c.id === mockOrdem.clienteId);
-      
-      // Convert to the database format expected by the component
-      return {
-        id: mockOrdem.id,
-        numero: mockOrdem.numero,
-        cliente_id: mockOrdem.clienteId,
-        data_abertura: mockOrdem.dataAbertura,
-        data_previsao: mockOrdem.dataPrevisao,
-        data_conclusao: mockOrdem.dataConclusao,
-        status: mockOrdem.status,
-        prioridade: mockOrdem.prioridade,
-        descricao: mockOrdem.descricao,
-        observacoes: mockOrdem.observacoes,
-        valor_total: mockOrdem.valorTotal,
-        responsavel: mockOrdem.responsavel,
-        solucao: mockOrdem.solucao,
-        forma_pagamento: mockOrdem.formaPagamento,
-        integrado_financeiro: mockOrdem.integradoFinanceiro,
-        movimento_financeiro_id: mockOrdem.movimentoFinanceiroId,
-        cliente: mockCliente ? {
-          id: mockCliente.id,
-          nome: mockCliente.nome,
-          tipo: mockCliente.tipo,
-          email: mockCliente.email,
-          telefone: mockCliente.telefone,
-          documento: mockCliente.documento,
-          endereco: mockCliente.endereco,
-          cidade: mockCliente.cidade,
-          estado: mockCliente.estado,
-          cep: mockCliente.cep,
-          observacoes: mockCliente.observacoes,
-          data_cadastro: mockCliente.dataCadastro
-        } : undefined
-      } as OrdemDB;
-    }
-  };
-
-  const fetchItens = async () => {
-    try {
-      // Try to fetch from Supabase first
-      const { data, error } = await supabase
-        .from('ordem_itens')
-        .select(`
-          *,
-          produto:produto_id (
-            nome,
-            tipo
-          )
-        `)
-        .eq('ordem_id', id);
-
-      if (error) {
-        console.log("Supabase error:", error);
-        throw error;
-      }
-      
-      if (data && data.length > 0) {
-        return data as OrdemItemDB[];
-      }
-      
-      // If no data from Supabase, fall back to mock data
-      throw new Error("No items from Supabase");
-    } catch (error) {
-      console.log("Falling back to mock data for items");
-      // Fall back to mock items data
-      const mockOrdem = ordensData.find(o => o.id === id);
-      if (!mockOrdem || !mockOrdem.itens) return [] as OrdemItemDB[];
-      
-      // Convert to the format expected by the component
-      return mockOrdem.itens.map(item => ({
-        id: item.id,
-        ordem_id: mockOrdem.id,
-        produto_id: item.produtoId,
-        quantidade: item.quantidade,
-        valor_unitario: item.valorUnitario,
-        valor_total: item.valorTotal,
-        observacao: item.observacao,
-        produto: {
-          nome: `Produto/Serviço ${item.id}`, // Placeholder name
-          tipo: "produto" // Default type
-        }
-      })) as OrdemItemDB[];
-    }
-  };
-
-  // Consulta para buscar dados da ordem
-  const { 
-    data: ordemDB, 
-    isLoading: isLoadingOrdem,
-    error: ordemError,
-    refetch: refetchOrdem
-  } = useQuery({
-    queryKey: ['ordem', id],
-    queryFn: fetchOrdem,
-    retry: 1, // Limit retries to avoid excessive error logs
-    enabled: !!id
-  });
-
-  // Consulta para buscar itens da ordem
+  
+  // Fetch ordem data using the custom hook
   const {
-    data: itensDB = [],
-    isLoading: isLoadingItens,
-    error: itensError
-  } = useQuery({
-    queryKey: ['ordem-itens', id],
-    queryFn: fetchItens,
-    retry: 1, // Limit retries to avoid excessive error logs
-    enabled: !!id && !ordemError // Only run if ordem fetch succeeds
-  });
+    ordem,
+    itens,
+    isLoading,
+    error,
+    refetchOrdem
+  } = useOrdemData(id);
 
-  // Convert DB format to application format
-  const ordem: OrdemServico | undefined = ordemDB ? mapDbOrdemToApp(ordemDB) : undefined;
-  const itens = itensDB.map(mapDbItemToApp);
-
-  if (ordem && itens.length > 0) {
-    ordem.itens = itens;
-  }
-
-  if (isLoadingOrdem || isLoadingItens) {
+  // Show loading or error state
+  if (isLoading || error || !ordem) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2">Carregando dados da ordem...</span>
-      </div>
+      <OrdemViewLoader 
+        isLoading={isLoading} 
+        error={error instanceof Error ? error : null} 
+      />
     );
   }
 
-  if (ordemError || !ordem) {
-    console.error("Error loading order:", ordemError);
-    return (
-      <div className="flex flex-col items-center justify-center h-64">
-        <AlertTriangle className="h-10 w-10 text-destructive mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Erro ao carregar ordem</h2>
-        <p className="text-muted-foreground mb-4">
-          Não foi possível carregar os dados da ordem de serviço.
-        </p>
-        <Button onClick={() => navigate("/ordens")}>Voltar para lista</Button>
-      </div>
-    );
-  }
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'aberta':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">Aberta</Badge>;
-      case 'andamento':
-      case 'em_andamento':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">Em andamento</Badge>;
-      case 'concluida':
-        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Concluída</Badge>;
-      case 'cancelada':
-        return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">Cancelada</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const getPrioridadeBadge = (prioridade: string) => {
-    switch (prioridade) {
-      case 'baixa':
-        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Baixa</Badge>;
-      case 'media':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">Média</Badge>;
-      case 'alta':
-        return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">Alta</Badge>;
-      default:
-        return <Badge variant="outline">{prioridade}</Badge>;
-    }
-  };
-
+  // Handler for finalizar ordem
   const handleFinalizarOrdem = (ordemAtualizada: OrdemServico) => {
-    // Atualizar os dados da ordem nos dados mockados
-    const index = ordensData.findIndex(o => o.id === id);
-    if (index !== -1) {
-      ordensData[index] = {
-        ...ordensData[index],
-        status: ordemAtualizada.status,
-        dataConclusao: ordemAtualizada.dataConclusao,
-        solucao: ordemAtualizada.solucao,
-        formaPagamento: ordemAtualizada.formaPagamento,
-        integradoFinanceiro: ordemAtualizada.integradoFinanceiro,
-        movimentoFinanceiroId: ordemAtualizada.movimentoFinanceiroId
-      };
-    }
-    
     // Recarregar dados
     refetchOrdem();
   };
 
   return (
     <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <Button onClick={() => navigate("/ordens")} variant="outline" size="sm">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Voltar
-        </Button>
-        <div className="flex gap-2">
-          <PrintOrderButton ordem={ordem} itens={itens} cliente={ordem.cliente} />
-          
-          <Button onClick={() => navigate(`/ordens/editar/${id}`)}>
-            <Edit className="mr-2 h-4 w-4" />
-            Editar
-          </Button>
-          
-          {ordem && ordem.status !== 'concluida' && ordem.status !== 'cancelada' && (
-            <Button 
-              onClick={() => setFinalizarModalOpen(true)}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <Check className="mr-2 h-4 w-4" />
-              Finalizar OS
-            </Button>
-          )}
-        </div>
-      </div>
+      <OrdemHeader 
+        ordem={ordem} 
+        itens={itens} 
+        openFinalizarModal={() => setFinalizarModalOpen(true)}
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         {/* Coluna principal */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Cabeçalho da OS */}
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-2xl">
-                    Ordem de Serviço #{ordem.numero}
-                  </CardTitle>
-                  <p className="text-muted-foreground mt-1">
-                    {formatDate(ordem.dataAbertura || '')}
-                  </p>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <div>
-                    Status: {getStatusBadge(ordem.status)}
-                  </div>
-                  <div>
-                    Prioridade: {getPrioridadeBadge(ordem.prioridade)}
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium">Descrição</h3>
-                  <p className="text-muted-foreground mt-1">
-                    {ordem.descricao || "Sem descrição"}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-                  <div>
-                    <span className="font-medium">Data de Abertura:</span>{" "}
-                    {formatDate(ordem.dataAbertura || '')}
-                  </div>
-                  {ordem.dataPrevisao && (
-                    <div>
-                      <span className="font-medium">Previsão de Conclusão:</span>{" "}
-                      {formatDate(ordem.dataPrevisao)}
-                    </div>
-                  )}
-                  {ordem.dataConclusao && (
-                    <div>
-                      <span className="font-medium">Data de Conclusão:</span>{" "}
-                      {formatDate(ordem.dataConclusao)}
-                    </div>
-                  )}
-                  {ordem.responsavel && (
-                    <div>
-                      <span className="font-medium">Responsável:</span>{" "}
-                      {ordem.responsavel}
-                    </div>
-                  )}
-                </div>
-
-                {ordem.observacoes && (
-                  <div>
-                    <h3 className="font-medium">Observações</h3>
-                    <p className="text-muted-foreground mt-1 whitespace-pre-line">
-                      {ordem.observacoes}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Itens da OS */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle>Itens</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {itens.length === 0 ? (
-                <p className="text-muted-foreground text-center py-4">
-                  Nenhum item adicionado a esta ordem de serviço
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {itens.map((item) => (
-                    <div key={item.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-medium">
-                            {item.produto?.nome || "Produto não encontrado"}
-                          </h4>
-                          <p className="text-sm text-muted-foreground">
-                            {item.produto?.tipo === "produto" ? "Produto" : "Serviço"}
-                          </p>
-                          {item.observacao && (
-                            <p className="text-sm mt-1">{item.observacao}</p>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">
-                            {formatCurrency(item.valorTotal)}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {item.quantidade} x {formatCurrency(item.valorUnitario)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  <div className="flex justify-end pt-4 border-t">
-                    <div className="text-right">
-                      <p className="text-sm text-muted-foreground">Total</p>
-                      <p className="text-xl font-semibold">
-                        {formatCurrency(ordem.valorTotal || 0)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <OrdemItens itens={ordem.itens || []} valorTotal={ordem.valorTotal} />
         </div>
 
         {/* Coluna lateral */}
         <div className="space-y-6">
-          {/* Dados do cliente */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle>Cliente</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {ordem.cliente ? (
-                <div className="space-y-3">
-                  <div>
-                    <h3 className="font-medium">{ordem.cliente.nome}</h3>
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-2 text-sm">
-                    {ordem.cliente.documento && (
-                      <div>
-                        <span className="font-medium">
-                          Documento:
-                        </span>{" "}
-                        {ordem.cliente.documento}
-                      </div>
-                    )}
-                    {ordem.cliente.email && (
-                      <div>
-                        <span className="font-medium">Email:</span>{" "}
-                        {ordem.cliente.email}
-                      </div>
-                    )}
-                    {ordem.cliente.telefone && (
-                      <div>
-                        <span className="font-medium">Telefone:</span>{" "}
-                        {ordem.cliente.telefone}
-                      </div>
-                    )}
-                  </div>
-
-                  {(ordem.cliente.endereco ||
-                    ordem.cliente.cidade ||
-                    ordem.cliente.estado) && (
-                    <>
-                      <Separator />
-                      <div className="space-y-1 text-sm">
-                        {ordem.cliente.endereco && (
-                          <div>{ordem.cliente.endereco}</div>
-                        )}
-                        <div>
-                          {[
-                            ordem.cliente.cidade,
-                            ordem.cliente.estado,
-                            ordem.cliente.cep,
-                          ]
-                            .filter(Boolean)
-                            .join(" - ")}
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  <div className="pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => navigate(`/clientes/editar/${ordem.cliente.id}`)}
-                    >
-                      Ver detalhes do cliente
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-4">
-                  Nenhum cliente vinculado
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Ações rápidas */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle>Ações</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start" 
-                  onClick={() => navigate(`/ordens/editar/${id}`)}
-                >
-                  <Edit className="mr-2 h-4 w-4" />
-                  Editar Ordem de Serviço
-                </Button>
-                <PrintOrderButton ordem={ordem} itens={itens} cliente={ordem.cliente} />
-              </div>
-            </CardContent>
-          </Card>
+          <ClienteCard cliente={ordem.cliente} />
+          <AcoesCard ordem={ordem} itens={itens} />
         </div>
       </div>
 
-      {/* Adicionar seção de solução quando a ordem estiver concluída */}
-      {ordem && ordem.status === 'concluida' && (
-        <Card className="mt-6">
-          <CardHeader className="pb-3">
-            <CardTitle>Detalhes da Finalização</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-medium">Solução Aplicada</h3>
-                <p className="text-muted-foreground mt-1 whitespace-pre-line">
-                  {ordem.solucao || "Não informada"}
-                </p>
-              </div>
-              
-              <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-                <div>
-                  <span className="font-medium">Data de Conclusão:</span>{" "}
-                  {formatDate(ordem.dataConclusao || '')}
-                </div>
-                {ordem.formaPagamento && (
-                  <div>
-                    <span className="font-medium">Forma de Pagamento:</span>{" "}
-                    {ordem.formaPagamento.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                  </div>
-                )}
-              </div>
-              
-              {ordem.integradoFinanceiro && (
-                <div className="flex items-center text-green-600">
-                  <DollarSign className="h-4 w-4 mr-1" />
-                  <span>Pagamento registrado no módulo financeiro</span>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Detalhes da finalização quando concluída */}
+      <DetalhesFinalizacao ordem={ordem} />
 
       {/* Modal de finalização */}
-      {ordem && (
-        <FinalizarOrdemModal 
-          ordem={ordem} 
-          isOpen={finalizarModalOpen} 
-          onClose={() => setFinalizarModalOpen(false)}
-          onSave={handleFinalizarOrdem}
-        />
-      )}
+      <FinalizarOrdemModal 
+        ordem={ordem} 
+        isOpen={finalizarModalOpen} 
+        onClose={() => setFinalizarModalOpen(false)}
+        onSave={handleFinalizarOrdem}
+      />
     </div>
   );
 };
