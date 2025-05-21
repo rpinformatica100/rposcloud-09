@@ -1,3 +1,4 @@
+
 // Tipos de dados para o sistema de OS
 
 export interface Cliente {
@@ -102,6 +103,10 @@ export interface Assistencia {
   userId?: string;
   senha?: string;
   ultimoLogin?: string;
+  // Campo para controle de cadastro completo
+  cadastroCompleto?: boolean;
+  // Campo que controla se a mensagem de cadastro já foi mostrada
+  mensagemCadastroExibida?: boolean;
 }
 
 // Updated interface for Plano to match the changes in PlanosList.tsx

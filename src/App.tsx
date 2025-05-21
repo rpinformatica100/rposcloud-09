@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from "./components/theme-provider"
@@ -31,6 +30,7 @@ import FinanceiroList from './pages/financeiro/FinanceiroList';
 import FinanceiroForm from './pages/financeiro/FinanceiroForm';
 import ConfiguracoesList from "./pages/configuracoes/ConfiguracoesList";
 import PerfilEmpresa from "./pages/configuracoes/PerfilEmpresa";
+import ConfiguracoesAssistencia from "./pages/configuracoes/ConfiguracoesAssistencia";
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -53,7 +53,7 @@ function App() {
               <Route path="/register" element={<Register />} />
               
               {/* App Routes (require authentication) */}
-              <Route path="/app" element={<Layout />}>
+              <Route element={<Layout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="clientes" element={<ClientesList />} />
                 <Route path="clientes/novo" element={<ClientesForm />} />
@@ -72,8 +72,10 @@ function App() {
                 <Route path="financeiro/novo" element={<FinanceiroForm />} />
                 <Route path="financeiro/:id" element={<FinanceiroForm />} />
                 
-                <Route path="configuracoes" element={<ConfiguracoesList />} />
-                <Route path="configuracoes/perfil" element={<PerfilEmpresa />} />
+                {/* Rotas de Configurações */}
+                <Route path="/app/configuracoes" element={<ConfiguracoesList />} />
+                <Route path="/app/configuracoes/perfil" element={<PerfilEmpresa />} />
+                <Route path="/app/configuracoes/assistencia" element={<ConfiguracoesAssistencia />} />
               </Route>
               
               {/* Admin Routes (require admin authentication) */}

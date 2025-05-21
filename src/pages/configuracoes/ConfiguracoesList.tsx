@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,12 +9,20 @@ import { Label } from "@/components/ui/label";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 
 const ConfiguracoesList = () => {
   const [configuracoes, setConfiguracoes] = useState<ConfiguracaoRow[]>([]);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isAssistencia } = useAuth();
+
+  // Se for uma assistência, redirecionar para a página de configurações de assistência
+  if (isAssistencia) {
+    return <Navigate to="/app/configuracoes/assistencia" replace />;
+  }
 
   // Fetch configurações
   const { data, isLoading, error } = useQuery({
