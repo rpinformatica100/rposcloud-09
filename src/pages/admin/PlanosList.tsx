@@ -9,56 +9,49 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Plus, Trash } from "lucide-react";
+import { Edit, Plus, Trash, Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
+import { Switch } from "@/components/ui/switch";
 
 type PlanoType = {
   id: number;
   nome: string;
+  periodo: "mensal" | "trimestral" | "anual";
   preco: number;
-  precoAnual: number;
-  maxOrdens: number | null;
-  maxClientes: number | null;
-  maxUsuarios: number | null;
-  recursos: string;
+  destacado: boolean;
+  descricao: string;
 }
 
 const PlanosList = () => {
   const [planos, setPlanos] = useState<PlanoType[]>([
     { 
       id: 1, 
-      nome: "Básico", 
-      preco: 49.90, 
-      precoAnual: 479.00,
-      maxOrdens: 50,
-      maxClientes: 30,
-      maxUsuarios: 5,
-      recursos: "Gestão de até 50 ordens, Cadastro de 30 clientes, 5 usuários, Relatórios básicos"
+      nome: "Plano Mensal", 
+      periodo: "mensal",
+      preco: 49.90,
+      destacado: false,
+      descricao: "Acesso completo por 1 mês"
     },
     { 
       id: 2, 
-      nome: "Profissional", 
-      preco: 99.90, 
-      precoAnual: 959.00,
-      maxOrdens: 500,
-      maxClientes: null,
-      maxUsuarios: 15,
-      recursos: "Gestão de até 500 ordens, Cadastro de clientes ilimitado, 15 usuários, Relatórios avançados, Suporte prioritário"
+      nome: "Plano Trimestral", 
+      periodo: "trimestral",
+      preco: 129.90,
+      destacado: true,
+      descricao: "Acesso completo por 3 meses, economia de 15%"
     },
     { 
       id: 3, 
-      nome: "Empresarial", 
-      preco: 199.90, 
-      precoAnual: 1919.00,
-      maxOrdens: null,
-      maxClientes: null,
-      maxUsuarios: null,
-      recursos: "Ordens ilimitadas, Clientes ilimitados, Usuários ilimitados, Relatórios personalizados, Suporte 24/7"
+      nome: "Plano Anual", 
+      periodo: "anual",
+      preco: 399.90,
+      destacado: false,
+      descricao: "Acesso completo por 12 meses, economia de 35%"
     }
   ]);
 
@@ -67,18 +60,15 @@ const PlanosList = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentPlano, setCurrentPlano] = useState<PlanoType | null>(null);
 
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<PlanoType>();
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<PlanoType>();
 
-  // Funções CRUD
+  // CRUD functions
   const handleAdd = (data: Omit<PlanoType, 'id'>) => {
     const newId = Math.max(0, ...planos.map(p => p.id)) + 1;
     
     const newPlano: PlanoType = {
       id: newId,
       ...data,
-      maxOrdens: data.maxOrdens === 0 ? null : data.maxOrdens,
-      maxClientes: data.maxClientes === 0 ? null : data.maxClientes,
-      maxUsuarios: data.maxUsuarios === 0 ? null : data.maxUsuarios
     };
     
     setPlanos(prev => [...prev, newPlano]);
@@ -90,9 +80,6 @@ const PlanosList = () => {
   const handleEdit = (data: PlanoType) => {
     const updatedPlano = {
       ...data,
-      maxOrdens: data.maxOrdens === 0 ? null : data.maxOrdens,
-      maxClientes: data.maxClientes === 0 ? null : data.maxClientes,
-      maxUsuarios: data.maxUsuarios === 0 ? null : data.maxUsuarios
     };
     
     setPlanos(prev => 
@@ -112,16 +99,24 @@ const PlanosList = () => {
     }
   };
 
+  const toggleDestaque = (planoId: number) => {
+    setPlanos(prev => 
+      prev.map(plano => ({
+        ...plano,
+        destacado: plano.id === planoId ? true : false
+      }))
+    );
+    toast.success("Plano destacado atualizado!");
+  };
+
   const openEditDialog = (plano: PlanoType) => {
     setCurrentPlano(plano);
     setValue("id", plano.id);
     setValue("nome", plano.nome);
+    setValue("periodo", plano.periodo);
     setValue("preco", plano.preco);
-    setValue("precoAnual", plano.precoAnual);
-    setValue("maxOrdens", plano.maxOrdens || 0);
-    setValue("maxClientes", plano.maxClientes || 0);
-    setValue("maxUsuarios", plano.maxUsuarios || 0);
-    setValue("recursos", plano.recursos);
+    setValue("destacado", plano.destacado);
+    setValue("descricao", plano.descricao);
     setIsEditDialogOpen(true);
   };
 
@@ -129,6 +124,9 @@ const PlanosList = () => {
     setCurrentPlano(plano);
     setIsDeleteDialogOpen(true);
   };
+
+  // Watch if the current form value has destacado=true
+  const isDestacado = watch("destacado");
 
   return (
     <div className="space-y-6">
@@ -155,11 +153,9 @@ const PlanosList = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
-                <TableHead>Preço Mensal</TableHead>
-                <TableHead>Preço Anual</TableHead>
-                <TableHead>Ordens</TableHead>
-                <TableHead>Clientes</TableHead>
-                <TableHead>Usuários</TableHead>
+                <TableHead>Período</TableHead>
+                <TableHead>Preço</TableHead>
+                <TableHead>Destacado</TableHead>
                 <TableHead className="w-[100px] text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -167,11 +163,26 @@ const PlanosList = () => {
               {planos.map((plano) => (
                 <TableRow key={plano.id}>
                   <TableCell className="font-medium">{plano.nome}</TableCell>
+                  <TableCell>
+                    {plano.periodo === "mensal" ? "Mensal" : 
+                     plano.periodo === "trimestral" ? "Trimestral" : 
+                     "Anual"}
+                  </TableCell>
                   <TableCell>R$ {plano.preco.toFixed(2).replace('.', ',')}</TableCell>
-                  <TableCell>R$ {plano.precoAnual.toFixed(2).replace('.', ',')}</TableCell>
-                  <TableCell>{plano.maxOrdens ? `${plano.maxOrdens}` : "Ilimitado"}</TableCell>
-                  <TableCell>{plano.maxClientes ? `${plano.maxClientes}` : "Ilimitado"}</TableCell>
-                  <TableCell>{plano.maxUsuarios ? `${plano.maxUsuarios}` : "Ilimitado"}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      {plano.destacado ? 
+                        <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" /> : 
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => toggleDestaque(plano.id)}
+                        >
+                          Destacar
+                        </Button>
+                      }
+                    </div>
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-1">
                       <Button 
@@ -198,28 +209,41 @@ const PlanosList = () => {
       </Card>
       
       <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Detalhes dos Planos</h2>
+        <h2 className="text-xl font-semibold mb-4">Visualização dos Planos</h2>
         <div className="grid gap-4 md:grid-cols-3">
           {planos.map((plano) => (
-            <Card key={plano.id}>
+            <Card key={plano.id} className={plano.destacado ? "border-2 border-primary relative" : ""}>
+              {plano.destacado && (
+                <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-sm font-medium rounded-bl-md">
+                  Recomendado
+                </div>
+              )}
               <CardHeader>
                 <CardTitle>{plano.nome}</CardTitle>
                 <div className="mt-2">
                   <span className="text-2xl font-bold text-primary">R$ {plano.preco.toFixed(2).replace('.', ',')}</span>
-                  <span className="text-muted-foreground"> /mês</span>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  ou R$ {plano.precoAnual.toFixed(2).replace('.', ',')} /ano
+                  <span className="text-muted-foreground">
+                    {plano.periodo === "mensal" ? " /mês" : 
+                     plano.periodo === "trimestral" ? " /trimestre" : 
+                     " /ano"}
+                  </span>
                 </div>
               </CardHeader>
               <CardContent>
+                <p className="text-muted-foreground mb-4">{plano.descricao}</p>
                 <div className="space-y-2 text-sm">
-                  {plano.recursos.split(", ").map((recurso, i) => (
-                    <div key={i} className="flex items-start">
-                      <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
-                      <span>{recurso}</span>
-                    </div>
-                  ))}
+                  <div className="flex items-start">
+                    <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
+                    <span>Acesso a todas as funcionalidades</span>
+                  </div>
+                  <div className="flex items-start">
+                    <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
+                    <span>Suporte técnico</span>
+                  </div>
+                  <div className="flex items-start">
+                    <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
+                    <span>Atualizações incluídas</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -247,7 +271,20 @@ const PlanosList = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="preco">Preço Mensal (R$)</Label>
+              <Label htmlFor="periodo">Período</Label>
+              <select 
+                id="periodo"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                {...register("periodo", { required: "Período é obrigatório" })}
+              >
+                <option value="mensal">Mensal</option>
+                <option value="trimestral">Trimestral</option>
+                <option value="anual">Anual</option>
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="preco">Preço (R$)</Label>
               <Input
                 id="preco"
                 type="number"
@@ -262,60 +299,25 @@ const PlanosList = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="precoAnual">Preço Anual (R$)</Label>
-              <Input
-                id="precoAnual"
-                type="number"
-                step="0.01"
-                min="0"
-                {...register("precoAnual", { 
-                  required: "Preço anual é obrigatório",
-                  valueAsNumber: true
-                })}
-                placeholder="0.00"
-              />
+              <div className="flex items-center justify-between">
+                <Label htmlFor="destacado">Destacar como recomendado</Label>
+                <Switch
+                  id="destacado"
+                  {...register("destacado")}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Apenas um plano pode ser destacado como recomendado por vez
+              </p>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="maxOrdens">Máximo de Ordens (0 para ilimitado)</Label>
-              <Input
-                id="maxOrdens"
-                type="number"
-                min="0"
-                {...register("maxOrdens", { valueAsNumber: true })}
-                placeholder="Máximo de ordens"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="maxClientes">Máximo de Clientes (0 para ilimitado)</Label>
-              <Input
-                id="maxClientes"
-                type="number"
-                min="0"
-                {...register("maxClientes", { valueAsNumber: true })}
-                placeholder="Máximo de clientes"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="maxUsuarios">Máximo de Usuários (0 para ilimitado)</Label>
-              <Input
-                id="maxUsuarios"
-                type="number"
-                min="0"
-                {...register("maxUsuarios", { valueAsNumber: true })}
-                placeholder="Máximo de usuários"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="recursos">Recursos (separados por vírgula)</Label>
+              <Label htmlFor="descricao">Descrição</Label>
               <textarea
-                id="recursos"
+                id="descricao"
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                {...register("recursos", { required: "Recursos são obrigatórios" })}
-                placeholder="Descreva os recursos, separados por vírgulas"
+                {...register("descricao", { required: "Descrição é obrigatória" })}
+                placeholder="Descrição do plano"
               ></textarea>
             </div>
             
@@ -336,7 +338,7 @@ const PlanosList = () => {
             <DialogTitle>Editar Plano</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit(handleEdit)} className="space-y-4">
-            <Input type="hidden" {...register("id")} />
+            <Input type="hidden" {...register("id", { valueAsNumber: true })} />
             
             <div className="space-y-2">
               <Label htmlFor="nome">Nome do Plano</Label>
@@ -348,7 +350,20 @@ const PlanosList = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="preco">Preço Mensal (R$)</Label>
+              <Label htmlFor="periodo">Período</Label>
+              <select 
+                id="periodo"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                {...register("periodo", { required: "Período é obrigatório" })}
+              >
+                <option value="mensal">Mensal</option>
+                <option value="trimestral">Trimestral</option>
+                <option value="anual">Anual</option>
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="preco">Preço (R$)</Label>
               <Input
                 id="preco"
                 type="number"
@@ -363,60 +378,25 @@ const PlanosList = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="precoAnual">Preço Anual (R$)</Label>
-              <Input
-                id="precoAnual"
-                type="number"
-                step="0.01"
-                min="0"
-                {...register("precoAnual", { 
-                  required: "Preço anual é obrigatório",
-                  valueAsNumber: true
-                })}
-                placeholder="0.00"
-              />
+              <div className="flex items-center justify-between">
+                <Label htmlFor="destacado">Destacar como recomendado</Label>
+                <Switch
+                  id="destacado"
+                  {...register("destacado")}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Apenas um plano pode ser destacado como recomendado por vez
+              </p>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="maxOrdens">Máximo de Ordens (0 para ilimitado)</Label>
-              <Input
-                id="maxOrdens"
-                type="number"
-                min="0"
-                {...register("maxOrdens", { valueAsNumber: true })}
-                placeholder="Máximo de ordens"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="maxClientes">Máximo de Clientes (0 para ilimitado)</Label>
-              <Input
-                id="maxClientes"
-                type="number"
-                min="0"
-                {...register("maxClientes", { valueAsNumber: true })}
-                placeholder="Máximo de clientes"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="maxUsuarios">Máximo de Usuários (0 para ilimitado)</Label>
-              <Input
-                id="maxUsuarios"
-                type="number"
-                min="0"
-                {...register("maxUsuarios", { valueAsNumber: true })}
-                placeholder="Máximo de usuários"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="recursos">Recursos (separados por vírgula)</Label>
+              <Label htmlFor="descricao">Descrição</Label>
               <textarea
-                id="recursos"
+                id="descricao"
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                {...register("recursos", { required: "Recursos são obrigatórios" })}
-                placeholder="Descreva os recursos, separados por vírgulas"
+                {...register("descricao", { required: "Descrição é obrigatória" })}
+                placeholder="Descrição do plano"
               ></textarea>
             </div>
             

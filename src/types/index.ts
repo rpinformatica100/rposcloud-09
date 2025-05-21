@@ -81,7 +81,7 @@ export interface Configuracao {
 
 // Tipo para Assistências Técnicas
 export interface Assistencia {
-  id: string; // Changed from string | number to just string to match DB schema
+  id: string;
   nome: string;
   email: string;
   plano: string;
@@ -103,4 +103,14 @@ export interface Assistencia {
   userId?: string;
   senha?: string;
   ultimoLogin?: string;
+}
+
+// Tipo para Planos
+export interface Plano {
+  id: number;
+  nome: string;
+  periodo: 'mensal' | 'trimestral' | 'anual';
+  preco: number;
+  destacado: boolean;
+  descricao: string;
 }
