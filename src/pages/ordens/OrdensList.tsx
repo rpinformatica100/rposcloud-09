@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ordensData, clientesData } from "@/data/dados";
 import { OrdemServico } from "@/types";
-import { FileText, Plus, Search, Edit, Trash } from "lucide-react";
+import { FileText, Plus, Search, Edit, Trash, Eye } from "lucide-react";
 import { formatarMoeda, formatarData } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -69,7 +69,7 @@ const OrdensList = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Ordens de Serviço</h1>
-        <Button onClick={() => navigate('/app/ordens/nova')}>
+        <Button onClick={() => navigate('/ordens/nova')}>
           <Plus className="mr-2 h-4 w-4" />
           Nova Ordem
         </Button>
@@ -101,13 +101,15 @@ const OrdensList = () => {
                 </SelectContent>
               </Select>
               
-              <Input 
-                placeholder="Buscar ordem..." 
-                className="w-full md:w-[300px]"
-                value={filtro}
-                onChange={(e) => setFiltro(e.target.value)}
-                startContent={<Search className="h-4 w-4 text-muted-foreground" />}
-              />
+              <div className="relative w-full md:w-[300px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Buscar ordem..." 
+                  className="pl-9"
+                  value={filtro}
+                  onChange={(e) => setFiltro(e.target.value)}
+                />
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -155,7 +157,15 @@ const OrdensList = () => {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => navigate(`/app/ordens/editar/${ordem.id}`)}
+                        onClick={() => navigate(`/ordens/visualizar/${ordem.id}`)}
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span className="sr-only">Visualizar</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => navigate(`/ordens/editar/${ordem.id}`)}
                       >
                         <Edit className="h-4 w-4" />
                         <span className="sr-only">Editar</span>

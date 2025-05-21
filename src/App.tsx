@@ -61,20 +61,20 @@ function App() {
                 
                 <Route path="/clientes" element={<ClientesList />} />
                 <Route path="/clientes/novo" element={<ClientesForm />} />
-                <Route path="/clientes/:id" element={<ClientesForm />} />
+                <Route path="/clientes/editar/:id" element={<ClientesForm />} />
                 
                 <Route path="/produtos" element={<ProdutosList />} />
                 <Route path="/produtos/novo" element={<ProdutosForm />} />
-                <Route path="/produtos/:id" element={<ProdutosForm />} />
+                <Route path="/produtos/editar/:id" element={<ProdutosForm />} />
                 
                 <Route path="/ordens" element={<OrdensList />} />
                 <Route path="/ordens/nova" element={<OrdensForm />} />
-                <Route path="/ordens/:id" element={<OrdensForm />} />
-                <Route path="/ordens/:id/visualizar" element={<OrdensView />} />
+                <Route path="/ordens/editar/:id" element={<OrdensForm />} />
+                <Route path="/ordens/visualizar/:id" element={<OrdensView />} />
                 
                 <Route path="/financeiro" element={<FinanceiroList />} />
                 <Route path="/financeiro/novo" element={<FinanceiroForm />} />
-                <Route path="/financeiro/:id" element={<FinanceiroForm />} />
+                <Route path="/financeiro/editar/:id" element={<FinanceiroForm />} />
                 
                 {/* Rotas de Configurações */}
                 <Route path="/configuracoes" element={<ConfiguracoesList />} />

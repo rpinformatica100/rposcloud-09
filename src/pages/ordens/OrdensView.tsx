@@ -85,7 +85,7 @@ const OrdensView = () => {
         <p className="text-muted-foreground mb-4">
           Não foi possível carregar os dados da ordem de serviço.
         </p>
-        <Button onClick={() => navigate("/app/ordens")}>Voltar para lista</Button>
+        <Button onClick={() => navigate("/ordens")}>Voltar para lista</Button>
       </div>
     );
   }
@@ -121,14 +121,14 @@ const OrdensView = () => {
   return (
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
-        <Button onClick={() => navigate("/app/ordens")} variant="outline" size="sm">
+        <Button onClick={() => navigate("/ordens")} variant="outline" size="sm">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Voltar
         </Button>
         <div className="flex gap-2">
           <PrintOrderButton ordem={ordem} itens={itens} cliente={ordem.cliente} />
           
-          <Button onClick={() => navigate(`/app/ordens/editar/${id}`)}>
+          <Button onClick={() => navigate(`/ordens/editar/${id}`)}>
             <Edit className="mr-2 h-4 w-4" />
             Editar
           </Button>
@@ -218,7 +218,7 @@ const OrdensView = () => {
                 </p>
               ) : (
                 <div className="space-y-4">
-                  {itens.map((item, index) => (
+                  {itens.map((item) => (
                     <div key={item.id} className="border rounded-lg p-4">
                       <div className="flex justify-between items-start">
                         <div>
@@ -331,7 +331,7 @@ const OrdensView = () => {
                       variant="outline"
                       size="sm"
                       className="w-full"
-                      onClick={() => navigate(`/app/clientes/editar/${ordem.cliente.id}`)}
+                      onClick={() => navigate(`/clientes/editar/${ordem.cliente.id}`)}
                     >
                       Ver detalhes do cliente
                     </Button>
@@ -355,7 +355,7 @@ const OrdensView = () => {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start" 
-                  onClick={() => navigate(`/app/ordens/editar/${id}`)}
+                  onClick={() => navigate(`/ordens/editar/${id}`)}
                 >
                   <Edit className="mr-2 h-4 w-4" />
                   Editar Ordem de Serviço
