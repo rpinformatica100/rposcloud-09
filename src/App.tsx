@@ -82,6 +82,33 @@ function App() {
                 <Route path="/configuracoes/assistencia" element={<ConfiguracoesAssistencia />} />
               </Route>
               
+              {/* Also add routes with /app prefix for compatibility */}
+              <Route path="/app" element={<Layout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                
+                <Route path="clientes" element={<ClientesList />} />
+                <Route path="clientes/novo" element={<ClientesForm />} />
+                <Route path="clientes/editar/:id" element={<ClientesForm />} />
+                
+                <Route path="produtos" element={<ProdutosList />} />
+                <Route path="produtos/novo" element={<ProdutosForm />} />
+                <Route path="produtos/editar/:id" element={<ProdutosForm />} />
+                
+                <Route path="ordens" element={<OrdensList />} />
+                <Route path="ordens/nova" element={<OrdensForm />} />
+                <Route path="ordens/editar/:id" element={<OrdensForm />} />
+                <Route path="ordens/visualizar/:id" element={<OrdensView />} />
+                
+                <Route path="financeiro" element={<FinanceiroList />} />
+                <Route path="financeiro/novo" element={<FinanceiroForm />} />
+                <Route path="financeiro/editar/:id" element={<FinanceiroForm />} />
+                
+                <Route path="configuracoes" element={<ConfiguracoesList />} />
+                <Route path="configuracoes/perfil" element={<PerfilEmpresa />} />
+                <Route path="configuracoes/assistencia" element={<ConfiguracoesAssistencia />} />
+              </Route>
+              
               {/* Assistência Routes */}
               <Route path="/assistencia" element={<AssistenciaLayout />}>
                 <Route index element={<Dashboard />} />
