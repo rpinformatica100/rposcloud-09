@@ -2,15 +2,15 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { OrdemServico } from "@/types";
-import { ArrowLeft, Edit } from "lucide-react";
+import { OrdemServico, ItemOrdemServico } from "@/types";
+import { ArrowLeft, Check, Edit } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDate } from "@/lib/formatters";
 import PrintOrderButton from "@/components/ordens/PrintOrderButton";
 
 interface OrdemHeaderProps {
   ordem: OrdemServico;
-  itens: Array<any>;
+  itens: ItemOrdemServico[];
   openFinalizarModal: () => void;
 }
 
@@ -142,5 +142,3 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
     </>
   );
 }
-
-import { Check } from "lucide-react";

@@ -1,7 +1,7 @@
 
 import { supabase } from './client';
 import type { Database } from './types';
-import { Assistencia, OrdemServico, OrdemDB, ClienteDB } from '@/types';
+import { Assistencia, OrdemServico, ClienteDB, Cliente, ItemOrdemServico } from '@/types';
 
 // Type helpers for Supabase tables
 export type TablesInsert<T extends keyof Database['public']['Tables']> = 
@@ -39,7 +39,7 @@ export type ConfiguracaoInsert = TablesInsert<'configuracoes'>;
 export type ConfiguracaoUpdate = TablesUpdate<'configuracoes'>;
 
 // Helper functions to convert between database and app formats
-export function mapDbOrdemToApp(dbOrdem: OrdemDB): OrdemServico {
+export function mapDbOrdemToApp(dbOrdem: any): OrdemServico {
   const ordem: OrdemServico = {
     id: dbOrdem.id,
     numero: dbOrdem.numero,
@@ -69,12 +69,12 @@ export function mapDbOrdemToApp(dbOrdem: OrdemDB): OrdemServico {
   return ordem;
 }
 
-export function mapDbClienteToApp(dbCliente: ClienteDB) {
+export function mapDbClienteToApp(dbCliente: ClienteDB | any): Cliente {
   return {
     id: dbCliente.id,
     nome: dbCliente.nome,
     tipo: (dbCliente.tipo === 'cliente' || dbCliente.tipo === 'fornecedor') 
-      ? dbCliente.tipo 
+      ? dbCliente.tipo as 'cliente' | 'fornecedor'
       : 'cliente',
     email: dbCliente.email || '',
     telefone: dbCliente.telefone || '',

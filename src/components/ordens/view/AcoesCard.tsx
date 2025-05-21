@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Edit } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import PrintOrderButton from "@/components/ordens/PrintOrderButton";
-import { OrdemServico } from "@/types";
+import { OrdemServico, ItemOrdemServico } from "@/types";
 
 interface AcoesCardProps {
   ordem: OrdemServico;
-  itens: Array<any>;
+  itens: ItemOrdemServico[];
 }
 
 export function AcoesCard({ ordem, itens }: AcoesCardProps) {
