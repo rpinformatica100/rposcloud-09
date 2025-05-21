@@ -44,6 +44,8 @@ export interface OrdemServico {
   itens: ItemOrdemServico[];
   valorTotal: number;
   observacoes?: string;
+  assistenciaId?: string;  // ID da assistência técnica responsável
+  assistencia?: Assistencia;  // Dados da assistência técnica
 }
 
 export interface ItemOrdemServico {
@@ -76,3 +78,30 @@ export interface Configuracao {
   valor: string;
   descricao: string;
 }
+
+// Tipo para Assistências Técnicas
+export interface Assistencia {
+  id: string | number;
+  nome: string;
+  email: string;
+  plano: string;
+  status: 'Ativa' | 'Inativa';
+  dataRegistro: string;
+  telefone?: string;
+  celular?: string;
+  cnpj?: string;
+  endereco?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
+  responsavel?: string;
+  especialidades?: string[];
+  descricao?: string;
+  logo?: string;
+  website?: string;
+  // Campos adicionais para autenticação
+  userId?: string;
+  senha?: string;
+  ultimoLogin?: string;
+}
+
