@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,7 +30,7 @@ const Login = () => {
         if (isAdmin || email === "admin@sistema.com") {
           navigate("/admin");
         } else {
-          navigate("/app");
+          navigate("/dashboard");
         }
       } else {
         toast.error("Erro ao fazer login", {
@@ -124,4 +123,3 @@ const Login = () => {
 };
 
 export default Login;
-
