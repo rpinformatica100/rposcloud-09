@@ -1,7 +1,7 @@
 
 import { supabase } from './client';
 import type { Database } from './types';
-import { Assistencia } from '@/types';
+import { Assistencia, OrdemServico, OrdemDB, ClienteDB } from '@/types';
 
 // Type helpers for Supabase tables
 export type TablesInsert<T extends keyof Database['public']['Tables']> = 
@@ -37,6 +37,56 @@ export type FinanceiroUpdate = TablesUpdate<'financeiro'>;
 export type ConfiguracaoRow = TablesRow<'configuracoes'>;
 export type ConfiguracaoInsert = TablesInsert<'configuracoes'>;
 export type ConfiguracaoUpdate = TablesUpdate<'configuracoes'>;
+
+// Helper functions to convert between database and app formats
+export function mapDbOrdemToApp(dbOrdem: OrdemDB): OrdemServico {
+  const ordem: OrdemServico = {
+    id: dbOrdem.id,
+    numero: dbOrdem.numero,
+    clienteId: dbOrdem.cliente_id,
+    status: dbOrdem.status as 'aberta' | 'andamento' | 'concluida' | 'cancelada',
+    dataAbertura: dbOrdem.data_abertura || '',
+    dataPrevisao: dbOrdem.data_previsao,
+    dataConclusao: dbOrdem.data_conclusao,
+    descricao: dbOrdem.descricao || '',
+    responsavel: dbOrdem.responsavel || '',
+    prioridade: dbOrdem.prioridade as 'baixa' | 'media' | 'alta' | 'urgente',
+    itens: [],
+    valorTotal: dbOrdem.valor_total || 0,
+    observacoes: dbOrdem.observacoes,
+    assistenciaId: dbOrdem.assistencia_id,
+    solucao: dbOrdem.solucao,
+    formaPagamento: dbOrdem.forma_pagamento,
+    integradoFinanceiro: dbOrdem.integrado_financeiro,
+    movimentoFinanceiroId: dbOrdem.movimento_financeiro_id
+  };
+
+  // Map cliente if available
+  if (dbOrdem.cliente) {
+    ordem.cliente = mapDbClienteToApp(dbOrdem.cliente);
+  }
+
+  return ordem;
+}
+
+export function mapDbClienteToApp(dbCliente: ClienteDB) {
+  return {
+    id: dbCliente.id,
+    nome: dbCliente.nome,
+    tipo: (dbCliente.tipo === 'cliente' || dbCliente.tipo === 'fornecedor') 
+      ? dbCliente.tipo 
+      : 'cliente',
+    email: dbCliente.email || '',
+    telefone: dbCliente.telefone || '',
+    documento: dbCliente.documento || '',
+    endereco: dbCliente.endereco || '',
+    cidade: dbCliente.cidade || '',
+    estado: dbCliente.estado || '',
+    cep: dbCliente.cep || '',
+    observacoes: dbCliente.observacoes,
+    dataCadastro: dbCliente.data_cadastro || ''
+  };
+}
 
 // Mock functions for assistencia until the table is created
 export async function fetchAssistencias(): Promise<Assistencia[]> {

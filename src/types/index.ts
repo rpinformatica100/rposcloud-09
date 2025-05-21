@@ -1,3 +1,4 @@
+
 // Tipos de dados para o sistema de OS
 
 export interface Cliente {
@@ -120,4 +121,61 @@ export interface Plano {
   preco: number;
   destacado: boolean;
   descricao: string;
+}
+
+// Database interface types for Supabase
+export interface OrdemDB {
+  id: string;
+  numero: string;
+  cliente_id: string;
+  cliente?: ClienteDB;
+  status: 'aberta' | 'andamento' | 'concluida' | 'cancelada';
+  data_abertura: string;
+  data_previsao?: string;
+  data_conclusao?: string;
+  descricao: string;
+  responsavel: string;
+  prioridade: 'baixa' | 'media' | 'alta' | 'urgente';
+  valor_total: number;
+  observacoes?: string;
+  assistencia_id?: string;
+  solucao?: string;
+  forma_pagamento?: string;
+  integrado_financeiro?: boolean;
+  movimento_financeiro_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ClienteDB {
+  id: string;
+  nome: string;
+  tipo: string;
+  email?: string;
+  telefone?: string;
+  documento?: string;
+  endereco?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
+  observacoes?: string;
+  data_cadastro: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface OrdemItemDB {
+  id: string;
+  ordem_id: string;
+  produto_id: string;
+  quantidade: number;
+  valor_unitario: number;
+  valor_total: number;
+  observacao?: string;
+  produto?: {
+    nome: string;
+    tipo: string;
+  };
+  created_at?: string;
+  updated_at?: string;
 }

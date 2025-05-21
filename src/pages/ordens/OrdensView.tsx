@@ -12,12 +12,83 @@ import PrintOrderButton from "@/components/ordens/PrintOrderButton";
 import FinalizarOrdemModal from "@/components/ordens/FinalizarOrdemModal";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import { ordensData, clientesData } from "@/data/dados"; // Import mock data
-import { OrdemServico } from "@/types";
+import { OrdemServico, Cliente, OrdemDB, ClienteDB, OrdemItemDB } from "@/types";
 
 const OrdensView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [finalizarModalOpen, setFinalizarModalOpen] = useState(false);
+
+  // Function to convert database ordem format to app format
+  const mapDbOrdemToApp = (dbOrdem: OrdemDB): OrdemServico => {
+    const ordem: OrdemServico = {
+      id: dbOrdem.id,
+      numero: dbOrdem.numero,
+      clienteId: dbOrdem.cliente_id,
+      status: dbOrdem.status as 'aberta' | 'andamento' | 'concluida' | 'cancelada',
+      dataAbertura: dbOrdem.data_abertura || '',
+      dataPrevisao: dbOrdem.data_previsao,
+      dataConclusao: dbOrdem.data_conclusao,
+      descricao: dbOrdem.descricao || '',
+      responsavel: dbOrdem.responsavel || '',
+      prioridade: dbOrdem.prioridade as 'baixa' | 'media' | 'alta' | 'urgente',
+      itens: [],
+      valorTotal: dbOrdem.valor_total || 0,
+      observacoes: dbOrdem.observacoes,
+      assistenciaId: dbOrdem.assistencia_id,
+      solucao: dbOrdem.solucao,
+      formaPagamento: dbOrdem.forma_pagamento,
+      integradoFinanceiro: dbOrdem.integrado_financeiro,
+      movimentoFinanceiroId: dbOrdem.movimento_financeiro_id
+    };
+
+    // Map cliente if available
+    if (dbOrdem.cliente) {
+      ordem.cliente = mapDbClienteToApp(dbOrdem.cliente);
+    }
+
+    return ordem;
+  };
+
+  // Function to convert database cliente format to app format
+  const mapDbClienteToApp = (dbCliente: ClienteDB): Cliente => {
+    return {
+      id: dbCliente.id,
+      nome: dbCliente.nome,
+      tipo: (dbCliente.tipo === 'cliente' || dbCliente.tipo === 'fornecedor') 
+        ? dbCliente.tipo 
+        : 'cliente',
+      email: dbCliente.email || '',
+      telefone: dbCliente.telefone || '',
+      documento: dbCliente.documento || '',
+      endereco: dbCliente.endereco || '',
+      cidade: dbCliente.cidade || '',
+      estado: dbCliente.estado || '',
+      cep: dbCliente.cep || '',
+      observacoes: dbCliente.observacoes,
+      dataCadastro: dbCliente.data_cadastro || ''
+    };
+  };
+
+  // Function to convert database item format to app format
+  const mapDbItemToApp = (dbItem: OrdemItemDB) => {
+    return {
+      id: dbItem.id,
+      produtoId: dbItem.produto_id,
+      quantidade: dbItem.quantidade,
+      valorUnitario: dbItem.valor_unitario,
+      valorTotal: dbItem.valor_total,
+      observacao: dbItem.observacao,
+      produto: dbItem.produto ? {
+        id: dbItem.produto_id,
+        nome: dbItem.produto.nome,
+        tipo: dbItem.produto.tipo as 'produto' | 'servico',
+        descricao: '',
+        preco: dbItem.valor_unitario,
+        ativo: true
+      } : undefined
+    };
+  };
 
   // First try to fetch from Supabase, fallback to mock data if that fails
   const fetchOrdem = async () => {
@@ -37,7 +108,10 @@ const OrdensView = () => {
         throw error;
       }
       
-      if (data) return data;
+      if (data) {
+        // Return the database object directly
+        return data as OrdemDB;
+      }
       
       // If no data from Supabase, fall back to mock data
       throw new Error("No data from Supabase");
@@ -49,7 +123,7 @@ const OrdensView = () => {
       
       const mockCliente = clientesData.find(c => c.id === mockOrdem.clienteId);
       
-      // Convert to the format expected by the component
+      // Convert to the database format expected by the component
       return {
         id: mockOrdem.id,
         numero: mockOrdem.numero,
@@ -67,8 +141,21 @@ const OrdensView = () => {
         forma_pagamento: mockOrdem.formaPagamento,
         integrado_financeiro: mockOrdem.integradoFinanceiro,
         movimento_financeiro_id: mockOrdem.movimentoFinanceiroId,
-        cliente: mockCliente
-      };
+        cliente: mockCliente ? {
+          id: mockCliente.id,
+          nome: mockCliente.nome,
+          tipo: mockCliente.tipo,
+          email: mockCliente.email,
+          telefone: mockCliente.telefone,
+          documento: mockCliente.documento,
+          endereco: mockCliente.endereco,
+          cidade: mockCliente.cidade,
+          estado: mockCliente.estado,
+          cep: mockCliente.cep,
+          observacoes: mockCliente.observacoes,
+          data_cadastro: mockCliente.dataCadastro
+        } : undefined
+      } as OrdemDB;
     }
   };
 
@@ -91,7 +178,9 @@ const OrdensView = () => {
         throw error;
       }
       
-      if (data && data.length > 0) return data;
+      if (data && data.length > 0) {
+        return data as OrdemItemDB[];
+      }
       
       // If no data from Supabase, fall back to mock data
       throw new Error("No items from Supabase");
@@ -99,7 +188,7 @@ const OrdensView = () => {
       console.log("Falling back to mock data for items");
       // Fall back to mock items data
       const mockOrdem = ordensData.find(o => o.id === id);
-      if (!mockOrdem || !mockOrdem.itens) return [];
+      if (!mockOrdem || !mockOrdem.itens) return [] as OrdemItemDB[];
       
       // Convert to the format expected by the component
       return mockOrdem.itens.map(item => ({
@@ -114,13 +203,13 @@ const OrdensView = () => {
           nome: `Produto/Serviço ${item.id}`, // Placeholder name
           tipo: "produto" // Default type
         }
-      }));
+      })) as OrdemItemDB[];
     }
   };
 
   // Consulta para buscar dados da ordem
   const { 
-    data: ordem, 
+    data: ordemDB, 
     isLoading: isLoadingOrdem,
     error: ordemError,
     refetch: refetchOrdem
@@ -133,7 +222,7 @@ const OrdensView = () => {
 
   // Consulta para buscar itens da ordem
   const {
-    data: itens = [],
+    data: itensDB = [],
     isLoading: isLoadingItens,
     error: itensError
   } = useQuery({
@@ -142,6 +231,14 @@ const OrdensView = () => {
     retry: 1, // Limit retries to avoid excessive error logs
     enabled: !!id && !ordemError // Only run if ordem fetch succeeds
   });
+
+  // Convert DB format to application format
+  const ordem: OrdemServico | undefined = ordemDB ? mapDbOrdemToApp(ordemDB) : undefined;
+  const itens = itensDB.map(mapDbItemToApp);
+
+  if (ordem && itens.length > 0) {
+    ordem.itens = itens;
+  }
 
   if (isLoadingOrdem || isLoadingItens) {
     return (
@@ -214,32 +311,6 @@ const OrdensView = () => {
     refetchOrdem();
   };
 
-  // Map the database format to our OrdemServico type for the FinalizarOrdemModal
-  const mapToOrdemServico = (): OrdemServico => {
-    return {
-      id: ordem.id,
-      numero: ordem.numero,
-      clienteId: ordem.cliente_id,
-      status: ordem.status as 'aberta' | 'andamento' | 'concluida' | 'cancelada',
-      dataAbertura: ordem.data_abertura,
-      dataPrevisao: ordem.data_previsao,
-      dataConclusao: ordem.data_conclusao,
-      descricao: ordem.descricao,
-      responsavel: ordem.responsavel,
-      prioridade: ordem.prioridade as 'baixa' | 'media' | 'alta' | 'urgente',
-      itens: [],
-      valorTotal: ordem.valor_total || 0,
-      observacoes: ordem.observacoes,
-      solucao: ordem.solucao,
-      formaPagamento: ordem.forma_pagamento,
-      integradoFinanceiro: ordem.integrado_financeiro,
-      movimentoFinanceiroId: ordem.movimento_financeiro_id,
-      cliente: ordem.cliente
-    };
-  };
-
-  const ordemFormatada = mapToOrdemServico();
-
   return (
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
@@ -248,7 +319,7 @@ const OrdensView = () => {
           Voltar
         </Button>
         <div className="flex gap-2">
-          <PrintOrderButton ordem={ordemFormatada} itens={itens} cliente={ordem.cliente} />
+          <PrintOrderButton ordem={ordem} itens={itens} cliente={ordem.cliente} />
           
           <Button onClick={() => navigate(`/ordens/editar/${id}`)}>
             <Edit className="mr-2 h-4 w-4" />
@@ -279,7 +350,7 @@ const OrdensView = () => {
                     Ordem de Serviço #{ordem.numero}
                   </CardTitle>
                   <p className="text-muted-foreground mt-1">
-                    {formatDate(ordem.data_abertura || '')}
+                    {formatDate(ordem.dataAbertura || '')}
                   </p>
                 </div>
                 <div className="flex flex-col gap-2">
@@ -304,18 +375,18 @@ const OrdensView = () => {
                 <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
                   <div>
                     <span className="font-medium">Data de Abertura:</span>{" "}
-                    {formatDate(ordem.data_abertura || '')}
+                    {formatDate(ordem.dataAbertura || '')}
                   </div>
-                  {ordem.data_previsao && (
+                  {ordem.dataPrevisao && (
                     <div>
                       <span className="font-medium">Previsão de Conclusão:</span>{" "}
-                      {formatDate(ordem.data_previsao)}
+                      {formatDate(ordem.dataPrevisao)}
                     </div>
                   )}
-                  {ordem.data_conclusao && (
+                  {ordem.dataConclusao && (
                     <div>
                       <span className="font-medium">Data de Conclusão:</span>{" "}
-                      {formatDate(ordem.data_conclusao)}
+                      {formatDate(ordem.dataConclusao)}
                     </div>
                   )}
                   {ordem.responsavel && (
@@ -366,10 +437,10 @@ const OrdensView = () => {
                         </div>
                         <div className="text-right">
                           <p className="font-medium">
-                            {formatCurrency(item.valor_total)}
+                            {formatCurrency(item.valorTotal)}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {item.quantidade} x {formatCurrency(item.valor_unitario)}
+                            {item.quantidade} x {formatCurrency(item.valorUnitario)}
                           </p>
                         </div>
                       </div>
@@ -380,7 +451,7 @@ const OrdensView = () => {
                     <div className="text-right">
                       <p className="text-sm text-muted-foreground">Total</p>
                       <p className="text-xl font-semibold">
-                        {formatCurrency(ordem.valor_total || 0)}
+                        {formatCurrency(ordem.valorTotal || 0)}
                       </p>
                     </div>
                   </div>
@@ -485,7 +556,7 @@ const OrdensView = () => {
                   <Edit className="mr-2 h-4 w-4" />
                   Editar Ordem de Serviço
                 </Button>
-                <PrintOrderButton ordem={ordemFormatada} itens={itens} cliente={ordem.cliente} />
+                <PrintOrderButton ordem={ordem} itens={itens} cliente={ordem.cliente} />
               </div>
             </CardContent>
           </Card>
@@ -510,17 +581,17 @@ const OrdensView = () => {
               <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
                 <div>
                   <span className="font-medium">Data de Conclusão:</span>{" "}
-                  {formatDate(ordem.data_conclusao || '')}
+                  {formatDate(ordem.dataConclusao || '')}
                 </div>
-                {ordem.forma_pagamento && (
+                {ordem.formaPagamento && (
                   <div>
                     <span className="font-medium">Forma de Pagamento:</span>{" "}
-                    {ordem.forma_pagamento.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    {ordem.formaPagamento.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                   </div>
                 )}
               </div>
               
-              {ordem.integrado_financeiro && (
+              {ordem.integradoFinanceiro && (
                 <div className="flex items-center text-green-600">
                   <DollarSign className="h-4 w-4 mr-1" />
                   <span>Pagamento registrado no módulo financeiro</span>
@@ -534,7 +605,7 @@ const OrdensView = () => {
       {/* Modal de finalização */}
       {ordem && (
         <FinalizarOrdemModal 
-          ordem={ordemFormatada} 
+          ordem={ordem} 
           isOpen={finalizarModalOpen} 
           onClose={() => setFinalizarModalOpen(false)}
           onSave={handleFinalizarOrdem}
@@ -545,4 +616,3 @@ const OrdensView = () => {
 };
 
 export default OrdensView;
-
