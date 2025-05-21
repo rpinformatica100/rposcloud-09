@@ -70,6 +70,11 @@ const ASSISTENCIA_DATA: Assistencia = {
   userId: "assist-id"
 };
 
+// Lista de assistências mock para desenvolvimento
+const MOCK_ASSISTENCIAS: Record<string, Assistencia> = {
+  "assist-id": ASSISTENCIA_DATA,
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -101,25 +106,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Função para buscar dados da assistência técnica
+  // Função para buscar dados da assistência técnica (usando mock data)
   const fetchAssistenciaData = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('assistencias')
-        .select('*')
-        .eq('userId', userId)
-        .single();
-
-      if (error) {
-        console.error('Erro ao buscar dados da assistência:', error);
-        return null;
-      }
-
-      return data as Assistencia;
-    } catch (error) {
-      console.error('Erro ao buscar dados da assistência:', error);
-      return null;
+    // Primeiro verificar se é uma assistência mock
+    if (MOCK_ASSISTENCIAS[userId]) {
+      return MOCK_ASSISTENCIAS[userId];
     }
+    
+    // Caso contrário, deve-se implementar a busca real quando a tabela existir
+    console.log('Buscando assistência para userId:', userId);
+    
+    // Retornando null por enquanto, até que a tabela assistencias seja criada
+    return null;
   };
 
   useEffect(() => {
@@ -289,27 +287,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       }
       
-      // Se for registro de uma assistência técnica, criar registro na tabela de assistências
+      // Se for registro de uma assistência técnica, salvar em MOCK_ASSISTENCIAS
+      // No futuro, quando a tabela existir, isso seria inserido no banco
       if (tipoUsuario === 'assistencia' && data?.user) {
-        try {
-          const { error: assistError } = await supabase
-            .from('assistencias')
-            .insert({
-              userId: data.user.id,
-              nome: nome,
-              email: email,
-              status: "Ativa",
-              plano: "Básico", // Plano padrão
-              dataRegistro: new Date().toISOString().split('T')[0]
-            });
-            
-          if (assistError) {
-            console.error("Erro ao registrar assistência:", assistError);
-            // Não impede o registro, apenas loga o erro
-          }
-        } catch (assistError) {
-          console.error("Erro ao registrar assistência:", assistError);
-        }
+        const novaAssistencia: Assistencia = {
+          id: data.user.id,
+          nome: nome,
+          email: email,
+          status: "Ativa",
+          plano: "Básico", // Plano padrão
+          dataRegistro: new Date().toISOString().split('T')[0],
+          userId: data.user.id
+        };
+        
+        // Salvar em mock local
+        MOCK_ASSISTENCIAS[data.user.id] = novaAssistencia;
+        console.log("Assistência registrada em mock:", novaAssistencia);
       }
 
       return !!data?.user;
@@ -369,27 +362,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (profile?.id === ASSISTENCIA_PROFILE.id) {
         const dadosAtualizados = { ...assistencia, ...dados };
         setAssistencia(dadosAtualizados);
+        MOCK_ASSISTENCIAS[profile.id] = dadosAtualizados;
         localStorage.setItem('assistencia-data', JSON.stringify(dadosAtualizados));
         toast.success("Dados atualizados com sucesso");
         return true;
       }
       
-      // Atualizar dados via Supabase para assistências reais
-      const { error } = await supabase
-        .from('assistencias')
-        .update(dados)
-        .eq('userId', user.id);
-        
-      if (error) {
-        console.error("Erro ao atualizar dados:", error);
-        toast.error("Erro ao atualizar dados: " + error.message);
-        return false;
+      // Para assistências reais, atualizar no MOCK_ASSISTENCIAS
+      // No futuro, quando a tabela existir, isso seria atualizado no banco
+      if (MOCK_ASSISTENCIAS[user.id]) {
+        const dadosAtualizados = { ...MOCK_ASSISTENCIAS[user.id], ...dados };
+        MOCK_ASSISTENCIAS[user.id] = dadosAtualizados;
+        setAssistencia(dadosAtualizados);
+        toast.success("Dados atualizados com sucesso");
+        return true;
       }
       
-      // Atualizar o estado local
-      setAssistencia(prev => prev ? { ...prev, ...dados } : null);
-      toast.success("Dados atualizados com sucesso");
-      return true;
+      console.log("Tentativa de atualizar dados para um usuário desconhecido:", user.id);
+      toast.error("Usuário não encontrado");
+      return false;
     } catch (error) {
       console.error("Erro ao atualizar perfil:", error);
       toast.error("Ocorreu um erro ao atualizar o perfil");

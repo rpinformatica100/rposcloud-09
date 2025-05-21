@@ -1,6 +1,7 @@
 
 import { supabase } from './client';
 import type { Database } from './types';
+import { Assistencia } from '@/types';
 
 // Type helpers for Supabase tables
 export type TablesInsert<T extends keyof Database['public']['Tables']> = 
@@ -36,6 +37,40 @@ export type FinanceiroUpdate = TablesUpdate<'financeiro'>;
 export type ConfiguracaoRow = TablesRow<'configuracoes'>;
 export type ConfiguracaoInsert = TablesInsert<'configuracoes'>;
 export type ConfiguracaoUpdate = TablesUpdate<'configuracoes'>;
+
+// Mock functions for assistencia until the table is created
+export async function fetchAssistencias(): Promise<Assistencia[]> {
+  // Por enquanto retornando dados mock, no futuro será integrado com o banco
+  return [
+    {
+      id: "assist-1",
+      nome: "Assistência Técnica A",
+      email: "contato@assistenciaA.com",
+      plano: "Premium",
+      status: "Ativa",
+      dataRegistro: "2025-01-15",
+      telefone: "(11) 3333-4444",
+      celular: "(11) 98765-4321",
+      responsavel: "Técnico Responsável"
+    },
+    {
+      id: "assist-id",
+      nome: "Assistência Demo",
+      email: "assistencia@exemplo.com",
+      plano: "Premium",
+      status: "Ativa",
+      dataRegistro: "2025-05-01",
+      telefone: "(11) 5555-5555",
+      celular: "(11) 98888-8888",
+      responsavel: "João Técnico"
+    }
+  ];
+}
+
+export async function fetchAssistencia(id: string): Promise<Assistencia | null> {
+  const assistencias = await fetchAssistencias();
+  return assistencias.find(a => a.id === id) || null;
+}
 
 // Data access helpers
 export async function fetchClientes() {
