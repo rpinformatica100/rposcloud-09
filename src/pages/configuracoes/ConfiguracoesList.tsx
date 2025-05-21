@@ -1,16 +1,19 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfiguracaoRow, fetchConfiguracoes, upsertConfiguracoes } from "@/integrations/supabase/helpers";
-import { Settings, Save, AlertCircle, CheckCircle, FileText, Percent, CreditCard } from "lucide-react";
+import { Settings, Save, AlertCircle, CheckCircle, FileText, Percent, CreditCard, Globe, Shield, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 
 const ConfiguracoesList = () => {
   const [configuracoes, setConfiguracoes] = useState<ConfiguracaoRow[]>([]);
@@ -18,6 +21,7 @@ const ConfiguracoesList = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isAssistencia } = useAuth();
+  const navigate = useNavigate();
 
   // Se for uma assistência, redirecionar para a página de configurações de assistência
   if (isAssistencia) {
@@ -31,7 +35,7 @@ const ConfiguracoesList = () => {
   });
 
   // React to data changes
-  useEffect(() => {
+  React.useEffect(() => {
     if (data) {
       setConfiguracoes(data);
     }
@@ -72,6 +76,24 @@ const ConfiguracoesList = () => {
     updateMutation.mutate(configuracoes);
   };
 
+  // Estado para configurações de impressão
+  const [printConfig, setPrintConfig] = useState({
+    showLogo: true,
+    showFooter: true,
+    showHeader: true,
+    compactMode: false,
+    includePrices: true,
+  });
+
+  // Estado para configurações de notificação
+  const [notificationConfig, setNotificationConfig] = useState({
+    emailNotification: true,
+    smsNotification: false,
+    newOrderNotification: true,
+    paymentNotification: true,
+    customerNotification: false,
+  });
+
   // Agrupar configurações por tipo (com base na chave)
   const configNumeracao = configuracoes.filter(
     config => config.chave.startsWith('numeracao_')
@@ -86,6 +108,22 @@ const ConfiguracoesList = () => {
               !config.chave.startsWith('numeracao_') &&
               !config.chave.startsWith('financeiro_')
   );
+
+  // Lidar com mudanças nas configurações de impressão
+  const handlePrintConfigChange = (field: string, value: boolean) => {
+    setPrintConfig(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Lidar com mudanças nas configurações de notificação
+  const handleNotificationConfigChange = (field: string, value: boolean) => {
+    setNotificationConfig(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   if (isLoading) {
     return (
@@ -141,23 +179,99 @@ const ConfiguracoesList = () => {
         </AlertDescription>
       </Alert>
 
-      <Tabs defaultValue="numeracao" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="numeracao" className="flex items-center gap-1">
+      <Tabs defaultValue="geral" className="w-full">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsTrigger value="geral" className="flex items-center gap-1">
+            <Globe className="h-4 w-4" />
+            <span>Geral</span>
+          </TabsTrigger>
+          <TabsTrigger value="documentos" className="flex items-center gap-1">
             <FileText className="h-4 w-4" />
-            <span>Numeração</span>
+            <span>Documentos</span>
           </TabsTrigger>
           <TabsTrigger value="financeiras" className="flex items-center gap-1">
             <CreditCard className="h-4 w-4" />
             <span>Financeiras</span>
           </TabsTrigger>
-          <TabsTrigger value="outras" className="flex items-center gap-1">
-            <Settings className="h-4 w-4" />
-            <span>Outras</span>
+          <TabsTrigger value="notificacoes" className="flex items-center gap-1">
+            <Info className="h-4 w-4" />
+            <span>Notificações</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="numeracao">
+        {/* Configurações Gerais */}
+        <TabsContent value="geral">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                Configurações Gerais
+              </CardTitle>
+              <CardDescription>
+                Ajuste as configurações gerais do sistema
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                {configOutras.length > 0 ? (
+                  configOutras.map((config) => (
+                    <div key={config.id} className="space-y-2">
+                      <Label htmlFor={config.chave}>{config.descricao}</Label>
+                      <Input 
+                        id={config.chave} 
+                        value={config.valor || ''} 
+                        onChange={(e) => handleInputChange(config.id, e.target.value)}
+                      />
+                    </div>
+                  ))
+                ) : renderDefaultFields("outras")}
+                
+                <div className="space-y-4 pt-4 border-t">
+                  <h3 className="font-medium">Configurações de Impressão</h3>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="showLogo" className="font-medium">Exibir Logo</Label>
+                      <p className="text-sm text-muted-foreground">Mostrar o logotipo nos documentos impressos</p>
+                    </div>
+                    <Switch
+                      id="showLogo"
+                      checked={printConfig.showLogo}
+                      onCheckedChange={(checked) => handlePrintConfigChange("showLogo", checked)}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="compactMode" className="font-medium">Modo Compacto</Label>
+                      <p className="text-sm text-muted-foreground">Usar layout compacto para economizar papel</p>
+                    </div>
+                    <Switch
+                      id="compactMode"
+                      checked={printConfig.compactMode}
+                      onCheckedChange={(checked) => handlePrintConfigChange("compactMode", checked)}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="includePrices" className="font-medium">Incluir Preços</Label>
+                      <p className="text-sm text-muted-foreground">Exibir informações de preços nos documentos</p>
+                    </div>
+                    <Switch
+                      id="includePrices"
+                      checked={printConfig.includePrices}
+                      onCheckedChange={(checked) => handlePrintConfigChange("includePrices", checked)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Numeração de Documentos */}
+        <TabsContent value="documentos">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -188,6 +302,7 @@ const ConfiguracoesList = () => {
           </Card>
         </TabsContent>
         
+        {/* Configurações Financeiras */}
         <TabsContent value="financeiras">
           <Card>
             <CardHeader>
@@ -215,31 +330,85 @@ const ConfiguracoesList = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
-        <TabsContent value="outras">
+
+        {/* Notificações */}
+        <TabsContent value="notificacoes">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Outras Configurações
+                <Info className="h-5 w-5" />
+                Notificações
               </CardTitle>
               <CardDescription>
-                Configurações adicionais do sistema
+                Configure como você deseja receber notificações do sistema
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {configOutras.length > 0 ? (
-                configOutras.map((config) => (
-                  <div key={config.id} className="space-y-2">
-                    <Label htmlFor={config.chave}>{config.descricao}</Label>
-                    <Input 
-                      id={config.chave} 
-                      value={config.valor || ''} 
-                      onChange={(e) => handleInputChange(config.id, e.target.value)}
-                    />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="emailNotification" className="font-medium">Notificações por E-mail</Label>
+                    <p className="text-sm text-muted-foreground">Receber notificações por e-mail</p>
                   </div>
-                ))
-              ) : renderDefaultFields("outras")}
+                  <Switch
+                    id="emailNotification"
+                    checked={notificationConfig.emailNotification}
+                    onCheckedChange={(checked) => handleNotificationConfigChange("emailNotification", checked)}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="smsNotification" className="font-medium">Notificações por SMS</Label>
+                    <p className="text-sm text-muted-foreground">Receber notificações por SMS</p>
+                  </div>
+                  <Switch
+                    id="smsNotification"
+                    checked={notificationConfig.smsNotification}
+                    onCheckedChange={(checked) => handleNotificationConfigChange("smsNotification", checked)}
+                  />
+                </div>
+                
+                <Separator className="my-4" />
+                
+                <h3 className="font-medium">Tipos de Notificações</h3>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="newOrderNotification" className="font-medium">Novas Ordens</Label>
+                    <p className="text-sm text-muted-foreground">Notificar quando uma nova ordem for criada</p>
+                  </div>
+                  <Switch
+                    id="newOrderNotification"
+                    checked={notificationConfig.newOrderNotification}
+                    onCheckedChange={(checked) => handleNotificationConfigChange("newOrderNotification", checked)}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="paymentNotification" className="font-medium">Pagamentos</Label>
+                    <p className="text-sm text-muted-foreground">Notificar sobre pagamentos recebidos</p>
+                  </div>
+                  <Switch
+                    id="paymentNotification"
+                    checked={notificationConfig.paymentNotification}
+                    onCheckedChange={(checked) => handleNotificationConfigChange("paymentNotification", checked)}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="customerNotification" className="font-medium">Clientes</Label>
+                    <p className="text-sm text-muted-foreground">Notificar sobre novos clientes cadastrados</p>
+                  </div>
+                  <Switch
+                    id="customerNotification"
+                    checked={notificationConfig.customerNotification}
+                    onCheckedChange={(checked) => handleNotificationConfigChange("customerNotification", checked)}
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -271,11 +440,6 @@ const ConfiguracoesList = () => {
             </div>
           </div>
         </CardContent>
-        <CardFooter>
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Sistema OS - Todos os direitos reservados
-          </p>
-        </CardFooter>
       </Card>
     </div>
   );

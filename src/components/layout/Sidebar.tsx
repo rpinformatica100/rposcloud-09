@@ -19,12 +19,21 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
+  ChevronDown,
+  ChevronUp,
+  Globe,
+  FileText2,
+  User,
+  CreditCard,
+  Bell
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const Sidebar = () => {
   const { state } = useSidebar();
   const { profile, logout } = useAuth();
+  const [configMenuOpen, setConfigMenuOpen] = useState(false);
   
   const isCollapsed = state === "collapsed";
   
@@ -35,7 +44,12 @@ const Sidebar = () => {
     { title: "Produtos/Serviços", path: "/app/produtos", icon: Package },
     { title: "Ordens de Serviço", path: "/app/ordens", icon: FileText },
     { title: "Financeiro", path: "/app/financeiro", icon: Wallet },
-    { title: "Configurações", path: "/app/configuracoes", icon: Settings },
+  ];
+  
+  // Sub-menu de configurações
+  const configItems = [
+    { title: "Geral", path: "/app/configuracoes", icon: Globe, exact: true },
+    { title: "Perfil da Empresa", path: "/app/configuracoes/perfil", icon: User },
   ];
 
   const handleLogout = () => {
@@ -93,6 +107,7 @@ const Sidebar = () => {
 
       <SidebarContent className="bg-white overflow-hidden">
         <div className="py-4">
+          {/* Regular menu items */}
           {menuItems.map((item) => (
             <NavLink
               key={item.path}
@@ -110,6 +125,60 @@ const Sidebar = () => {
               {!isCollapsed && <span className="ml-3">{item.title}</span>}
             </NavLink>
           ))}
+          
+          {/* Configurações com submenu */}
+          <div className="mx-2 my-1">
+            <Collapsible
+              open={configMenuOpen}
+              onOpenChange={setConfigMenuOpen}
+              className={`rounded-lg overflow-hidden ${configMenuOpen ? 'bg-gray-50' : ''}`}
+            >
+              <CollapsibleTrigger className="w-full text-left">
+                <div className={`
+                  flex items-center justify-between px-3 py-2.5 rounded-lg
+                  ${
+                    window.location.pathname.startsWith('/app/configuracoes')
+                      ? "bg-gray-100 text-gray-800 font-medium"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  }
+                `}>
+                  <div className="flex items-center">
+                    <Settings size={20} className="flex-shrink-0" />
+                    {!isCollapsed && <span className="ml-3">Configurações</span>}
+                  </div>
+                  {!isCollapsed && (
+                    configMenuOpen ? 
+                    <ChevronUp size={16} /> : 
+                    <ChevronDown size={16} />
+                  )}
+                </div>
+              </CollapsibleTrigger>
+              
+              {!isCollapsed && (
+                <CollapsibleContent>
+                  <div className="pl-5 pr-2 py-1">
+                    {configItems.map((item) => (
+                      <NavLink
+                        key={item.path}
+                        to={item.path}
+                        end={item.exact}
+                        className={({ isActive }) => `
+                          flex items-center px-3 py-2 my-1 rounded-md text-sm
+                          ${isActive 
+                            ? "bg-gray-100 text-gray-800 font-medium" 
+                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                          }
+                        `}
+                      >
+                        <item.icon size={16} className="flex-shrink-0" />
+                        <span className="ml-2">{item.title}</span>
+                      </NavLink>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              )}
+            </Collapsible>
+          </div>
         </div>
       </SidebarContent>
 

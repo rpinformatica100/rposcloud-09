@@ -50,7 +50,7 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <Routes>
-              {/* Página inicial é a Landing page */}
+              {/* Landing page é a rota principal */}
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
