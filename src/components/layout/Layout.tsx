@@ -41,6 +41,15 @@ const Layout = () => {
         <Sidebar />
         
         <div className="flex-1 overflow-auto">
+          <header className="bg-white shadow-sm border-b px-4 sm:px-6 py-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-semibold text-gray-800">Sistema de Ordens de Serviço</h1>
+                <p className="text-sm text-gray-500">Controle completo de clientes, serviços e ordens</p>
+              </div>
+            </div>
+          </header>
+          
           <main className="p-4 sm:p-6 md:p-8">
             <Outlet />
           </main>

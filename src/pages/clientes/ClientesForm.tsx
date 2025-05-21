@@ -10,10 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchCliente, updateCliente, insertCliente } from "@/integrations/supabase/helpers";
 import { ClienteInsert, ClienteUpdate } from "@/integrations/supabase/helpers";
-import { ArrowLeft, Save, Search, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Search, Loader2, User, Building2, Mail, Phone, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { useExternalServices } from "@/hooks/use-external-services";
 import { useInputMask } from "@/hooks/use-input-mask";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const ClienteForm = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +34,9 @@ const ClienteForm = () => {
   });
   const { fetchCep, fetchCnpj, loadingCep, loadingCnpj } = useExternalServices();
   const { phoneMask, documentMask, cepMask } = useInputMask();
+  const [loading, setLoading] = useState(false);
+  const [showCepDialog, setShowCepDialog] = useState(false);
+  const [cepResult, setCepResult] = useState<any>(null);
 
   const isEditMode = !!id;
 
@@ -45,9 +49,18 @@ const ClienteForm = () => {
 
   useEffect(() => {
     if (clienteData) {
+      // Adaptar o tipo do cliente para o formulário
+      let tipoAdaptado = clienteData.tipo;
+      if (clienteData.tipo === 'cliente') {
+        // Verificar pelo documento se é PF ou PJ
+        tipoAdaptado = clienteData.documento && clienteData.documento.length > 14 
+          ? "pessoa_juridica" 
+          : "pessoa_fisica";
+      }
+      
       setFormData({
         nome: clienteData.nome || "",
-        tipo: clienteData.tipo || "pessoa_fisica",
+        tipo: tipoAdaptado,
         documento: clienteData.documento || "",
         telefone: clienteData.telefone || "",
         email: clienteData.email || "",
@@ -91,6 +104,7 @@ const ClienteForm = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     mutation.mutate(formData);
   };
 
@@ -103,6 +117,11 @@ const ClienteForm = () => {
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Limpar documento ao trocar o tipo de pessoa
+    if (name === "tipo") {
+      setFormData((prev) => ({ ...prev, documento: "" }));
+    }
   };
 
   // Função para buscar CEP
@@ -112,16 +131,28 @@ const ClienteForm = () => {
       return;
     }
 
-    const cepData = await fetchCep(formData.cep);
-    
-    if (cepData) {
-      setFormData(prev => ({
-        ...prev,
-        endereco: `${cepData.logradouro}${cepData.complemento ? ', ' + cepData.complemento : ''}`,
-        cidade: cepData.localidade,
-        estado: cepData.uf,
-        cep: cepData.cep
-      }));
+    try {
+      setLoading(true);
+      const cepData = await fetchCep(formData.cep);
+      
+      if (cepData) {
+        setCepResult(cepData);
+        setShowCepDialog(true);
+        
+        setFormData(prev => ({
+          ...prev,
+          endereco: `${cepData.logradouro}${cepData.complemento ? ', ' + cepData.complemento : ''}`,
+          cidade: cepData.localidade,
+          estado: cepData.uf,
+          cep: cepData.cep
+        }));
+      }
+    } catch (error) {
+      toast.error("Erro ao buscar CEP", {
+        description: "Verifique se o CEP está correto e tente novamente"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -132,19 +163,32 @@ const ClienteForm = () => {
       return;
     }
 
-    const cnpjData = await fetchCnpj(formData.documento);
-    
-    if (cnpjData) {
-      setFormData(prev => ({
-        ...prev,
-        nome: cnpjData.nome,
-        email: cnpjData.email || prev.email,
-        telefone: cnpjData.telefone || prev.telefone,
-        endereco: `${cnpjData.logradouro}${cnpjData.numero ? ', ' + cnpjData.numero : ''}${cnpjData.complemento ? ', ' + cnpjData.complemento : ''}`,
-        cidade: cnpjData.municipio,
-        estado: cnpjData.uf,
-        cep: cnpjData.cep
-      }));
+    try {
+      setLoading(true);
+      const cnpjData = await fetchCnpj(formData.documento);
+      
+      if (cnpjData) {
+        setFormData(prev => ({
+          ...prev,
+          nome: cnpjData.nome,
+          email: cnpjData.email || prev.email,
+          telefone: cnpjData.telefone || prev.telefone,
+          endereco: `${cnpjData.logradouro}${cnpjData.numero ? ', ' + cnpjData.numero : ''}${cnpjData.complemento ? ', ' + cnpjData.complemento : ''}`,
+          cidade: cnpjData.municipio,
+          estado: cnpjData.uf,
+          cep: cnpjData.cep
+        }));
+        
+        toast.success("CNPJ encontrado!", { 
+          description: "Dados carregados com sucesso." 
+        });
+      }
+    } catch (error) {
+      toast.error("Erro ao buscar CNPJ", {
+        description: "Verifique se o CNPJ está correto e tente novamente"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -182,8 +226,8 @@ const ClienteForm = () => {
         </Button>
       </div>
 
-      <Card className="max-w-3xl mx-auto">
-        <CardHeader>
+      <Card className="max-w-3xl mx-auto shadow-lg border-0">
+        <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b">
           <CardTitle>{isEditMode ? "Editar Cliente" : "Novo Cliente"}</CardTitle>
           <CardDescription>
             {isEditMode
@@ -193,26 +237,42 @@ const ClienteForm = () => {
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6 p-6">
             {/* Tipo de pessoa */}
-            <div className="space-y-2">
-              <Label htmlFor="tipo">Tipo</Label>
-              <Select
-                value={formData.tipo}
-                onValueChange={(value) => handleSelectChange("tipo", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pessoa_fisica">Pessoa Física</SelectItem>
-                  <SelectItem value="pessoa_juridica">Pessoa Jurídica</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="tipo">Tipo de Cadastro</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div 
+                  className={`border rounded-md p-4 cursor-pointer transition-all ${
+                    formData.tipo === "pessoa_fisica" 
+                      ? "border-primary bg-primary/5" 
+                      : "border-border hover:border-primary/50"
+                  }`}
+                  onClick={() => handleSelectChange("tipo", "pessoa_fisica")}
+                >
+                  <div className="flex items-center">
+                    <User className={`h-5 w-5 mr-2 ${formData.tipo === "pessoa_fisica" ? "text-primary" : "text-muted-foreground"}`} />
+                    <span className={formData.tipo === "pessoa_fisica" ? "font-medium" : ""}>Pessoa Física</span>
+                  </div>
+                </div>
+                <div 
+                  className={`border rounded-md p-4 cursor-pointer transition-all ${
+                    formData.tipo === "pessoa_juridica" 
+                      ? "border-primary bg-primary/5" 
+                      : "border-border hover:border-primary/50"
+                  }`}
+                  onClick={() => handleSelectChange("tipo", "pessoa_juridica")}
+                >
+                  <div className="flex items-center">
+                    <Building2 className={`h-5 w-5 mr-2 ${formData.tipo === "pessoa_juridica" ? "text-primary" : "text-muted-foreground"}`} />
+                    <span className={formData.tipo === "pessoa_juridica" ? "font-medium" : ""}>Pessoa Jurídica</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Documento (CPF/CNPJ) com busca CNPJ */}
-            <div className="space-y-2">
+            <div className="flex flex-col space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label htmlFor="documento">
                   {formData.tipo === "pessoa_fisica" ? "CPF" : "CNPJ"}
@@ -223,9 +283,9 @@ const ClienteForm = () => {
                     variant="outline" 
                     size="sm"
                     onClick={handleBuscarCnpj}
-                    disabled={loadingCnpj || !formData.documento}
+                    disabled={loading || !formData.documento}
                   >
-                    {loadingCnpj ? (
+                    {loading ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                       <Search className="mr-2 h-4 w-4" />
@@ -244,11 +304,16 @@ const ClienteForm = () => {
                     ? "Digite o CPF"
                     : "Digite o CNPJ"
                 }
+                startContent={
+                  formData.tipo === "pessoa_fisica" ? 
+                    <User className="h-4 w-4" /> : 
+                    <Building2 className="h-4 w-4" />
+                }
               />
             </div>
 
             {/* Nome */}
-            <div className="space-y-2">
+            <div className="flex flex-col space-y-1.5">
               <Label htmlFor="nome">
                 {formData.tipo === "pessoa_fisica" ? "Nome Completo" : "Razão Social"}
               </Label>
@@ -263,8 +328,8 @@ const ClienteForm = () => {
             </div>
 
             {/* Informações de contato */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
@@ -273,10 +338,11 @@ const ClienteForm = () => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="Digite o email"
+                  startContent={<Mail className="h-4 w-4" />}
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="telefone">Telefone</Label>
                 <Input
                   id="telefone"
@@ -284,78 +350,92 @@ const ClienteForm = () => {
                   value={formData.telefone}
                   onChange={handlePhoneChange}
                   placeholder="(00) 00000-0000"
+                  startContent={<Phone className="h-4 w-4" />}
                 />
               </div>
             </div>
 
-            {/* CEP com busca */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="cep">CEP</Label>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleBuscarCep}
-                  disabled={loadingCep || !formData.cep}
-                >
-                  {loadingCep ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Search className="mr-2 h-4 w-4" />
-                  )}
-                  Buscar CEP
-                </Button>
-              </div>
-              <Input
-                id="cep"
-                name="cep"
-                value={formData.cep}
-                onChange={handleCepChange}
-                placeholder="00000-000"
-              />
-            </div>
-
-            {/* Endereço */}
-            <div className="space-y-2">
-              <Label htmlFor="endereco">Endereço</Label>
-              <Input
-                id="endereco"
-                name="endereco"
-                value={formData.endereco}
-                onChange={handleChange}
-                placeholder="Rua, número, complemento"
-              />
-            </div>
-
-            {/* Cidade e Estado */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="cidade">Cidade</Label>
-                <Input
-                  id="cidade"
-                  name="cidade"
-                  value={formData.cidade}
-                  onChange={handleChange}
-                  placeholder="Digite a cidade"
-                />
+            {/* Endereço - Seção */}
+            <div className="border rounded-md p-4">
+              <h3 className="font-medium mb-4 flex items-center">
+                <MapPin className="h-4 w-4 mr-2" />
+                Endereço
+              </h3>
+              
+              {/* CEP com busca */}
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="col-span-3 sm:col-span-1">
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="cep">CEP</Label>
+                    <div className="flex">
+                      <Input
+                        id="cep"
+                        name="cep"
+                        value={formData.cep}
+                        onChange={handleCepChange}
+                        placeholder="00000-000"
+                        className="rounded-r-none"
+                      />
+                      <Button 
+                        type="button" 
+                        onClick={handleBuscarCep}
+                        disabled={loading || !formData.cep}
+                        className="rounded-l-none"
+                      >
+                        {loading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Search className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="estado">Estado</Label>
-                <Input
-                  id="estado"
-                  name="estado"
-                  value={formData.estado}
-                  onChange={handleChange}
-                  placeholder="UF"
-                  maxLength={2}
-                />
+              {/* Endereço */}
+              <div className="space-y-4">
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="endereco">Endereço</Label>
+                  <Input
+                    id="endereco"
+                    name="endereco"
+                    value={formData.endereco}
+                    onChange={handleChange}
+                    placeholder="Rua, número, complemento"
+                  />
+                </div>
+
+                {/* Cidade e Estado */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="cidade">Cidade</Label>
+                    <Input
+                      id="cidade"
+                      name="cidade"
+                      value={formData.cidade}
+                      onChange={handleChange}
+                      placeholder="Digite a cidade"
+                    />
+                  </div>
+
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="estado">Estado</Label>
+                    <Input
+                      id="estado"
+                      name="estado"
+                      value={formData.estado}
+                      onChange={handleChange}
+                      placeholder="UF"
+                      maxLength={2}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Observações */}
-            <div className="space-y-2">
+            <div className="flex flex-col space-y-1.5">
               <Label htmlFor="observacoes">Observações</Label>
               <Textarea
                 id="observacoes"
@@ -368,7 +448,7 @@ const ClienteForm = () => {
             </div>
           </CardContent>
 
-          <CardFooter className="flex justify-between">
+          <CardFooter className="flex justify-between px-6 py-4 bg-muted/10 border-t">
             <Button
               type="button"
               variant="outline"
@@ -376,7 +456,7 @@ const ClienteForm = () => {
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={mutation.isPending}>
+            <Button type="submit" disabled={mutation.isPending || loading}>
               {mutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -392,6 +472,30 @@ const ClienteForm = () => {
           </CardFooter>
         </form>
       </Card>
+
+      {/* Modal de confirmação para CEP */}
+      <Dialog open={showCepDialog} onOpenChange={setShowCepDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Endereço encontrado</DialogTitle>
+            <DialogDescription>
+              O CEP foi encontrado e os dados foram preenchidos automaticamente.
+            </DialogDescription>
+          </DialogHeader>
+          {cepResult && (
+            <div className="space-y-2 mt-2">
+              <p><strong>Logradouro:</strong> {cepResult.logradouro}</p>
+              {cepResult.complemento && <p><strong>Complemento:</strong> {cepResult.complemento}</p>}
+              <p><strong>Bairro:</strong> {cepResult.bairro}</p>
+              <p><strong>Cidade:</strong> {cepResult.localidade}</p>
+              <p><strong>Estado:</strong> {cepResult.uf}</p>
+            </div>
+          )}
+          <div className="flex justify-end mt-4">
+            <Button onClick={() => setShowCepDialog(false)}>Fechar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

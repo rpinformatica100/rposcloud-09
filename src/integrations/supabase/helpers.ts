@@ -60,26 +60,65 @@ export async function fetchCliente(id: string) {
 }
 
 export async function insertCliente(cliente: ClienteInsert) {
-  const { data, error } = await supabase
-    .from('clientes')
-    .insert(cliente)
-    .select()
-    .single();
-  
-  if (error) throw error;
-  return data;
+  // Verificar se o tipo é válido para o banco de dados
+  if (cliente.tipo === 'pessoa_fisica' || cliente.tipo === 'pessoa_juridica') {
+    // Converter para 'cliente' no banco de dados
+    const clienteParaInserir = {
+      ...cliente,
+      tipo: 'cliente'
+    };
+    
+    const { data, error } = await supabase
+      .from('clientes')
+      .insert(clienteParaInserir)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } else {
+    // Se já for 'cliente' ou 'fornecedor', manter como está
+    const { data, error } = await supabase
+      .from('clientes')
+      .insert(cliente)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
 }
 
 export async function updateCliente(id: string, cliente: ClienteUpdate) {
-  const { data, error } = await supabase
-    .from('clientes')
-    .update(cliente)
-    .eq('id', id)
-    .select()
-    .single();
-  
-  if (error) throw error;
-  return data;
+  // Verificar se o tipo é válido para o banco de dados
+  if (cliente.tipo === 'pessoa_fisica' || cliente.tipo === 'pessoa_juridica') {
+    // Converter para 'cliente' no banco de dados
+    const clienteParaAtualizar = {
+      ...cliente,
+      tipo: 'cliente'
+    };
+    
+    const { data, error } = await supabase
+      .from('clientes')
+      .update(clienteParaAtualizar)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } else {
+    // Se já for 'cliente' ou 'fornecedor', manter como está
+    const { data, error } = await supabase
+      .from('clientes')
+      .update(cliente)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
 }
 
 export async function deleteCliente(id: string) {
