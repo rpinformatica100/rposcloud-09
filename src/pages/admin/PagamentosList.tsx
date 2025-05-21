@@ -9,15 +9,27 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Search, FileText, CheckCircle, XCircle } from "lucide-react";
+import { Search, FileText, CheckCircle, XCircle, Edit, Trash } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+
+type PagamentoType = {
+  id: string;
+  assistencia: string;
+  plano: string;
+  valor: number;
+  data: string;
+  status: "Aprovado" | "Recusado";
+  metodo: string;
+}
 
 const PagamentosList = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  
-  // Dados simulados de pagamentos
-  const pagamentos = [
+  const [pagamentos, setPagamentos] = useState<PagamentoType[]>([
     { 
       id: "PAG-001", 
       assistencia: "TecnoHelp", 
@@ -63,7 +75,14 @@ const PagamentosList = () => {
       status: "Aprovado", 
       metodo: "Cartão de Crédito" 
     },
-  ];
+  ]);
+
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [currentPagamento, setCurrentPagamento] = useState<PagamentoType | null>(null);
+
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<PagamentoType>();
 
   const filteredPagamentos = pagamentos.filter(
     (pagamento) =>
@@ -75,6 +94,56 @@ const PagamentosList = () => {
   const totalAprovado = pagamentos
     .filter(p => p.status === "Aprovado")
     .reduce((total, p) => total + p.valor, 0);
+
+  // Métodos de pagamento disponíveis
+  const metodosPagamento = [
+    "Cartão de Crédito",
+    "Cartão de Débito",
+    "PIX",
+    "Boleto",
+    "Transferência Bancária"
+  ];
+
+  // Funções CRUD
+  const handleEdit = (data: PagamentoType) => {
+    setPagamentos(prev => 
+      prev.map(item => item.id === currentPagamento?.id ? { ...item, ...data } : item)
+    );
+    setIsEditDialogOpen(false);
+    setCurrentPagamento(null);
+    toast.success("Pagamento atualizado com sucesso!");
+  };
+
+  const handleDelete = () => {
+    if (currentPagamento) {
+      setPagamentos(prev => prev.filter(item => item.id !== currentPagamento.id));
+      setIsDeleteDialogOpen(false);
+      setCurrentPagamento(null);
+      toast.success("Pagamento removido com sucesso!");
+    }
+  };
+
+  const openViewDialog = (pagamento: PagamentoType) => {
+    setCurrentPagamento(pagamento);
+    setIsViewDialogOpen(true);
+  };
+
+  const openEditDialog = (pagamento: PagamentoType) => {
+    setCurrentPagamento(pagamento);
+    setValue("id", pagamento.id);
+    setValue("assistencia", pagamento.assistencia);
+    setValue("plano", pagamento.plano);
+    setValue("valor", pagamento.valor);
+    setValue("data", pagamento.data);
+    setValue("status", pagamento.status);
+    setValue("metodo", pagamento.metodo);
+    setIsEditDialogOpen(true);
+  };
+
+  const openDeleteDialog = (pagamento: PagamentoType) => {
+    setCurrentPagamento(pagamento);
+    setIsDeleteDialogOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -141,7 +210,7 @@ const PagamentosList = () => {
                 <TableHead>Data</TableHead>
                 <TableHead>Método</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="w-[60px] text-right">Ações</TableHead>
+                <TableHead className="w-[120px] text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -167,9 +236,32 @@ const PagamentosList = () => {
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" title="Ver comprovante">
-                      <FileText className="h-4 w-4" />
-                    </Button>
+                    <div className="flex justify-end space-x-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        title="Ver comprovante"
+                        onClick={() => openViewDialog(pagamento)}
+                      >
+                        <FileText className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        title="Editar"
+                        onClick={() => openEditDialog(pagamento)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        title="Remover"
+                        onClick={() => openDeleteDialog(pagamento)}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -177,6 +269,156 @@ const PagamentosList = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Diálogo para visualizar pagamento */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Detalhes do Pagamento</DialogTitle>
+          </DialogHeader>
+          {currentPagamento && (
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-100 rounded-md">
+                <h3 className="text-lg font-bold mb-2">Comprovante de Pagamento</h3>
+                <p className="text-sm mb-4">#{currentPagamento.id}</p>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Assistência:</span>
+                    <span className="font-medium">{currentPagamento.assistencia}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Plano:</span>
+                    <span className="font-medium">{currentPagamento.plano}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Data:</span>
+                    <span className="font-medium">{currentPagamento.data}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Método:</span>
+                    <span className="font-medium">{currentPagamento.metodo}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Status:</span>
+                    <span className={`font-medium ${currentPagamento.status === 'Aprovado' ? 'text-green-600' : 'text-red-600'}`}>
+                      {currentPagamento.status}
+                    </span>
+                  </div>
+                  <div className="border-t border-gray-300 my-2"></div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-900 font-medium">Valor Total:</span>
+                    <span className="font-bold text-lg">R$ {currentPagamento.valor.toFixed(2).replace('.', ',')}</span>
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
+                  Fechar
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo para editar pagamento */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Pagamento</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit(handleEdit)} className="space-y-4">
+            <Input type="hidden" {...register("id")} />
+            
+            <div className="space-y-2">
+              <Label htmlFor="assistencia">Assistência</Label>
+              <Input
+                id="assistencia"
+                {...register("assistencia", { required: "Assistência é obrigatória" })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="plano">Plano</Label>
+              <Input
+                id="plano"
+                {...register("plano", { required: "Plano é obrigatório" })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="valor">Valor (R$)</Label>
+              <Input
+                id="valor"
+                type="number"
+                step="0.01"
+                min="0"
+                {...register("valor", { 
+                  required: "Valor é obrigatório",
+                  valueAsNumber: true
+                })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="data">Data</Label>
+              <Input
+                id="data"
+                {...register("data", { required: "Data é obrigatória" })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="metodo">Método de Pagamento</Label>
+              <select
+                id="metodo"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                {...register("metodo", { required: "Método é obrigatório" })}
+              >
+                {metodosPagamento.map(metodo => (
+                  <option key={metodo} value={metodo}>{metodo}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <select
+                id="status"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                {...register("status")}
+              >
+                <option value="Aprovado">Aprovado</option>
+                <option value="Recusado">Recusado</option>
+              </select>
+            </div>
+            
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline">Cancelar</Button>
+              </DialogClose>
+              <Button type="submit">Salvar alterações</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo para confirmar exclusão */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar exclusão</DialogTitle>
+          </DialogHeader>
+          <p>Tem certeza que deseja excluir o pagamento {currentPagamento?.id}?</p>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="outline">Cancelar</Button>
+            </DialogClose>
+            <Button variant="destructive" onClick={handleDelete}>Excluir</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
