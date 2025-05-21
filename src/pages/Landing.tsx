@@ -101,8 +101,8 @@ const Landing = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-blue-200">
       <main className="flex-1 flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-4">
-          <div className="text-center">
+        <div className="w-full max-w-md space-y-3"> {/* Reduzido de space-y-4 para space-y-3 */}
+          <div className="text-center mb-2"> {/* Adicionado mb-2 para diminuir o espaço */}
             <h1 className="text-4xl font-bold text-blue-800">Sistema OS</h1>
             <p className="text-lg text-gray-600">
               Gestão completa de ordens de serviço
@@ -117,14 +117,14 @@ const Landing = () => {
             
             <TabsContent value="login">
               <Card className="bg-white">
-                <CardHeader className="space-y-1 pb-2">
+                <CardHeader className="space-y-1 pb-2 pt-4"> {/* Reduzido padding */}
                   <CardTitle className="text-2xl">Login</CardTitle>
                   <CardDescription>
                     Entre com seu email e senha para acessar o sistema
                   </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleLogin}>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-2"> {/* Reduzido de space-y-3 para space-y-2 */}
                     <div className="space-y-1">
                       <Label htmlFor="email">Email</Label>
                       <Input 
@@ -152,7 +152,7 @@ const Landing = () => {
                       Para teste, use: teste@sistema.com / 123456
                     </div>
                   </CardContent>
-                  <CardFooter className="pt-0">
+                  <CardFooter className="pt-0 pb-4"> {/* Reduzido padding */}
                     <Button className="w-full" type="submit" disabled={isLoading}>
                       {isLoading ? "Entrando..." : "Entrar"}
                     </Button>
@@ -163,14 +163,14 @@ const Landing = () => {
             
             <TabsContent value="register">
               <Card className="bg-white">
-                <CardHeader className="space-y-1 pb-2">
+                <CardHeader className="space-y-1 pb-2 pt-4"> {/* Reduzido padding */}
                   <CardTitle className="text-2xl">Criar nova conta</CardTitle>
                   <CardDescription>
                     Preencha os dados para se registrar no sistema
                   </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleRegistro}>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-2"> {/* Reduzido de space-y-3 para space-y-2 */}
                     <div className="space-y-1">
                       <Label htmlFor="nome">Nome completo</Label>
                       <Input 
@@ -204,7 +204,7 @@ const Landing = () => {
                       />
                     </div>
                   </CardContent>
-                  <CardFooter className="pt-0">
+                  <CardFooter className="pt-0 pb-4"> {/* Reduzido padding */}
                     <Button className="w-full" type="submit" disabled={isLoading}>
                       {isLoading ? "Registrando..." : "Registrar"}
                     </Button>
@@ -214,19 +214,19 @@ const Landing = () => {
             </TabsContent>
           </Tabs>
           
-          <div className="text-center relative">
-            <div className="py-2 relative flex items-center justify-center">
+          <div className="text-center relative mt-2"> {/* Reduzido espaço com mt-2 */}
+            <div className="py-1 relative flex items-center justify-center"> {/* Reduzido padding vertical */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-xs px-3 py-1 rounded-full font-medium">
                 Recomendado
               </div>
-              <Card className="w-full mt-4 border-blue-300 border-2">
-                <CardHeader className="pb-2">
+              <Card className="w-full mt-3 border-blue-300 border-2"> {/* Reduzido margin top */}
+                <CardHeader className="pb-1 pt-4"> {/* Reduzido padding */}
                   <CardTitle className="text-lg">Plano Profissional</CardTitle>
                   <CardDescription>Para empresas de médio porte</CardDescription>
                 </CardHeader>
-                <CardContent className="pb-2">
+                <CardContent className="pb-1">
                   <p className="text-2xl font-bold">R$ 99,90<span className="text-sm font-normal">/mês</span></p>
-                  <ul className="mt-2 space-y-1 text-sm">
+                  <ul className="mt-1 space-y-1 text-sm"> {/* Reduzido margin-top */}
                     <li className="flex items-center">
                       <span className="mr-2">✓</span>
                       <span>Até 500 ordens por mês</span>
@@ -237,7 +237,7 @@ const Landing = () => {
                     </li>
                   </ul>
                 </CardContent>
-                <CardFooter className="pt-0">
+                <CardFooter className="pt-0 pb-4"> {/* Reduzido padding */}
                   <Button className="w-full bg-blue-600 hover:bg-blue-700">
                     Começar agora
                   </Button>

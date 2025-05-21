@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from "./components/theme-provider"
@@ -8,7 +9,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from './contexts/AuthContext';
 
 // Public Pages
-import Index from './pages/Index';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import NotFound from './pages/NotFound';
@@ -16,6 +17,7 @@ import NotFound from './pages/NotFound';
 // App Layout
 import Layout from './components/layout/Layout';
 import AdminLayout from './components/layout/AdminLayout';
+import AssistenciaLayout from './components/layout/AssistenciaLayout';
 
 // App Pages
 import Dashboard from './pages/Dashboard';
@@ -48,12 +50,13 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <Routes>
-              <Route path="/" element={<Index />} />
+              {/* Página inicial agora é a Landing page */}
+              <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               
               {/* App Routes (require authentication) */}
-              <Route element={<Layout />}>
+              <Route path="/app" element={<Layout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="clientes" element={<ClientesList />} />
                 <Route path="clientes/novo" element={<ClientesForm />} />
@@ -73,9 +76,15 @@ function App() {
                 <Route path="financeiro/:id" element={<FinanceiroForm />} />
                 
                 {/* Rotas de Configurações */}
-                <Route path="/app/configuracoes" element={<ConfiguracoesList />} />
-                <Route path="/app/configuracoes/perfil" element={<PerfilEmpresa />} />
-                <Route path="/app/configuracoes/assistencia" element={<ConfiguracoesAssistencia />} />
+                <Route path="configuracoes" element={<ConfiguracoesList />} />
+                <Route path="configuracoes/perfil" element={<PerfilEmpresa />} />
+                <Route path="configuracoes/assistencia" element={<ConfiguracoesAssistencia />} />
+              </Route>
+              
+              {/* Assistência Routes */}
+              <Route path="/assistencia" element={<AssistenciaLayout />}>
+                <Route index element={<Dashboard />} />
+                {/* Adicione mais rotas conforme necessário */}
               </Route>
               
               {/* Admin Routes (require admin authentication) */}
