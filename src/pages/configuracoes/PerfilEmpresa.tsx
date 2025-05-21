@@ -76,6 +76,35 @@ const PerfilEmpresa = () => {
     updateMutation.mutate(configuracoes);
   };
 
+  const createDefaultConfiguration = (section: string) => {
+    const currentDate = new Date().toISOString();
+    let defaultFields: ConfiguracaoRow[] = [];
+    
+    if (section === "informacoes") {
+      defaultFields = [
+        { id: crypto.randomUUID(), chave: 'empresa_nome', valor: '', descricao: 'Nome da Empresa', created_at: currentDate, updated_at: currentDate },
+        { id: crypto.randomUUID(), chave: 'empresa_cnpj', valor: '', descricao: 'CNPJ', created_at: currentDate, updated_at: currentDate },
+        { id: crypto.randomUUID(), chave: 'empresa_telefone', valor: '', descricao: 'Telefone', created_at: currentDate, updated_at: currentDate },
+        { id: crypto.randomUUID(), chave: 'empresa_email', valor: '', descricao: 'Email', created_at: currentDate, updated_at: currentDate },
+        { id: crypto.randomUUID(), chave: 'empresa_site', valor: '', descricao: 'Site', created_at: currentDate, updated_at: currentDate },
+      ];
+    } else if (section === "endereco") {
+      defaultFields = [
+        { id: crypto.randomUUID(), chave: 'empresa_endereco', valor: '', descricao: 'Endereço', created_at: currentDate, updated_at: currentDate },
+        { id: crypto.randomUUID(), chave: 'empresa_cidade', valor: '', descricao: 'Cidade', created_at: currentDate, updated_at: currentDate },
+        { id: crypto.randomUUID(), chave: 'empresa_estado', valor: '', descricao: 'Estado', created_at: currentDate, updated_at: currentDate },
+        { id: crypto.randomUUID(), chave: 'empresa_cep', valor: '', descricao: 'CEP', created_at: currentDate, updated_at: currentDate },
+      ];
+    } else if (section === "adicional") {
+      defaultFields = [
+        { id: crypto.randomUUID(), chave: 'empresa_observacoes', valor: '', descricao: 'Observações', created_at: currentDate, updated_at: currentDate },
+        { id: crypto.randomUUID(), chave: 'empresa_slogan', valor: '', descricao: 'Slogan', created_at: currentDate, updated_at: currentDate },
+      ];
+    }
+    
+    setConfiguracoes([...configuracoes, ...defaultFields]);
+  };
+
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -287,7 +316,106 @@ const PerfilEmpresa = () => {
                       />
                     </div>
                   ))
-                ) : renderDefaultFields("informacoes")}
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="empresa_nome">Nome da Empresa</Label>
+                      <Input 
+                        id="empresa_nome" 
+                        placeholder="Digite o nome da empresa"
+                        onChange={(e) => {
+                          const id = crypto.randomUUID();
+                          const newConfig = {
+                            id,
+                            chave: 'empresa_nome',
+                            valor: e.target.value,
+                            descricao: 'Nome da Empresa',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                          };
+                          setConfiguracoes([...configuracoes, newConfig]);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="empresa_cnpj">CNPJ</Label>
+                      <Input 
+                        id="empresa_cnpj" 
+                        placeholder="Digite o CNPJ"
+                        onChange={(e) => {
+                          const id = crypto.randomUUID();
+                          const newConfig = {
+                            id,
+                            chave: 'empresa_cnpj',
+                            valor: e.target.value,
+                            descricao: 'CNPJ',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                          };
+                          setConfiguracoes([...configuracoes, newConfig]);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="empresa_telefone">Telefone</Label>
+                      <Input 
+                        id="empresa_telefone" 
+                        placeholder="Digite o telefone"
+                        onChange={(e) => {
+                          const id = crypto.randomUUID();
+                          const newConfig = {
+                            id,
+                            chave: 'empresa_telefone',
+                            valor: e.target.value,
+                            descricao: 'Telefone',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                          };
+                          setConfiguracoes([...configuracoes, newConfig]);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="empresa_email">Email</Label>
+                      <Input 
+                        id="empresa_email" 
+                        type="email"
+                        placeholder="Digite o email"
+                        onChange={(e) => {
+                          const id = crypto.randomUUID();
+                          const newConfig = {
+                            id,
+                            chave: 'empresa_email',
+                            valor: e.target.value,
+                            descricao: 'Email',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                          };
+                          setConfiguracoes([...configuracoes, newConfig]);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="empresa_site">Site</Label>
+                      <Input 
+                        id="empresa_site" 
+                        placeholder="Digite o site"
+                        onChange={(e) => {
+                          const id = crypto.randomUUID();
+                          const newConfig = {
+                            id,
+                            chave: 'empresa_site',
+                            valor: e.target.value,
+                            descricao: 'Site',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                          };
+                          setConfiguracoes([...configuracoes, newConfig]);
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </TabsContent>
               
               <TabsContent value="endereco" className="space-y-4">
@@ -303,7 +431,86 @@ const PerfilEmpresa = () => {
                       />
                     </div>
                   ))
-                ) : renderDefaultFields("endereco")}
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="empresa_endereco">Endereço</Label>
+                      <Input 
+                        id="empresa_endereco" 
+                        placeholder="Digite o endereço completo"
+                        onChange={(e) => {
+                          const id = crypto.randomUUID();
+                          const newConfig = {
+                            id,
+                            chave: 'empresa_endereco',
+                            valor: e.target.value,
+                            descricao: 'Endereço',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                          };
+                          setConfiguracoes([...configuracoes, newConfig]);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="empresa_cidade">Cidade</Label>
+                      <Input 
+                        id="empresa_cidade" 
+                        placeholder="Digite a cidade"
+                        onChange={(e) => {
+                          const id = crypto.randomUUID();
+                          const newConfig = {
+                            id,
+                            chave: 'empresa_cidade',
+                            valor: e.target.value,
+                            descricao: 'Cidade',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                          };
+                          setConfiguracoes([...configuracoes, newConfig]);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="empresa_estado">Estado</Label>
+                      <Input 
+                        id="empresa_estado" 
+                        placeholder="Digite o estado"
+                        onChange={(e) => {
+                          const id = crypto.randomUUID();
+                          const newConfig = {
+                            id,
+                            chave: 'empresa_estado',
+                            valor: e.target.value,
+                            descricao: 'Estado',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                          };
+                          setConfiguracoes([...configuracoes, newConfig]);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="empresa_cep">CEP</Label>
+                      <Input 
+                        id="empresa_cep" 
+                        placeholder="Digite o CEP"
+                        onChange={(e) => {
+                          const id = crypto.randomUUID();
+                          const newConfig = {
+                            id,
+                            chave: 'empresa_cep',
+                            valor: e.target.value,
+                            descricao: 'CEP',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                          };
+                          setConfiguracoes([...configuracoes, newConfig]);
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </TabsContent>
               
               <TabsContent value="adicional" className="space-y-4">
@@ -329,7 +536,49 @@ const PerfilEmpresa = () => {
                       )}
                     </div>
                   ))
-                ) : renderDefaultFields("adicional")}
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="empresa_observacoes">Observações</Label>
+                      <Textarea 
+                        id="empresa_observacoes" 
+                        placeholder="Digite observações sobre sua empresa"
+                        rows={4}
+                        onChange={(e) => {
+                          const id = crypto.randomUUID();
+                          const newConfig = {
+                            id,
+                            chave: 'empresa_observacoes',
+                            valor: e.target.value,
+                            descricao: 'Observações',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                          };
+                          setConfiguracoes([...configuracoes, newConfig]);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="empresa_slogan">Slogan</Label>
+                      <Input 
+                        id="empresa_slogan" 
+                        placeholder="Digite o slogan da empresa"
+                        onChange={(e) => {
+                          const id = crypto.randomUUID();
+                          const newConfig = {
+                            id,
+                            chave: 'empresa_slogan',
+                            valor: e.target.value,
+                            descricao: 'Slogan',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                          };
+                          setConfiguracoes([...configuracoes, newConfig]);
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -342,46 +591,6 @@ const PerfilEmpresa = () => {
       </div>
     </div>
   );
-
-  function renderDefaultFields(section: string) {
-    // Create default fields based on section
-    const currentDate = new Date().toISOString();
-    let defaultFields: ConfiguracaoRow[] = [];
-    
-    if (section === "informacoes") {
-      defaultFields = [
-        { id: crypto.randomUUID(), chave: 'empresa_nome', valor: '', descricao: 'Nome da Empresa', created_at: currentDate, updated_at: currentDate },
-        { id: crypto.randomUUID(), chave: 'empresa_cnpj', valor: '', descricao: 'CNPJ', created_at: currentDate, updated_at: currentDate },
-        { id: crypto.randomUUID(), chave: 'empresa_telefone', valor: '', descricao: 'Telefone', created_at: currentDate, updated_at: currentDate },
-        { id: crypto.randomUUID(), chave: 'empresa_email', valor: '', descricao: 'Email', created_at: currentDate, updated_at: currentDate },
-        { id: crypto.randomUUID(), chave: 'empresa_site', valor: '', descricao: 'Site', created_at: currentDate, updated_at: currentDate },
-      ];
-    } else if (section === "endereco") {
-      defaultFields = [
-        { id: crypto.randomUUID(), chave: 'empresa_endereco', valor: '', descricao: 'Endereço', created_at: currentDate, updated_at: currentDate },
-        { id: crypto.randomUUID(), chave: 'empresa_cidade', valor: '', descricao: 'Cidade', created_at: currentDate, updated_at: currentDate },
-        { id: crypto.randomUUID(), chave: 'empresa_estado', valor: '', descricao: 'Estado', created_at: currentDate, updated_at: currentDate },
-        { id: crypto.randomUUID(), chave: 'empresa_cep', valor: '', descricao: 'CEP', created_at: currentDate, updated_at: currentDate },
-      ];
-    } else if (section === "adicional") {
-      defaultFields = [
-        { id: crypto.randomUUID(), chave: 'empresa_observacoes', valor: '', descricao: 'Observações', created_at: currentDate, updated_at: currentDate },
-        { id: crypto.randomUUID(), chave: 'empresa_slogan', valor: '', descricao: 'Slogan', created_at: currentDate, updated_at: currentDate },
-      ];
-    }
-    
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        <p className="mb-4">Nenhuma informação encontrada nesta seção.</p>
-        <Button 
-          onClick={() => setConfiguracoes([...configuracoes, ...defaultFields])}
-          variant="outline"
-        >
-          Criar Campos Padrão
-        </Button>
-      </div>
-    );
-  }
 };
 
 export default PerfilEmpresa;

@@ -1,430 +1,327 @@
 
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import PlanosSection from '@/components/landing/PlanosSection';
 
-const Landing = () => {
-  const navigate = useNavigate();
-
-  // Sample plans data (similar to what's in the admin panel)
-  const planos = [
-    { 
-      id: 1, 
-      nome: "Plano Básico", 
-      periodo: "mensal",
-      preco: 29.90,
-      destacado: false,
-      descricao: "Para profissionais autônomos"
-    },
-    { 
-      id: 2, 
-      nome: "Plano Profissional", 
-      periodo: "mensal",
-      preco: 99.90,
-      destacado: true,
-      descricao: "Para empresas de médio porte"
-    },
-    { 
-      id: 3, 
-      nome: "Plano Empresarial", 
-      periodo: "mensal",
-      preco: 199.90,
-      destacado: false,
-      descricao: "Para empresas com múltiplas filiais"
-    }
-  ];
-
-  // Benefícios do sistema
-  const beneficios = [
-    {
-      titulo: "Aumente sua produtividade",
-      descricao: "Reduz o tempo gasto com tarefas administrativas em até 70%."
-    },
-    {
-      titulo: "Organização completa",
-      descricao: "Mantenha todos os dados de clientes, serviços e pagamentos organizados em um só lugar."
-    },
-    {
-      titulo: "Controle total",
-      descricao: "Acompanhe o status de cada ordem de serviço em tempo real."
-    },
-    {
-      titulo: "Atendimento personalizado",
-      descricao: "Histórico completo de cada cliente para oferecer um atendimento mais personalizado."
-    }
-  ];
-
-  // Recursos detalhados
-  const recursos = [
-    {
-      titulo: "Cadastro de Clientes",
-      descricao: "Armazene informações detalhadas de seus clientes, incluindo histórico completo de atendimentos, preferências e observações importantes.",
-      icone: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-    },
-    {
-      titulo: "Ordens de Serviço",
-      descricao: "Crie, edite e acompanhe ordens de serviço completas com descrição do problema, solução aplicada, peças utilizadas e valores.",
-      icone: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-    },
-    {
-      titulo: "Controle de Estoque",
-      descricao: "Gerencie seu inventário de peças e produtos, com alertas de estoque baixo e relatórios de movimentação.",
-      icone: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-    },
-    {
-      titulo: "Financeiro Completo",
-      descricao: "Controle de contas a pagar e receber, fluxo de caixa, relatórios financeiros e integração com sistemas de pagamento.",
-      icone: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-    },
-    {
-      titulo: "Relatórios e Estatísticas",
-      descricao: "Visualize dados importantes do seu negócio com gráficos e relatórios personalizados para tomada de decisões estratégicas.",
-      icone: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-    },
-    {
-      titulo: "Notificações e Lembretes",
-      descricao: "Sistema de notificações automáticas para clientes e equipe sobre prazos, pagamentos e atualizações de status.",
-      icone: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-    }
-  ];
-
+export default function Landing() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col min-h-screen">
+      {/* Navigation */}
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center justify-between">
+          <div className="flex items-center">
+            <div className="bg-primary text-white rounded-md w-8 h-8 flex items-center justify-center mr-2 flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+              </svg>
+            </div>
+            <Link to="/" className="text-lg font-semibold text-foreground">TechOS</Link>
+          </div>
+          <nav className="hidden md:flex items-center gap-6 text-sm">
+            <a href="#features" className="font-medium transition-colors hover:text-primary">Recursos</a>
+            <a href="#planos" className="font-medium transition-colors hover:text-primary">Planos</a>
+            <a href="#testimonials" className="font-medium transition-colors hover:text-primary">Depoimentos</a>
+            <a href="#faq" className="font-medium transition-colors hover:text-primary">Perguntas</a>
+          </nav>
+          <div className="flex items-center gap-2">
+            <Link to="/login">
+              <Button variant="outline" size="sm">Entrar</Button>
+            </Link>
+            <Link to="/register">
+              <Button size="sm">Registrar</Button>
+            </Link>
+          </div>
+        </div>
+      </header>
+      
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-blue-800 to-blue-600 text-white py-16">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="flex flex-col md:flex-row items-center">
-            <div className="md:w-1/2 mb-8 md:mb-0">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">Sistema de Ordens de Serviço</h1>
-              <p className="text-xl mb-8">Gerencie seus serviços, clientes e orçamentos em um só lugar com facilidade e eficiência.</p>
-              <div className="flex flex-wrap gap-4">
-                <Button 
-                  size="lg" 
-                  className="bg-white text-blue-800 hover:bg-blue-50 font-semibold"
-                  onClick={() => navigate('/login')}
-                >
-                  Entrar no Sistema
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-white text-white hover:bg-white/10"
-                  onClick={() => navigate('/register')}
-                >
-                  Criar Conta
-                </Button>
-              </div>
-            </div>
-            <div className="md:w-1/2 flex justify-center">
-              <img 
-                src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80" 
-                alt="Profissional gerenciando sistema de ordens de serviço" 
-                className="rounded-lg shadow-lg max-w-full h-auto" 
-                width={600}
-                height={400}
-              />
-            </div>
+      <section className="w-full py-24 md:py-32 lg:py-40 bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+        <div className="container px-4 md:px-6 flex flex-col items-center justify-center space-y-10 text-center">
+          <div className="space-y-4 max-w-4xl">
+            <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl animate-fade-in">
+              Gerencie sua <span className="text-primary">Assistência Técnica</span> de maneira completa
+            </h1>
+            <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-xl/relaxed dark:text-gray-400 animate-fade-in">
+              Simplifique processos, organize ordens de serviço e tenha controle financeiro em uma única plataforma.
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4 animate-fade-in">
+            <Link to="/register">
+              <Button size="lg" className="story-link hover-scale">
+                Comece Grátis
+              </Button>
+            </Link>
+            <a href="#features">
+              <Button variant="outline" size="lg" className="hover-scale">
+                Saiba Mais
+              </Button>
+            </a>
+          </div>
+          
+          <div className="w-full max-w-5xl rounded-lg border overflow-hidden shadow-xl animate-scale-in">
+            <img 
+              src="https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+              alt="Dashboard da plataforma TechOS"
+              className="w-full h-auto"
+            />
           </div>
         </div>
       </section>
-
-      {/* Benefícios Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <h2 className="text-3xl font-bold text-center mb-4">Por que escolher nosso sistema?</h2>
-          <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-            Nosso sistema de ordens de serviço foi desenvolvido para atender às necessidades específicas de
-            oficinas, assistências técnicas e prestadores de serviço de todos os portes.
-          </p>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {beneficios.map((beneficio, index) => (
-              <div key={index} className="bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                <h3 className="text-xl font-semibold mb-3 text-blue-700">{beneficio.titulo}</h3>
-                <p className="text-gray-600">{beneficio.descricao}</p>
+      
+      {/* Features Section */}
+      <section id="features" className="w-full py-24 bg-white dark:bg-gray-950">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center">
+            <div className="space-y-2 animate-fade-in">
+              <div className="inline-block rounded-lg bg-gray-100 px-3 py-1 text-sm dark:bg-gray-800">Recursos</div>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Tudo que você precisa em um só lugar</h2>
+              <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed dark:text-gray-400">
+                Nossa plataforma foi projetada para atender às necessidades específicas de assistências técnicas.
+              </p>
+            </div>
+          </div>
+          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-3">
+            {[
+              {
+                title: "Ordens de Serviço",
+                description: "Crie e gerencie ordens de serviço de maneira prática e rápida. Acompanhe o status de cada ordem em tempo real.",
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 text-primary">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <path d="M14 2v6h6"></path>
+                    <path d="M16 13H8"></path>
+                    <path d="M16 17H8"></path>
+                    <path d="M10 9H8"></path>
+                  </svg>
+                )
+              },
+              {
+                title: "Gestão de Clientes",
+                description: "Cadastre e mantenha um histórico completo de seus clientes. Acesse rapidamente todas as informações relevantes.",
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 text-primary">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                )
+              },
+              {
+                title: "Controle Financeiro",
+                description: "Tenha controle total sobre suas finanças. Acompanhe entradas, saídas e gere relatórios completos.",
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 text-primary">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
+                    <path d="M12 6v2"></path>
+                    <path d="M12 16v2"></path>
+                  </svg>
+                )
+              },
+            ].map((feature, index) => (
+              <div key={index} className="rounded-lg border bg-background p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:translate-y-[-4px] animate-fade-in">
+                <div className="flex flex-col items-center justify-center space-y-4 text-center">
+                  {feature.icon}
+                  <h3 className="text-xl font-bold">{feature.title}</h3>
+                  <p className="text-gray-500 dark:text-gray-400">{feature.description}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
-
-      {/* Features Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <h2 className="text-3xl font-bold text-center mb-12">Funcionalidades Principais</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {recursos.slice(0, 3).map((recurso, index) => (
-              <div key={index} className="bg-white p-6 rounded-lg shadow-md text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={recurso.icone} />
+      
+      {/* Planos Section */}
+      <PlanosSection />
+      
+      {/* Testimonials Section */}
+      <section id="testimonials" className="w-full py-24 bg-white dark:bg-gray-950">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center">
+            <div className="space-y-2">
+              <div className="inline-block rounded-lg bg-gray-100 px-3 py-1 text-sm dark:bg-gray-800 animate-fade-in">Depoimentos</div>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl animate-fade-in">Clientes satisfeitos</h2>
+              <p className="max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed dark:text-gray-400 animate-fade-in">
+                Veja o que nossos clientes estão falando sobre nossa plataforma.
+              </p>
+            </div>
+          </div>
+          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                name: "João Silva",
+                role: "Proprietário da TecnoCell",
+                content: "A plataforma TechOS revolucionou o gerenciamento da minha assistência técnica. Tudo é muito mais organizado e eficiente agora.",
+                avatar: "https://randomuser.me/api/portraits/men/42.jpg"
+              },
+              {
+                name: "Maria Oliveira",
+                role: "Gerente da InfoTech",
+                content: "O módulo financeiro é fantástico! Consigo ter um controle muito melhor do meu fluxo de caixa e das receitas da empresa.",
+                avatar: "https://randomuser.me/api/portraits/women/65.jpg"
+              },
+              {
+                name: "Carlos Santos",
+                role: "Técnico na CompuServ",
+                content: "A facilidade em criar ordens de serviço e acompanhar o status de cada uma delas tornou meu trabalho muito mais produtivo.",
+                avatar: "https://randomuser.me/api/portraits/men/22.jpg"
+              },
+            ].map((testimonial, index) => (
+              <div key={index} className="rounded-lg border bg-background p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:translate-y-[-4px] animate-fade-in">
+                <div className="flex flex-col space-y-4">
+                  <p className="text-gray-500 dark:text-gray-400 italic">"{testimonial.content}"</p>
+                  <div className="flex items-center space-x-4">
+                    <img src={testimonial.avatar} alt={testimonial.name} className="h-10 w-10 rounded-full" />
+                    <div>
+                      <p className="font-semibold">{testimonial.name}</p>
+                      <p className="text-sm text-gray-500">{testimonial.role}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* FAQ Section */}
+      <section id="faq" className="w-full py-24 bg-gray-50 dark:bg-gray-900">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center">
+            <div className="space-y-2">
+              <div className="inline-block rounded-lg bg-gray-100 px-3 py-1 text-sm dark:bg-gray-800 animate-fade-in">FAQ</div>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl animate-fade-in">Perguntas Frequentes</h2>
+              <p className="max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed dark:text-gray-400 animate-fade-in">
+                Encontre respostas para as perguntas mais comuns sobre nossa plataforma.
+              </p>
+            </div>
+          </div>
+          <div className="mx-auto max-w-3xl space-y-4 py-12">
+            {[
+              {
+                question: "Como posso começar a usar o TechOS?",
+                answer: "Basta se registrar em nossa plataforma, escolher um plano adequado às suas necessidades e começar a configurar sua assistência técnica. Todo o processo é simples e intuitivo."
+              },
+              {
+                question: "Posso experimentar antes de assinar?",
+                answer: "Sim, oferecemos um período de teste gratuito de 14 dias com todas as funcionalidades disponíveis para que você possa avaliar nossa plataforma."
+              },
+              {
+                question: "É possível migrar meus dados de outro sistema?",
+                answer: "Sim, nossa equipe de suporte pode ajudá-lo com a migração de dados de outros sistemas. Entre em contato conosco para obter mais informações."
+              },
+              {
+                question: "Quais são as formas de pagamento?",
+                answer: "Aceitamos cartões de crédito, boleto bancário e PIX. Os pagamentos são processados de forma segura através de nossa plataforma."
+              },
+              {
+                question: "O sistema funciona em dispositivos móveis?",
+                answer: "Sim, nossa plataforma é totalmente responsiva e pode ser acessada de qualquer dispositivo com acesso à internet, incluindo smartphones e tablets."
+              },
+            ].map((faq, index) => (
+              <div key={index} className="rounded-lg border bg-background p-6 shadow-sm animate-fade-in">
+                <h3 className="text-lg font-semibold">{faq.question}</h3>
+                <p className="mt-2 text-gray-500 dark:text-gray-400">{faq.answer}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* CTA Section */}
+      <section className="w-full py-24 bg-primary text-white">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center">
+            <div className="space-y-2 animate-scale-in">
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Pronto para transformar sua assistência técnica?</h2>
+              <p className="max-w-[700px] md:text-xl/relaxed">
+                Comece agora mesmo e descubra como o TechOS pode melhorar a eficiência do seu negócio.
+              </p>
+            </div>
+            <Link to="/register" className="animate-fade-in">
+              <Button variant="outline" size="lg" className="bg-white text-primary hover:bg-gray-100 hover-scale">
+                Criar Minha Conta
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+      
+      {/* Footer */}
+      <footer className="w-full border-t py-12 bg-white dark:bg-gray-950">
+        <div className="container px-4 md:px-6">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <div className="bg-primary text-white rounded-md w-8 h-8 flex items-center justify-center mr-2 flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold mb-2">{recurso.titulo}</h3>
-                <p className="text-gray-600">{recurso.descricao}</p>
+                <span className="text-lg font-semibold text-foreground">TechOS</span>
               </div>
-            ))}
-          </div>
-          
-          <div className="mt-12">
-            <h3 className="text-2xl font-bold text-center mb-8">E muito mais recursos...</h3>
-            <div className="grid md:grid-cols-3 gap-8">
-              {recursos.slice(3, 6).map((recurso, index) => (
-                <div key={index} className="bg-white p-6 rounded-lg shadow-md text-center">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={recurso.icone} />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">{recurso.titulo}</h3>
-                  <p className="text-gray-600">{recurso.descricao}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Como funciona Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <h2 className="text-3xl font-bold text-center mb-4">Como funciona</h2>
-          <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-            Nosso sistema foi desenvolvido para ser intuitivo e fácil de usar, mesmo para quem não tem experiência com tecnologia.
-          </p>
-          
-          <div className="grid md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-blue-600 font-bold text-xl">1</span>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Soluções completas para gerenciamento de assistências técnicas.
+              </p>
+              <div className="flex space-x-4">
+                <a href="#" className="text-gray-500 hover:text-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                  </svg>
+                </a>
+                <a href="#" className="text-gray-500 hover:text-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                </a>
+                <a href="#" className="text-gray-500 hover:text-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
+                  </svg>
+                </a>
               </div>
-              <h3 className="font-semibold mb-2">Cadastre-se</h3>
-              <p className="text-sm text-gray-600">Crie sua conta em menos de 2 minutos e comece a usar.</p>
             </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-blue-600 font-bold text-xl">2</span>
-              </div>
-              <h3 className="font-semibold mb-2">Configure seu perfil</h3>
-              <p className="text-sm text-gray-600">Personalize o sistema com os dados da sua empresa.</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-blue-600 font-bold text-xl">3</span>
-              </div>
-              <h3 className="font-semibold mb-2">Cadastre clientes</h3>
-              <p className="text-sm text-gray-600">Importe seus clientes ou cadastre-os manualmente.</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-blue-600 font-bold text-xl">4</span>
-              </div>
-              <h3 className="font-semibold mb-2">Comece a usar</h3>
-              <p className="text-sm text-gray-600">Crie suas primeiras ordens de serviço e organize seu trabalho.</p>
-            </div>
-          </div>
-          
-          <div className="mt-12 text-center">
-            <Button 
-              size="lg" 
-              className="bg-blue-600 hover:bg-blue-700"
-              onClick={() => navigate('/register')}
-            >
-              Começar agora
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Plans Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <h2 className="text-3xl font-bold text-center mb-3">Planos e Preços</h2>
-          <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">Escolha o plano que melhor se adapta às necessidades do seu negócio e comece a gerenciar seus serviços hoje mesmo.</p>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {planos.map((plano) => (
-              <Card key={plano.id} className={plano.destacado ? "border-2 border-primary relative" : ""}>
-                {plano.destacado && (
-                  <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-sm font-medium rounded-bl-md">
-                    Recomendado
-                  </div>
-                )}
-                <CardHeader>
-                  <CardTitle>{plano.nome}</CardTitle>
-                  <div className="mt-2">
-                    <span className="text-2xl font-bold text-primary">R$ {plano.preco.toFixed(2).replace('.', ',')}</span>
-                    <span className="text-muted-foreground"> /mês</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">{plano.descricao}</p>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-start">
-                      <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
-                      <span>Acesso a todas as funcionalidades</span>
-                    </div>
-                    <div className="flex items-start">
-                      <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
-                      <span>Suporte técnico</span>
-                    </div>
-                    <div className="flex items-start">
-                      <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
-                      <span>Atualizações incluídas</span>
-                    </div>
-                    {plano.nome === "Plano Profissional" && (
-                      <>
-                        <div className="flex items-start">
-                          <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
-                          <span>Até 5 usuários</span>
-                        </div>
-                        <div className="flex items-start">
-                          <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
-                          <span>Recursos avançados de relatórios</span>
-                        </div>
-                      </>
-                    )}
-                    {plano.nome === "Plano Empresarial" && (
-                      <>
-                        <div className="flex items-start">
-                          <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
-                          <span>Usuários ilimitados</span>
-                        </div>
-                        <div className="flex items-start">
-                          <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
-                          <span>API para integrações personalizadas</span>
-                        </div>
-                        <div className="flex items-start">
-                          <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
-                          <span>Suporte prioritário</span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full" onClick={() => navigate('/register')}>
-                    Começar agora
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <h2 className="text-3xl font-bold text-center mb-12">O que dizem nossos clientes</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-gray-50 p-6 rounded-lg shadow-md">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
-                  <span className="text-blue-600 font-semibold text-lg">JT</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold">João Torres</h4>
-                  <p className="text-gray-600 text-sm">Oficina Mecânica Torres</p>
-                </div>
-              </div>
-              <p className="text-gray-700">"Com este sistema conseguimos organizar todas as nossas ordens de serviço e melhorar o atendimento aos clientes. Muito fácil de usar e completo!"</p>
-            </div>
-            <div className="bg-gray-50 p-6 rounded-lg shadow-md">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
-                  <span className="text-blue-600 font-semibold text-lg">MS</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold">Maria Silva</h4>
-                  <p className="text-gray-600 text-sm">Assistência Técnica Silva</p>
-                </div>
-              </div>
-              <p className="text-gray-700">"Aumentamos nossa eficiência em 40% após implementar o sistema. O controle financeiro e a gestão de clientes são excelentes!"</p>
-            </div>
-            <div className="bg-gray-50 p-6 rounded-lg shadow-md">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
-                  <span className="text-blue-600 font-semibold text-lg">RP</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold">Roberto Pereira</h4>
-                  <p className="text-gray-600 text-sm">Eletrônica RP</p>
-                </div>
-              </div>
-              <p className="text-gray-700">"O sistema simplificou completamente nossa rotina. A interface é intuitiva e o suporte técnico é excelente quando precisamos de ajuda."</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-blue-800 text-white">
-        <div className="container mx-auto px-4 max-w-6xl text-center">
-          <h2 className="text-3xl font-bold mb-4">Pronto para começar?</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">Experimente nosso sistema por 14 dias grátis, sem compromisso. Não é necessário cartão de crédito.</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Button 
-              size="lg" 
-              className="bg-white text-blue-800 hover:bg-blue-50 font-semibold"
-              onClick={() => navigate('/register')}
-            >
-              Criar conta grátis
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="border-white text-white hover:bg-white/10"
-              onClick={() => navigate('/login')}
-            >
-              Já tenho uma conta
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-12">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <h3 className="text-white font-semibold text-lg mb-4">TechOS</h3>
-              <p className="mb-4">Soluções completas para gestão de ordens de serviço e atendimento ao cliente.</p>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Links Rápidos</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white transition-colors">Recursos</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Planos e Preços</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
+            <div className="space-y-4">
+              <h4 className="font-semibold">Produto</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#features" className="text-gray-500 hover:text-primary">Recursos</a></li>
+                <li><a href="#planos" className="text-gray-500 hover:text-primary">Planos e Preços</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-primary">Integrações</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-primary">Atualizações</a></li>
               </ul>
             </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Suporte</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white transition-colors">Central de Ajuda</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Tutoriais</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contato</a></li>
+            <div className="space-y-4">
+              <h4 className="font-semibold">Empresa</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="text-gray-500 hover:text-primary">Sobre nós</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-primary">Blog</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-primary">Carreiras</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-primary">Contato</a></li>
               </ul>
             </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white transition-colors">Termos de Serviço</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Política de Privacidade</a></li>
+            <div className="space-y-4">
+              <h4 className="font-semibold">Suporte</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="text-gray-500 hover:text-primary">Centro de ajuda</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-primary">Documentação</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-primary">Status</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-primary">Contato</a></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 pt-8 text-center">
-            <p>&copy; {new Date().getFullYear()} TechOS. Todos os direitos reservados.</p>
+          <div className="mt-8 border-t pt-8 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400">© 2025 TechOS. Todos os direitos reservados.</p>
+            <div className="flex space-x-4 mt-4 md:mt-0">
+              <a href="#" className="text-sm text-gray-500 hover:text-primary">Termos de Serviço</a>
+              <a href="#" className="text-sm text-gray-500 hover:text-primary">Política de Privacidade</a>
+            </div>
           </div>
         </div>
       </footer>
     </div>
   );
-};
-
-export default Landing;
+}

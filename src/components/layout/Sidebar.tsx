@@ -8,10 +8,6 @@ import {
   SidebarFooter,
   SidebarTrigger,
   useSidebar,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarMenuSub
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard,
@@ -45,7 +41,7 @@ const Sidebar = () => {
 
   const configMenuItems = [
     { title: "Empresa", path: "/configuracoes/perfil", icon: Wrench },
-    { title: "Configurações", path: "/configuracoes", icon: Settings, exact: true },
+    { title: "Configurações", path: "/configuracoes/assistencia", icon: Settings, exact: true },
   ];
 
   const handleLogout = () => {

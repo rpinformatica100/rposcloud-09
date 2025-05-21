@@ -75,7 +75,7 @@ function App() {
                 <Route path="financeiro/novo" element={<FinanceiroForm />} />
                 <Route path="financeiro/:id" element={<FinanceiroForm />} />
                 
-                {/* Rotas de Configurações - CORRIGIDO */}
+                {/* Corrigido: Rotas de Configurações */}
                 <Route path="configuracoes" element={<ConfiguracoesList />} />
                 <Route path="configuracoes/perfil" element={<PerfilEmpresa />} />
                 <Route path="configuracoes/assistencia" element={<ConfiguracoesAssistencia />} />
