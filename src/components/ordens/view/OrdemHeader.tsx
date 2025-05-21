@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -54,13 +53,11 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
           Voltar
         </Button>
         <div className="flex gap-2">
-          {/* Suppressing TypeScript error with @ts-ignore */}
-          {/* @ts-ignore */}
           <PrintOrderButton ordem={ordem} itens={itens} cliente={ordem.cliente} />
           
           {ordem && ordem.status !== 'concluida' && ordem.status !== 'cancelada' && (
             <>
-              <Button onClick={() => navigate(`/ordens/editar/${ordem.id}`)}>
+              <Button onClick={() => navigate(`/ordens/editar/${ordem.id}`)} size="sm">
                 <Edit className="mr-2 h-4 w-4" />
                 Editar
               </Button>
@@ -68,6 +65,7 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
               <Button 
                 onClick={openFinalizarModal}
                 className="bg-green-600 hover:bg-green-700"
+                size="sm"
               >
                 <Check className="mr-2 h-4 w-4" />
                 Finalizar OS
@@ -76,7 +74,7 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
           )}
           
           {ordem && (ordem.status === 'concluida' || ordem.status === 'cancelada') && (
-            <Button onClick={() => navigate(`/ordens/editar/${ordem.id}`)} variant="outline">
+            <Button onClick={() => navigate(`/ordens/editar/${ordem.id}`)} variant="outline" size="sm">
               <Edit className="mr-2 h-4 w-4" />
               Visualizar Detalhes
             </Button>

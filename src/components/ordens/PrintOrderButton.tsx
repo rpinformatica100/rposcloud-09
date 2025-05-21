@@ -7,53 +7,12 @@ import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-
-// Tipos
-interface Cliente {
-  id: string;
-  nome: string;
-  documento?: string;
-  telefone?: string;
-  email?: string;
-  endereco?: string;
-  cidade?: string;
-  estado?: string;
-  cep?: string;
-}
-
-interface OrdemItem {
-  id: string;
-  produto_id?: string;
-  quantidade: number;
-  valor_unitario: number;
-  valor_total: number;
-  observacao?: string;
-  produto?: {
-    nome: string;
-    tipo: string;
-  };
-}
-
-interface Ordem {
-  id: string;
-  numero: string;
-  cliente_id?: string;
-  data_abertura?: string;
-  data_previsao?: string;
-  data_conclusao?: string;
-  prioridade: string;
-  status: string;
-  descricao?: string;
-  observacoes?: string;
-  valor_total?: number;
-  cliente?: Cliente;
-  itens?: OrdemItem[];
-}
+import { OrdemServico, ItemOrdemServico, Cliente } from "@/types"; // Updated imports
 
 interface PrintOrderButtonProps {
-  ordem: Ordem;
-  itens: OrdemItem[];
-  cliente?: Cliente;
+  ordem: OrdemServico;
+  itens: ItemOrdemServico[]; // Updated to use ItemOrdemServico
+  cliente?: Cliente;      // Updated to use Cliente
 }
 
 interface EmpresaConfig {
@@ -103,17 +62,16 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
 
   // Generate a shareable link for the order
   const generateShareableLink = () => {
-    // Create a shareable link with a JWT or some other form of authentication token
     const host = window.location.origin;
-    const linkId = btoa(`${ordem.id}-${Date.now()}`); // Simple encoding - not secure
-    const shareLink = `${host}/share/ordem/${linkId}`;
+    // Using a simpler ID for the link, as btoa doesn't add security here and the route is not public
+    const linkId = `os-${ordem.id}-${Date.now().toString(36)}`; 
+    const shareLink = `${host}/share/ordem/${linkId}`; // This route needs to be handled by your routing setup
     setShareUrl(shareLink);
     
-    // Copy to clipboard
     navigator.clipboard.writeText(shareLink).then(() => {
       toast({
         title: "Link copiado",
-        description: "O link da OS foi copiado para a área de transferência",
+        description: "O link da OS foi copiado. Este link pode requerer configuração adicional para ser acessível publicamente.",
       });
     });
   };
@@ -150,14 +108,12 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
     printWindow.document.write(getOrderHtml(true));
     printWindow.document.close();
     
-    // Trigger print after window is loaded
     printWindow.onload = () => {
       setTimeout(() => {
         printWindow.print();
       }, 500);
     };
     
-    // Fecha o diálogo após abrir a janela de impressão
     setIsDialogOpen(false);
   };
 
@@ -177,11 +133,9 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
     printWindow.document.write(getOrderHtml(true, true));
     printWindow.document.close();
     
-    // Automatic PDF print dialog
     printWindow.onload = () => {
       setTimeout(() => {
         printWindow.print();
-        // Close dialog after print
         setIsDialogOpen(false);
       }, 500);
     };
@@ -189,6 +143,27 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
 
   // Generate HTML content for the order
   const getOrderHtml = (forPrinting: boolean = false, forDownload: boolean = false) => {
+    const statusText = (status: string) => {
+      switch (status) {
+        case "aberta": return "Aberta";
+        case "em_andamento":
+        case "andamento": return "Em Andamento";
+        case "concluida": return "Concluída";
+        case "cancelada": return "Cancelada";
+        default: return status;
+      }
+    };
+
+    const prioridadeText = (priority: string) => {
+      switch (priority) {
+        case "baixa": return "Baixa";
+        case "media": return "Média";
+        case "alta": return "Alta";
+        case "urgente": return "Urgente";
+        default: return priority;
+      }
+    };
+
     return `
       <!DOCTYPE html>
       <html lang="pt-BR">
@@ -199,337 +174,347 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
         <style>
           @page {
             size: A4;
-            margin: 15mm;
+            margin: 10mm; /* Reduced margin */
           }
           body {
-            font-family: Arial, sans-serif;
-            line-height: 1.5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern font */
+            line-height: 1.4; /* Adjusted line height */
             color: #333;
-            width: 210mm;
-            margin: 0 auto;
+            margin: 0;
             padding: 0;
-            box-sizing: border-box;
           }
           .print-container {
-            max-width: 100%;
+            max-width: 190mm; /* Max width within A4 margins */
             margin: 0 auto;
-            padding: 0;
+            padding: 10px; /* Add some padding */
           }
-          h1 {
-            text-align: center;
-            color: #2563eb;
-            padding-bottom: 10px;
-            margin-top: 0;
-          }
-          .header {
+          .header-empresa {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
-          }
-          .company-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
+            align-items: flex-start; /* Align items to top */
+            border-bottom: 1px solid #eee;
             padding-bottom: 10px;
+            margin-bottom: 15px;
           }
           .logo-container {
-            width: 100px;
+            width: 90px; /* Slightly smaller logo */
             margin-right: 15px;
           }
           .logo-container img {
             max-width: 100%;
-            max-height: 60px;
+            max-height: 50px; /* Max height for logo */
             object-fit: contain;
           }
-          .company-info {
+          .empresa-info {
             flex-grow: 1;
+            text-align: left;
           }
-          .company-name {
-            font-size: 16px;
+          .empresa-nome {
+            font-size: 16px; /* Maintained font size */
             font-weight: bold;
-            margin-bottom: 3px;
-          }
-          .order-number {
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-            margin: 15px 0;
-            color: #2563eb;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 10px;
-          }
-          .order-info {
-            font-size: 12px;
-          }
-          .client-info {
-            margin-bottom: 15px;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            background-color: #f9fafb;
-          }
-          .patient-info {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            margin-bottom: 15px;
-            font-size: 12px;
-          }
-          .patient-info .full-width {
-            grid-column: 1 / -1;
-          }
-          .patient-info .label {
-            font-weight: bold;
-            display: block;
-            font-size: 10px;
-            color: #4b5563;
+            color: #1e3a8a; /* Darker blue */
             margin-bottom: 2px;
           }
-          .patient-info .value {
-            display: block;
+          .empresa-detalhes {
+            font-size: 10px; /* Smaller font for details */
+            color: #555;
+          }
+          .os-numero-container {
+             text-align: right;
+          }
+          .os-numero-titulo {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e3a8a; /* Darker blue */
+            margin: 0 0 5px 0;
+          }
+          .os-data-abertura {
+            font-size: 11px;
+            color: #555;
+          }
+          .section {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            background-color: #f9fafb;
           }
           .section-title {
+            font-size: 13px;
             font-weight: bold;
-            margin-bottom: 5px;
-            color: #2563eb;
-            font-size: 14px;
+            color: #1e3a8a;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #e0e0e0;
+          }
+          .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive grid */
+            gap: 8px;
+            font-size: 11px;
+          }
+          .info-item {
+            margin-bottom: 3px;
+          }
+          .info-label {
+            font-weight: 600; /* Semibold */
+            color: #4b5563;
+            display: block;
+            font-size: 10px;
+            margin-bottom: 1px;
+          }
+          .info-value {
+            color: #333;
           }
           table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
-            font-size: 12px;
+            margin-top: 10px;
+            font-size: 11px;
           }
           th, td {
             border: 1px solid #ddd;
-            padding: 6px;
+            padding: 6px 8px; /* Adjusted padding */
             text-align: left;
+            vertical-align: top; /* Align content to top */
           }
           th {
-            background-color: #f2f2f2;
+            background-color: #f0f2f5; /* Lighter gray */
+            font-weight: 600; /* Semibold */
+            font-size: 10px;
+            text-transform: uppercase;
+          }
+          .text-right { text-align: right; }
+          .font-medium { font-weight: 500; }
+          .total-section {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #ccc;
+            text-align: right;
+          }
+          .total-label {
+            font-size: 12px;
+            color: #555;
+          }
+          .total-valor {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1e3a8a;
+          }
+          .observacoes-texto {
             font-size: 11px;
+            white-space: pre-wrap; /* Preserve line breaks */
+            padding: 8px;
+            border: 1px dashed #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            margin-top:5px;
           }
           .footer {
-            margin-top: 20px;
-            border-top: 1px solid #ddd;
+            margin-top: 30px;
             padding-top: 10px;
+            border-top: 1px solid #eee;
             text-align: center;
-            font-size: 10px;
-            position: relative;
-            clear: both;
-          }
-          .total {
-            text-align: right;
-            font-weight: bold;
-            font-size: 14px;
-            margin: 15px 0;
+            font-size: 9px;
+            color: #777;
           }
           .signatures {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-around; /* Space signatures out */
             margin-top: 40px;
             page-break-inside: avoid;
           }
+          .signature-block {
+            width: 40%; /* Width for each signature block */
+            text-align: center;
+          }
           .signature-line {
-            width: 45%;
-            border-top: 1px solid #000;
+            border-top: 1px solid #555;
+            margin-top: 30px; /* Space for signature */
             padding-top: 5px;
-            text-align: center;
-            font-size: 12px;
-          }
-          .qrcode {
-            text-align: center;
-            float: right;
-            margin-left: 10px;
-            max-width: 100px;
-          }
-          .qrcode img {
-            max-width: 100%;
-            height: auto;
-          }
-          .qrcode-info {
-            font-size: 9px;
-            margin-top: 5px;
-            text-align: center;
-          }
-          .status-${ordem.status} {
-            color: ${
-              ordem.status === "aberta" ? "#2563eb" :
-              ordem.status === "em_andamento" ? "#f59e0b" :
-              ordem.status === "concluida" ? "#10b981" :
-              ordem.status === "cancelada" ? "#ef4444" : "#333"
-            };
-            font-weight: bold;
-          }
-          .priority-${ordem.prioridade} {
-            color: ${
-              ordem.prioridade === "baixa" ? "#10b981" :
-              ordem.prioridade === "media" ? "#f59e0b" :
-              ordem.prioridade === "alta" ? "#ef4444" : "#333"
-            };
-            font-weight: bold;
-          }
-          .description, .observations {
-            margin-bottom: 15px;
-            font-size: 12px;
-          }
-          .item-observation {
             font-size: 10px;
+            color: #333;
+          }
+          .item-observacao {
+            font-size: 9px;
             color: #666;
             font-style: italic;
+            margin-top: 2px;
           }
+          .status-badge, .prioridade-badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 500;
+            display: inline-block;
+          }
+          .status-aberta { background-color: #e0f2fe; color: #0284c7; }
+          .status-em_andamento, .status-andamento { background-color: #fef9c3; color: #ca8a04; }
+          .status-concluida { background-color: #dcfce7; color: #16a34a; }
+          .status-cancelada { background-color: #fee2e2; color: #dc2626; }
+          .prioridade-baixa { background-color: #dcfce7; color: #16a34a; }
+          .prioridade-media { background-color: #fef3c7; color: #d97706; }
+          .prioridade-alta { background-color: #fee2e2; color: #ef4444; }
+          .prioridade-urgente { background-color: #fecaca; color: #b91c1c; font-weight: bold; }
+
           @media print {
-            .no-print {
-              display: none;
-            }
-            body {
-              padding: 0;
-              margin: 0;
-              width: auto;
-            }
-            .print-container {
-              width: 100%;
-              padding: 0;
-            }
-            html, body {
-              height: 99%;
-            }
+            .no-print { display: none; }
+            body { padding: 0; margin: 0; width: auto; }
+            .print-container { width: 100%; padding: 0; box-shadow: none; border: none; }
+            .section { border: 1px solid #eee; background-color: transparent; }
           }
         </style>
       </head>
       <body>
-        <div class="no-print" style="text-align: center; margin-bottom: 20px;">
-          <button onclick="window.print();" style="padding: 10px 20px; background-color: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+        <div class="no-print" style="text-align: center; margin-bottom: 15px; padding: 10px; background-color: #f0f0f0;">
+          <button onclick="window.print();" style="padding: 8px 15px; background-color: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
             ${forDownload ? 'Salvar como PDF' : 'Imprimir'}
           </button>
-          <button onclick="window.close();" style="padding: 10px 20px; background-color: #64748b; color: white; border: none; border-radius: 5px; cursor: pointer;">
+          <button onclick="window.close();" style="padding: 8px 15px; background-color: #64748b; color: white; border: none; border-radius: 4px; cursor: pointer;">
             Fechar
           </button>
         </div>
         
         <div class="print-container">
-          <!-- Company Information -->
-          <div class="company-header">
-            <div class="logo-container">
-              ${empresaInfo.logo ? `<img src="${empresaInfo.logo}" alt="Logo da Empresa">` : ''}
+          <div class="header-empresa">
+            <div class="empresa-info">
+              ${empresaInfo.logo ? `<div class="logo-container"><img src="${empresaInfo.logo}" alt="Logo"></div>` : ''}
+              <div class="empresa-nome">${empresaInfo.nome || 'Nome da Empresa'}</div>
+              <div class="empresa-detalhes">
+                ${empresaInfo.cnpj ? `CNPJ: ${empresaInfo.cnpj}<br>` : ''}
+                ${empresaInfo.endereco ? `${empresaInfo.endereco}${empresaInfo.cidade ? ', ' + empresaInfo.cidade : ''}${empresaInfo.estado ? '/' + empresaInfo.estado : ''}<br>` : ''}
+                ${empresaInfo.telefone || empresaInfo.email ? `${empresaInfo.telefone || ''}${empresaInfo.telefone && empresaInfo.email ? ' | ' : ''}${empresaInfo.email || ''}` : ''}
+              </div>
             </div>
-            <div class="company-info">
-              <div class="company-name">${empresaInfo.nome || 'Sua Empresa'}</div>
-              ${empresaInfo.cnpj ? `<div style="font-size:11px">${empresaInfo.cnpj}</div>` : ''}
-              ${empresaInfo.endereco ? `<div style="font-size:11px">${empresaInfo.endereco}${empresaInfo.cidade ? ', ' + empresaInfo.cidade : ''}${empresaInfo.estado ? '/' + empresaInfo.estado : ''}</div>` : ''}
-              ${empresaInfo.telefone || empresaInfo.email ? `<div style="font-size:11px">${empresaInfo.telefone || ''}${empresaInfo.telefone && empresaInfo.email ? ' | ' : ''}${empresaInfo.email || ''}</div>` : ''}
+            <div class="os-numero-container">
+              <div class="os-numero-titulo">OS #${ordem.numero}</div>
+              <div class="os-data-abertura">Abertura: ${formatDate(ordem.dataAbertura)}</div>
             </div>
           </div>
 
-          <div class="order-number">ORDEM DE SERVIÇO #${ordem.numero}</div>
-          
-          <!-- Client information in the new compact format -->
-          <div class="patient-info">
-            <div>
-              <span class="label">Cliente:</span>
-              <span class="value">${cliente?.nome || 'N/A'}</span>
-            </div>
-            <div>
-              <span class="label">CPF/CNPJ:</span>
-              <span class="value">${cliente?.documento || 'N/A'}</span>
-            </div>
-            ${cliente?.telefone ? `
-            <div>
-              <span class="label">Telefone:</span>
-              <span class="value">${cliente.telefone}</span>
-            </div>` : ''}
-            ${cliente?.email ? `
-            <div>
-              <span class="label">Email:</span>
-              <span class="value">${cliente.email}</span>
-            </div>` : ''}
-            <div class="full-width">
-              <span class="label">Endereço:</span>
-              <span class="value">${cliente?.endereco || 'N/A'}${cliente?.cidade ? ', ' + cliente.cidade : ''}${cliente?.estado ? '/' + cliente.estado : ''}${cliente?.cep ? ' - CEP: ' + cliente.cep : ''}</span>
+          <div class="section">
+            <div class="section-title">Dados do Cliente</div>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Nome:</span>
+                <span class="info-value">${cliente?.nome || 'N/A'}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">CPF/CNPJ:</span>
+                <span class="info-value">${cliente?.documento || 'N/A'}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Telefone:</span>
+                <span class="info-value">${cliente?.telefone || 'N/A'}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Email:</span>
+                <span class="info-value">${cliente?.email || 'N/A'}</span>
+              </div>
+              <div class="info-item" style="grid-column: 1 / -1;"> {/* Full width */}
+                <span class="info-label">Endereço:</span>
+                <span class="info-value">${cliente?.endereco || ''}${cliente?.cidade ? `, ${cliente.cidade}` : ''}${cliente?.estado ? `/${cliente.estado}` : ''}${cliente?.cep ? ` - CEP: ${cliente.cep}` : ''}</span>
+              </div>
             </div>
           </div>
           
-          <div class="header">
-            <div class="order-info">
-              <p style="margin: 4px 0;"><span class="section-title">Data Abertura:</span> ${formatDate(ordem.data_abertura || '')}</p>
-              <p style="margin: 4px 0;"><span class="section-title">Previsão:</span> ${formatDate(ordem.data_previsao || '')}</p>
-              ${ordem.data_conclusao ? `<p style="margin: 4px 0;"><span class="section-title">Conclusão:</span> ${formatDate(ordem.data_conclusao)}</p>` : ''}
+          <div class="section">
+            <div class="section-title">Detalhes da Ordem de Serviço</div>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Status:</span>
+                <span class="info-value"><span class="status-badge status-${ordem.status}">${statusText(ordem.status)}</span></span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Prioridade:</span>
+                <span class="info-value"><span class="prioridade-badge prioridade-${ordem.prioridade}">${prioridadeText(ordem.prioridade)}</span></span>
+              </div>
+               <div class="info-item">
+                <span class="info-label">Previsão de Conclusão:</span>
+                <span class="info-value">${ordem.dataPrevisao ? formatDate(ordem.dataPrevisao) : 'N/A'}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Data de Conclusão:</span>
+                <span class="info-value">${ordem.dataConclusao ? formatDate(ordem.dataConclusao) : 'Pendente'}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Responsável Técnico:</span>
+                <span class="info-value">${ordem.responsavel || 'N/A'}</span>
+              </div>
             </div>
-            <div class="order-info">
-              <p style="margin: 4px 0;"><span class="section-title">Status:</span> <span class="status-${ordem.status}">${
-                ordem.status === "aberta" ? "Aberta" :
-                ordem.status === "em_andamento" ? "Em Andamento" :
-                ordem.status === "concluida" ? "Concluída" :
-                ordem.status === "cancelada" ? "Cancelada" : ordem.status
-              }</span></p>
-              <p style="margin: 4px 0;"><span class="section-title">Prioridade:</span> <span class="priority-${ordem.prioridade}">${
-                ordem.prioridade === "baixa" ? "Baixa" :
-                ordem.prioridade === "media" ? "Média" :
-                ordem.prioridade === "alta" ? "Alta" : ordem.prioridade
-              }</span></p>
+            ${ordem.descricao ? `
+              <div style="margin-top: 10px;">
+                <span class="info-label" style="font-size:11px;">Descrição do Serviço/Problema:</span>
+                <div class="observacoes-texto" style="background-color: #fff; font-size:11px;">${ordem.descricao}</div>
+              </div>
+            ` : ''}
+          </div>
+          
+          <div class="section">
+            <div class="section-title">Itens da Ordem de Serviço</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Item/Serviço</th>
+                  <th style="width: 10%;" class="text-right">Qtd</th>
+                  <th style="width: 20%;" class="text-right">Valor Unit.</th>
+                  <th style="width: 20%;" class="text-right">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itens.map(item => `
+                <tr>
+                  <td>
+                    ${item.produto?.nome || 'Item não identificado'}
+                    ${item.observacao ? `<div class="item-observacao">${item.observacao}</div>` : ''}
+                  </td>
+                  <td class="text-right">${item.quantidade}</td>
+                  <td class="text-right">${formatCurrency(Number(item.valorUnitario) || 0)}</td>
+                  <td class="text-right">${formatCurrency(Number(item.valorTotal) || 0)}</td>
+                </tr>
+                `).join('')}
+                ${itens.length === 0 ? `<tr><td colspan="4" style="text-align:center; padding:10px;">Nenhum item na ordem.</td></tr>` : ''}
+              </tbody>
+            </table>
+            <div class="total-section">
+              <span class="total-label">Valor Total: </span>
+              <span class="total-valor">${formatCurrency(Number(ordem.valorTotal) || 0)}</span>
             </div>
           </div>
           
-          ${ordem.descricao ? `
-          <div class="description">
-            <p class="section-title">DESCRIÇÃO DO SERVIÇO</p>
-            <p style="margin-top: 5px;">${ordem.descricao}</p>
+          ${ordem.solucao ? `
+          <div class="section">
+            <div class="section-title">Solução Aplicada</div>
+            <div class="observacoes-texto">${ordem.solucao}</div>
           </div>
           ` : ''}
-          
-          <p class="section-title">ITENS</p>
-          <table>
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th style="width: 15%;">Qtd</th>
-                <th style="width: 20%;">Valor Unit.</th>
-                <th style="width: 20%;">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${itens.map(item => `
-              <tr>
-                <td>${item.produto?.nome || 'Item sem nome'} ${item.observacao ? `<div class="item-observation">${item.observacao}</div>` : ''}</td>
-                <td>${item.quantidade}</td>
-                <td>${formatCurrency(item.valor_unitario)}</td>
-                <td>${formatCurrency(item.valor_total)}</td>
-              </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          
-          <div class="total">
-            <p>Total: ${formatCurrency(ordem.valor_total || 0)}</p>
-          </div>
-          
+
           ${ordem.observacoes ? `
-          <div class="observations">
-            <p class="section-title">OBSERVAÇÕES</p>
-            <p style="margin-top: 5px;">${ordem.observacoes}</p>
+          <div class="section">
+            <div class="section-title">Observações Adicionais</div>
+            <div class="observacoes-texto">${ordem.observacoes}</div>
           </div>
           ` : ''}
           
           <div class="signatures">
-            <div class="signature-line">
-              Assinatura do Técnico
+            <div class="signature-block">
+              <div class="signature-line">Assinatura do Técnico</div>
             </div>
-            <div class="signature-line">
-              Assinatura do Cliente
+            <div class="signature-block">
+              <div class="signature-line">Assinatura do Cliente</div>
             </div>
           </div>
           
           <div class="footer">
             <p>Documento gerado em ${new Date().toLocaleString('pt-BR')}</p>
-            ${empresaInfo.observacoes ? `<p style="font-size:9px">${empresaInfo.observacoes}</p>` : ''}
-            ${empresaInfo.site ? `<p><a href="${empresaInfo.site}" style="color:#2563eb; text-decoration:none;">${empresaInfo.site}</a></p>` : ''}
+            ${empresaInfo.observacoes ? `<p style="font-size:8px">${empresaInfo.observacoes}</p>` : ''}
+            ${empresaInfo.site ? `<p><a href="${empresaInfo.site}" style="color:#1e3a8a; text-decoration:none;">${empresaInfo.site}</a></p>` : ''}
           </div>
         </div>
 
         <script>
           window.onload = function() {
-            ${forPrinting || forDownload ? 'setTimeout(function() { window.print(); }, 1000);' : ''}
+            ${forPrinting || forDownload ? 'setTimeout(function() { window.print(); }, 500);' : ''}
           }
         </script>
       </body>
@@ -539,49 +524,42 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
 
   return (
     <div className="flex flex-wrap gap-2">
-      {/* Visualizar OS Button */}
-      <Button variant="outline" onClick={viewOrder}>
+      <Button variant="outline" onClick={viewOrder} size="sm">
         <Eye className="mr-2 h-4 w-4" />
         Visualizar OS
       </Button>
 
-      {/* Print/Download Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline">
+          <Button variant="outline" size="sm">
             <Printer className="mr-2 h-4 w-4" />
-            Imprimir / Download
+            Imprimir / Baixar
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Imprimir ou Baixar OS</DialogTitle>
+            <DialogTitle>Imprimir ou Baixar OS #{ordem.numero}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <p className="text-sm text-gray-500">
-              Escolha como deseja obter a Ordem de Serviço #{ordem.numero}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button onClick={printOrder} className="flex-1">
-                <Printer className="mr-2 h-4 w-4" />
-                Imprimir OS
-              </Button>
-              <Button variant="outline" onClick={downloadPDF} className="flex-1">
-                <Download className="mr-2 h-4 w-4" />
-                Baixar como PDF
-              </Button>
-            </div>
+            <Button onClick={printOrder} className="w-full">
+              <Printer className="mr-2 h-4 w-4" />
+              Imprimir OS
+            </Button>
+            <Button variant="outline" onClick={downloadPDF} className="w-full">
+              <Download className="mr-2 h-4 w-4" />
+              Baixar como PDF
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Share Link Button */}
-      <Button variant="outline" onClick={generateShareableLink}>
+      <Button variant="outline" onClick={generateShareableLink} size="sm">
         <Link2 className="mr-2 h-4 w-4" />
-        Compartilhar Link
+        Copiar Link OS
       </Button>
     </div>
   );
 };
 
 export default PrintOrderButton;
+
