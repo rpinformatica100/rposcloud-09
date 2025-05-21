@@ -23,7 +23,7 @@ const Layout = () => {
     return (
       <div className="h-screen w-full flex items-center justify-center">
         <div className="flex flex-col items-center">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
+          <Loader2 className="h-8 w-8 animate-spin text-gray-600 mb-4" />
           <p className="text-gray-500">Carregando...</p>
         </div>
       </div>
@@ -37,7 +37,7 @@ const Layout = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full overflow-hidden">
+      <div className="flex min-h-screen w-full overflow-hidden bg-gray-50">
         <Sidebar />
         
         <div className="flex-1 overflow-auto">

@@ -53,23 +53,23 @@ const Sidebar = () => {
   
   return (
     <SidebarContainer
-      className={`border-r border-gray-100 bg-white transition-all duration-300 ${
+      className={`border-r border-gray-200 bg-white transition-all duration-300 ${
         isCollapsed ? "w-16" : "w-64"
       }`}
       collapsible="icon"
     >
-      <SidebarHeader className="flex items-center justify-between h-16 px-3 border-b border-gray-100">
+      <SidebarHeader className="flex items-center justify-between h-16 px-3 border-b border-gray-200">
         {!isCollapsed ? (
           <div className="flex items-center w-full">
             <Link to="/" className="text-lg font-semibold text-gray-800 flex items-center overflow-hidden">
-              <div className="bg-blue-600 text-white rounded-md w-8 h-8 flex items-center justify-center mr-2 flex-shrink-0">
+              <div className="bg-gray-800 text-white rounded-md w-8 h-8 flex items-center justify-center mr-2 flex-shrink-0">
                 OS
               </div>
               <div className="truncate font-medium">Sistema OS</div>
             </Link>
             
             <SidebarTrigger className="ml-auto">
-              <div className="p-1.5 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors">
+              <div className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors">
                 <ChevronLeft size={18} />
               </div>
             </SidebarTrigger>
@@ -77,13 +77,13 @@ const Sidebar = () => {
         ) : (
           <div className="flex items-center justify-between w-full">
             <Link to="/" className="flex justify-center">
-              <div className="bg-blue-600 text-white rounded-md w-8 h-8 flex items-center justify-center">
+              <div className="bg-gray-800 text-white rounded-md w-8 h-8 flex items-center justify-center">
                 OS
               </div>
             </Link>
             
             <SidebarTrigger>
-              <div className="p-1.5 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors">
+              <div className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors">
                 <ChevronLeft size={18} className="transform rotate-180" />
               </div>
             </SidebarTrigger>
@@ -101,7 +101,7 @@ const Sidebar = () => {
               className={({ isActive }) => `
                 flex items-center px-3 py-2.5 mx-2 my-1 rounded-lg
                 ${isActive 
-                  ? "bg-blue-50 text-blue-700 font-medium" 
+                  ? "bg-gray-100 text-gray-800 font-medium" 
                   : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 }
               `}
@@ -113,7 +113,7 @@ const Sidebar = () => {
         </div>
       </SidebarContent>
 
-      <SidebarFooter className="mt-auto border-t border-gray-100 p-3">
+      <SidebarFooter className="mt-auto border-t border-gray-200 p-3">
         <div className="flex items-center mb-3">
           <Avatar className="h-9 w-9 border border-gray-200">
             <AvatarFallback className="bg-gray-100 text-gray-600">
