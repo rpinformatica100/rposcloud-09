@@ -177,7 +177,8 @@ const Sidebar = () => {
         <SidebarFooter className="mt-auto border-t border-gray-700 p-3">
           <div className="flex items-center mb-3">
             <Avatar className="h-9 w-9 border border-gray-600">
-              <AvatarImage src={profile?.avatar ?? undefined} alt={profile?.nome} />
+              {/* Fix: Replace profile?.avatar with assistencia?.logo or null check */}
+              <AvatarImage src={profile?.assistencia?.logo || undefined} alt={profile?.nome} />
               <AvatarFallback className="bg-gray-700 text-gray-300">
                 {getInitials(profile?.nome)}
               </AvatarFallback>
