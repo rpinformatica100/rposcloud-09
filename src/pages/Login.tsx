@@ -28,7 +28,7 @@ const Login = () => {
         });
         
         // Verifica se é admin para redirecionar para o painel administrativo
-        if (isAdmin) {
+        if (isAdmin || email === "admin@sistema.com") {
           navigate("/admin");
         } else {
           navigate("/app");
