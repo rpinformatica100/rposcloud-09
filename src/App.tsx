@@ -56,8 +56,8 @@ function App() {
               <Route path="/register" element={<Register />} />
               
               {/* App Routes (require authentication) */}
-              <Route path="/app" element={<Layout />}>
-                <Route index element={<Dashboard />} />
+              <Route path="/" element={<Layout />}>
+                <Route path="dashboard" element={<Dashboard />} />
                 <Route path="clientes" element={<ClientesList />} />
                 <Route path="clientes/novo" element={<ClientesForm />} />
                 <Route path="clientes/:id" element={<ClientesForm />} />
@@ -75,7 +75,7 @@ function App() {
                 <Route path="financeiro/novo" element={<FinanceiroForm />} />
                 <Route path="financeiro/:id" element={<FinanceiroForm />} />
                 
-                {/* Rotas de Configurações */}
+                {/* Rotas de Configurações - CORRIGIDO */}
                 <Route path="configuracoes" element={<ConfiguracoesList />} />
                 <Route path="configuracoes/perfil" element={<PerfilEmpresa />} />
                 <Route path="configuracoes/assistencia" element={<ConfiguracoesAssistencia />} />

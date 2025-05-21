@@ -34,6 +34,60 @@ const Landing = () => {
     }
   ];
 
+  // Benefícios do sistema
+  const beneficios = [
+    {
+      titulo: "Aumente sua produtividade",
+      descricao: "Reduz o tempo gasto com tarefas administrativas em até 70%."
+    },
+    {
+      titulo: "Organização completa",
+      descricao: "Mantenha todos os dados de clientes, serviços e pagamentos organizados em um só lugar."
+    },
+    {
+      titulo: "Controle total",
+      descricao: "Acompanhe o status de cada ordem de serviço em tempo real."
+    },
+    {
+      titulo: "Atendimento personalizado",
+      descricao: "Histórico completo de cada cliente para oferecer um atendimento mais personalizado."
+    }
+  ];
+
+  // Recursos detalhados
+  const recursos = [
+    {
+      titulo: "Cadastro de Clientes",
+      descricao: "Armazene informações detalhadas de seus clientes, incluindo histórico completo de atendimentos, preferências e observações importantes.",
+      icone: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+    },
+    {
+      titulo: "Ordens de Serviço",
+      descricao: "Crie, edite e acompanhe ordens de serviço completas com descrição do problema, solução aplicada, peças utilizadas e valores.",
+      icone: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+    },
+    {
+      titulo: "Controle de Estoque",
+      descricao: "Gerencie seu inventário de peças e produtos, com alertas de estoque baixo e relatórios de movimentação.",
+      icone: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+    },
+    {
+      titulo: "Financeiro Completo",
+      descricao: "Controle de contas a pagar e receber, fluxo de caixa, relatórios financeiros e integração com sistemas de pagamento.",
+      icone: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+    },
+    {
+      titulo: "Relatórios e Estatísticas",
+      descricao: "Visualize dados importantes do seu negócio com gráficos e relatórios personalizados para tomada de decisões estratégicas.",
+      icone: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+    },
+    {
+      titulo: "Notificações e Lembretes",
+      descricao: "Sistema de notificações automáticas para clientes e equipe sobre prazos, pagamentos e atualizações de status.",
+      icone: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+    }
+  ];
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
@@ -63,8 +117,8 @@ const Landing = () => {
             </div>
             <div className="md:w-1/2 flex justify-center">
               <img 
-                src="/placeholder.svg" 
-                alt="Dashboard Preview" 
+                src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80" 
+                alt="Profissional gerenciando sistema de ordens de serviço" 
                 className="rounded-lg shadow-lg max-w-full h-auto" 
                 width={600}
                 height={400}
@@ -74,44 +128,119 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Benefícios Section */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <h2 className="text-3xl font-bold text-center mb-4">Por que escolher nosso sistema?</h2>
+          <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
+            Nosso sistema de ordens de serviço foi desenvolvido para atender às necessidades específicas de
+            oficinas, assistências técnicas e prestadores de serviço de todos os portes.
+          </p>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {beneficios.map((beneficio, index) => (
+              <div key={index} className="bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <h3 className="text-xl font-semibold mb-3 text-blue-700">{beneficio.titulo}</h3>
+                <p className="text-gray-600">{beneficio.descricao}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4 max-w-6xl">
           <h2 className="text-3xl font-bold text-center mb-12">Funcionalidades Principais</h2>
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
+            {recursos.slice(0, 3).map((recurso, index) => (
+              <div key={index} className="bg-white p-6 rounded-lg shadow-md text-center">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={recurso.icone} />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold mb-2">{recurso.titulo}</h3>
+                <p className="text-gray-600">{recurso.descricao}</p>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Ordens de Serviço</h3>
-              <p className="text-gray-600">Crie, edite e acompanhe todas as suas ordens de serviço de forma simples e organizada.</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Cadastro de Clientes</h3>
-              <p className="text-gray-600">Mantenha um banco de dados completo de seus clientes com histórico de serviços.</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Controle Financeiro</h3>
-              <p className="text-gray-600">Acompanhe receitas, despesas e faturamento de forma simples e intuitiva.</p>
+            ))}
+          </div>
+          
+          <div className="mt-12">
+            <h3 className="text-2xl font-bold text-center mb-8">E muito mais recursos...</h3>
+            <div className="grid md:grid-cols-3 gap-8">
+              {recursos.slice(3, 6).map((recurso, index) => (
+                <div key={index} className="bg-white p-6 rounded-lg shadow-md text-center">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={recurso.icone} />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">{recurso.titulo}</h3>
+                  <p className="text-gray-600">{recurso.descricao}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Plans Section */}
+      {/* Como funciona Section */}
       <section className="py-16 bg-white">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <h2 className="text-3xl font-bold text-center mb-4">Como funciona</h2>
+          <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
+            Nosso sistema foi desenvolvido para ser intuitivo e fácil de usar, mesmo para quem não tem experiência com tecnologia.
+          </p>
+          
+          <div className="grid md:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-blue-600 font-bold text-xl">1</span>
+              </div>
+              <h3 className="font-semibold mb-2">Cadastre-se</h3>
+              <p className="text-sm text-gray-600">Crie sua conta em menos de 2 minutos e comece a usar.</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-blue-600 font-bold text-xl">2</span>
+              </div>
+              <h3 className="font-semibold mb-2">Configure seu perfil</h3>
+              <p className="text-sm text-gray-600">Personalize o sistema com os dados da sua empresa.</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-blue-600 font-bold text-xl">3</span>
+              </div>
+              <h3 className="font-semibold mb-2">Cadastre clientes</h3>
+              <p className="text-sm text-gray-600">Importe seus clientes ou cadastre-os manualmente.</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-blue-600 font-bold text-xl">4</span>
+              </div>
+              <h3 className="font-semibold mb-2">Comece a usar</h3>
+              <p className="text-sm text-gray-600">Crie suas primeiras ordens de serviço e organize seu trabalho.</p>
+            </div>
+          </div>
+          
+          <div className="mt-12 text-center">
+            <Button 
+              size="lg" 
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={() => navigate('/register')}
+            >
+              Começar agora
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Plans Section */}
+      <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4 max-w-6xl">
           <h2 className="text-3xl font-bold text-center mb-3">Planos e Preços</h2>
           <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">Escolha o plano que melhor se adapta às necessidades do seu negócio e comece a gerenciar seus serviços hoje mesmo.</p>
@@ -146,6 +275,34 @@ const Landing = () => {
                       <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
                       <span>Atualizações incluídas</span>
                     </div>
+                    {plano.nome === "Plano Profissional" && (
+                      <>
+                        <div className="flex items-start">
+                          <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
+                          <span>Até 5 usuários</span>
+                        </div>
+                        <div className="flex items-start">
+                          <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
+                          <span>Recursos avançados de relatórios</span>
+                        </div>
+                      </>
+                    )}
+                    {plano.nome === "Plano Empresarial" && (
+                      <>
+                        <div className="flex items-start">
+                          <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
+                          <span>Usuários ilimitados</span>
+                        </div>
+                        <div className="flex items-start">
+                          <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
+                          <span>API para integrações personalizadas</span>
+                        </div>
+                        <div className="flex items-start">
+                          <div className="h-2 w-2 mt-1.5 rounded-full bg-primary mr-2"></div>
+                          <span>Suporte prioritário</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </CardContent>
                 <CardFooter>
@@ -160,11 +317,11 @@ const Landing = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4 max-w-6xl">
           <h2 className="text-3xl font-bold text-center mb-12">O que dizem nossos clientes</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-gray-50 p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
                   <span className="text-blue-600 font-semibold text-lg">JT</span>
@@ -176,7 +333,7 @@ const Landing = () => {
               </div>
               <p className="text-gray-700">"Com este sistema conseguimos organizar todas as nossas ordens de serviço e melhorar o atendimento aos clientes. Muito fácil de usar e completo!"</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="bg-gray-50 p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
                   <span className="text-blue-600 font-semibold text-lg">MS</span>
@@ -187,6 +344,18 @@ const Landing = () => {
                 </div>
               </div>
               <p className="text-gray-700">"Aumentamos nossa eficiência em 40% após implementar o sistema. O controle financeiro e a gestão de clientes são excelentes!"</p>
+            </div>
+            <div className="bg-gray-50 p-6 rounded-lg shadow-md">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                  <span className="text-blue-600 font-semibold text-lg">RP</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold">Roberto Pereira</h4>
+                  <p className="text-gray-600 text-sm">Eletrônica RP</p>
+                </div>
+              </div>
+              <p className="text-gray-700">"O sistema simplificou completamente nossa rotina. A interface é intuitiva e o suporte técnico é excelente quando precisamos de ajuda."</p>
             </div>
           </div>
         </div>
@@ -222,7 +391,7 @@ const Landing = () => {
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
-              <h3 className="text-white font-semibold text-lg mb-4">Sistema OS</h3>
+              <h3 className="text-white font-semibold text-lg mb-4">TechOS</h3>
               <p className="mb-4">Soluções completas para gestão de ordens de serviço e atendimento ao cliente.</p>
             </div>
             <div>
@@ -250,7 +419,7 @@ const Landing = () => {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center">
-            <p>&copy; {new Date().getFullYear()} Sistema OS. Todos os direitos reservados.</p>
+            <p>&copy; {new Date().getFullYear()} TechOS. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>

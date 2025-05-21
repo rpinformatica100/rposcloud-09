@@ -1,3 +1,4 @@
+
 import { NavLink, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -35,7 +36,7 @@ const Sidebar = () => {
   
   // Menu items para assistências técnicas
   const menuItems = [
-    { title: "Dashboard", path: "/", icon: LayoutDashboard, exact: true },
+    { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard, exact: true },
     { title: "Clientes", path: "/clientes", icon: Users },
     { title: "Ordens de Serviço", path: "/ordens", icon: FileText },
     { title: "Produtos", path: "/produtos", icon: Package },
@@ -75,7 +76,7 @@ const Sidebar = () => {
         <SidebarHeader className="flex items-center justify-between h-16 px-3 border-b border-gray-700">
           {!isCollapsed ? (
             <div className="flex items-center w-full">
-              <Link to="/" className="text-lg font-semibold text-white flex items-center overflow-hidden">
+              <Link to="/dashboard" className="text-lg font-semibold text-white flex items-center overflow-hidden">
                 <div className="bg-primary text-white rounded-md w-8 h-8 flex items-center justify-center mr-2 flex-shrink-0">
                   <Wrench size={18} />
                 </div>
@@ -90,7 +91,7 @@ const Sidebar = () => {
             </div>
           ) : (
             <div className="flex items-center justify-between w-full">
-              <Link to="/" className="flex justify-center">
+              <Link to="/dashboard" className="flex justify-center">
                 <div className="bg-primary text-white rounded-md w-8 h-8 flex items-center justify-center">
                   <Wrench size={18} />
                 </div>
@@ -176,7 +177,6 @@ const Sidebar = () => {
         <SidebarFooter className="mt-auto border-t border-gray-700 p-3">
           <div className="flex items-center mb-3">
             <Avatar className="h-9 w-9 border border-gray-600">
-              {/* Fix: Access logo from the assistencia object directly */}
               <AvatarImage src={assistencia?.logo || undefined} alt={profile?.nome} />
               <AvatarFallback className="bg-gray-700 text-gray-300">
                 {getInitials(profile?.nome)}
