@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,7 +11,8 @@ import {
   Wallet,
   Info,
   CheckCircle,
-  ShieldCheck
+  ShieldCheck,
+  Star
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -20,48 +20,31 @@ const Index = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isAdmin } = useAuth();
 
-  // Dados dos planos de pagamento
+  // Dados dos planos de pagamento atualizados para refletir o mesmo formato do painel admin
   const plans = [
     {
-      name: "Básico",
-      price: "49,90",
-      annualPrice: "479,00",
-      features: [
-        "Gestão de até 50 ordens",
-        "Cadastro de 30 clientes", 
-        "5 usuários",
-        "Relatórios básicos"
-      ],
-      recommended: false
+      id: 1,
+      nome: "Plano Mensal",
+      periodo: "mensal",
+      preco: 49.90,
+      destacado: false,
+      descricao: "Acesso completo por 1 mês"
     },
     {
-      name: "Profissional",
-      price: "99,90",
-      annualPrice: "959,00",
-      features: [
-        "Gestão de até 500 ordens",
-        "Cadastro de clientes ilimitado", 
-        "15 usuários",
-        "Relatórios avançados",
-        "Suporte prioritário",
-        "Acesso ao aplicativo móvel"
-      ],
-      recommended: true
+      id: 2,
+      nome: "Plano Trimestral",
+      periodo: "trimestral",
+      preco: 129.90,
+      destacado: true,
+      descricao: "Acesso completo por 3 meses, economia de 15%"
     },
     {
-      name: "Empresarial",
-      price: "199,90",
-      annualPrice: "1.919,00",
-      features: [
-        "Ordens ilimitadas",
-        "Clientes ilimitados", 
-        "Usuários ilimitados",
-        "Relatórios personalizados",
-        "Suporte 24/7",
-        "API para integrações",
-        "Personalização completa"
-      ],
-      recommended: false
+      id: 3,
+      nome: "Plano Anual",
+      periodo: "anual",
+      preco: 399.90,
+      destacado: false,
+      descricao: "Acesso completo por 12 meses, economia de 35%"
     }
   ];
 
@@ -263,50 +246,58 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
+      {/* Pricing Section - Updated to match admin panel */}
       <section id="planos" className="w-full px-4 py-12 md:py-24">
         <div className="container px-4 md:px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-primary mb-4">Planos de Pagamento</h2>
+            <h2 className="text-3xl font-bold text-primary mb-4">Planos de Assinatura</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Escolha o plano que melhor se adapta às necessidades do seu negócio
+              Escolha o período que melhor se adapta às necessidades do seu negócio
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {plans.map((plan, index) => (
-              <Card key={index} className={`${plan.recommended ? 'border-primary border-2 shadow-lg' : ''}`}>
-                {plan.recommended && (
+            {plans.map((plan) => (
+              <Card key={plan.id} className={`${plan.destacado ? 'border-primary border-2 shadow-lg relative' : ''}`}>
+                {plan.destacado && (
                   <div className="bg-primary text-white py-1 px-3 text-sm font-medium absolute top-0 right-0 rounded-bl rounded-tr">
                     Recomendado
                   </div>
                 )}
                 <CardHeader>
-                  <CardTitle className="text-xl">{plan.name}</CardTitle>
+                  <CardTitle className="text-xl">{plan.nome}</CardTitle>
                   <CardDescription>
                     <div className="mt-2">
-                      <span className="text-3xl font-bold text-primary">R$ {plan.price}</span>
-                      <span className="text-muted-foreground"> /mês</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      ou R$ {plan.annualPrice}/ano (economia de 20%)
+                      <span className="text-3xl font-bold text-primary">R$ {plan.preco.toFixed(2).replace('.', ',')}</span>
+                      <span className="text-muted-foreground">
+                        {plan.periodo === "mensal" ? " /mês" : 
+                         plan.periodo === "trimestral" ? " /trimestre" : 
+                         " /ano"}
+                      </span>
                     </div>
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  <p className="text-muted-foreground mb-6">{plan.descricao}</p>
                   <ul className="space-y-2">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center">
-                        <CheckCircle className="w-5 h-5 text-primary mr-2 flex-shrink-0" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
+                    <li className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-primary mr-2 flex-shrink-0" />
+                      <span>Acesso completo a todas as funcionalidades</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-primary mr-2 flex-shrink-0" />
+                      <span>Suporte técnico incluído</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-primary mr-2 flex-shrink-0" />
+                      <span>Atualizações gratuitas</span>
+                    </li>
                   </ul>
                 </CardContent>
                 <CardFooter>
                   <Button 
-                    className={`w-full ${plan.recommended ? 'bg-primary hover:bg-primary/90' : ''}`}
-                    variant={plan.recommended ? 'default' : 'outline'}
+                    className={`w-full ${plan.destacado ? 'bg-primary hover:bg-primary/90' : ''}`}
+                    variant={plan.destacado ? 'default' : 'outline'}
                     onClick={() => navigate("/register")}
                   >
                     Começar Agora

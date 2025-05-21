@@ -1,4 +1,3 @@
-
 // Tipos de dados para o sistema de OS
 
 export interface Cliente {
@@ -105,7 +104,7 @@ export interface Assistencia {
   ultimoLogin?: string;
 }
 
-// Tipo para Planos
+// Updated interface for Plano to match the changes in PlanosList.tsx
 export interface Plano {
   id: number;
   nome: string;
