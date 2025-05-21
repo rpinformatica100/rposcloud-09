@@ -1,4 +1,3 @@
-
 import { NavLink, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -29,7 +28,7 @@ import { useState } from "react";
 
 const Sidebar = () => {
   const { state } = useSidebar();
-  const { profile, logout } = useAuth();
+  const { profile, logout, assistencia } = useAuth();
   const [configExpanded, setConfigExpanded] = useState(false);
   
   const isCollapsed = state === "collapsed";
@@ -177,8 +176,8 @@ const Sidebar = () => {
         <SidebarFooter className="mt-auto border-t border-gray-700 p-3">
           <div className="flex items-center mb-3">
             <Avatar className="h-9 w-9 border border-gray-600">
-              {/* Fix: Replace profile?.avatar with assistencia?.logo or null check */}
-              <AvatarImage src={profile?.assistencia?.logo || undefined} alt={profile?.nome} />
+              {/* Fix: Access logo from the assistencia object directly */}
+              <AvatarImage src={assistencia?.logo || undefined} alt={profile?.nome} />
               <AvatarFallback className="bg-gray-700 text-gray-300">
                 {getInitials(profile?.nome)}
               </AvatarFallback>
