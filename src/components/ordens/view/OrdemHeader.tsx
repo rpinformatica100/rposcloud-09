@@ -54,21 +54,31 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
           Voltar
         </Button>
         <div className="flex gap-2">
-          {/* @ts-ignore - Temporarily ignoring type error until PrintOrderButton is updated */}
+          {/* Suppressing TypeScript error with @ts-ignore */}
+          {/* @ts-ignore */}
           <PrintOrderButton ordem={ordem} itens={itens} cliente={ordem.cliente} />
           
-          <Button onClick={() => navigate(`/ordens/editar/${ordem.id}`)}>
-            <Edit className="mr-2 h-4 w-4" />
-            Editar
-          </Button>
-          
           {ordem && ordem.status !== 'concluida' && ordem.status !== 'cancelada' && (
-            <Button 
-              onClick={openFinalizarModal}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <Check className="mr-2 h-4 w-4" />
-              Finalizar OS
+            <>
+              <Button onClick={() => navigate(`/ordens/editar/${ordem.id}`)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Editar
+              </Button>
+              
+              <Button 
+                onClick={openFinalizarModal}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Check className="mr-2 h-4 w-4" />
+                Finalizar OS
+              </Button>
+            </>
+          )}
+          
+          {ordem && (ordem.status === 'concluida' || ordem.status === 'cancelada') && (
+            <Button onClick={() => navigate(`/ordens/editar/${ordem.id}`)} variant="outline">
+              <Edit className="mr-2 h-4 w-4" />
+              Visualizar Detalhes
             </Button>
           )}
         </div>

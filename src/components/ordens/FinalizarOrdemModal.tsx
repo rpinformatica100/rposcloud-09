@@ -6,11 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Check, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { OrdemServico, MovimentoFinanceiro } from "@/types";
 import { formatarMoeda, gerarId } from "@/lib/utils";
 import { financeirosData } from "@/data/dados";
+import { Switch } from "@/components/ui/switch";
+import { ReloadIcon } from "@radix-ui/react-icons";
 
 interface FinalizarOrdemModalProps {
   ordem: OrdemServico;
@@ -20,11 +21,11 @@ interface FinalizarOrdemModalProps {
 }
 
 const FinalizarOrdemModal = ({ ordem, isOpen, onClose, onSave }: FinalizarOrdemModalProps) => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [solucao, setSolucao] = useState(ordem.solucao || "");
   const [formaPagamento, setFormaPagamento] = useState(ordem.formaPagamento || "dinheiro");
   const [integrarFinanceiro, setIntegrarFinanceiro] = useState(!ordem.integradoFinanceiro);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSave = () => {
     if (!solucao.trim()) {
@@ -36,51 +37,46 @@ const FinalizarOrdemModal = ({ ordem, isOpen, onClose, onSave }: FinalizarOrdemM
       return;
     }
 
-    const ordemAtualizada: OrdemServico = {
-      ...ordem,
-      status: "concluida",
-      dataConclusao: new Date().toISOString(),
-      solucao,
-      formaPagamento,
-      integradoFinanceiro: integrarFinanceiro
-    };
+    setIsSubmitting(true);
 
-    // Se integrar ao financeiro, criar movimento financeiro
-    if (integrarFinanceiro) {
-      const novoMovimento: MovimentoFinanceiro = {
-        id: gerarId(),
-        tipo: "receita",
-        descricao: `Pagamento OS #${ordem.numero} - ${ordem.cliente?.nome || "Cliente"}`,
-        valor: ordem.valorTotal,
-        data: new Date().toISOString().split('T')[0],
-        pago: true,
-        dataPagamento: new Date().toISOString().split('T')[0],
-        categoria: "Serviços",
-        metodoPagamento: formaPagamento,
-        ordemId: ordem.id,
-        observacoes: `Pagamento referente à Ordem de Serviço #${ordem.numero}`
+    // Simulando um atraso para mostrar o spinner (em um cenário real, isso seria o tempo da chamada à API)
+    setTimeout(() => {
+      const ordemAtualizada: OrdemServico = {
+        ...ordem,
+        status: "concluida", // Garantir que o status seja definido como concluída
+        dataConclusao: new Date().toISOString(),
+        solucao,
+        formaPagamento,
+        integradoFinanceiro: integrarFinanceiro
       };
 
-      // Adicionar ao financeiro
-      financeirosData.unshift(novoMovimento);
-      
-      // Adicionar referência ao movimento financeiro na ordem
-      ordemAtualizada.movimentoFinanceiroId = novoMovimento.id;
-      
-      toast({
-        title: "Movimento financeiro criado",
-        description: `Receita de ${formatarMoeda(ordem.valorTotal)} registrada no financeiro`,
-      });
-    }
+      // Se integrar ao financeiro, criar movimento financeiro
+      if (integrarFinanceiro) {
+        const novoMovimento: MovimentoFinanceiro = {
+          id: gerarId(),
+          tipo: "receita",
+          descricao: `Pagamento OS #${ordem.numero} - ${ordem.cliente?.nome || "Cliente"}`,
+          valor: ordem.valorTotal,
+          data: new Date().toISOString().split('T')[0],
+          pago: true,
+          dataPagamento: new Date().toISOString().split('T')[0],
+          categoria: "Serviços",
+          metodoPagamento: formaPagamento,
+          ordemId: ordem.id,
+          observacoes: `Pagamento referente à Ordem de Serviço #${ordem.numero}`
+        };
 
-    onSave(ordemAtualizada);
-    
-    toast({
-      title: "Ordem finalizada",
-      description: "Ordem de serviço finalizada com sucesso",
-    });
-    
-    onClose();
+        // Adicionar ao financeiro
+        financeirosData.unshift(novoMovimento);
+        
+        // Adicionar referência ao movimento financeiro na ordem
+        ordemAtualizada.movimentoFinanceiroId = novoMovimento.id;
+      }
+
+      onSave(ordemAtualizada);
+      setIsSubmitting(false);
+      onClose();
+    }, 800);
   };
 
   return (
@@ -128,13 +124,11 @@ const FinalizarOrdemModal = ({ ordem, isOpen, onClose, onSave }: FinalizarOrdemM
             </Select>
           </div>
           
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
+          <div className="flex items-center space-x-3">
+            <Switch
               id="integrarFinanceiro"
               checked={integrarFinanceiro}
-              onChange={(e) => setIntegrarFinanceiro(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              onCheckedChange={setIntegrarFinanceiro}
             />
             <Label htmlFor="integrarFinanceiro" className="cursor-pointer">
               Integrar ao financeiro (criar movimento de receita)
@@ -152,13 +146,22 @@ const FinalizarOrdemModal = ({ ordem, isOpen, onClose, onSave }: FinalizarOrdemM
         </div>
         
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             <X className="mr-2 h-4 w-4" />
             Cancelar
           </Button>
-          <Button onClick={handleSave}>
-            <Check className="mr-2 h-4 w-4" />
-            Finalizar Ordem
+          <Button onClick={handleSave} disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                Processando...
+              </>
+            ) : (
+              <>
+                <Check className="mr-2 h-4 w-4" />
+                Finalizar Ordem
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

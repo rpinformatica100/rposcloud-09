@@ -199,25 +199,25 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
         <style>
           @page {
             size: A4;
-            margin: 10mm;
+            margin: 15mm;
           }
           body {
             font-family: Arial, sans-serif;
-            line-height: 1.6;
+            line-height: 1.5;
             color: #333;
             width: 210mm;
             margin: 0 auto;
-            padding: 10mm;
+            padding: 0;
             box-sizing: border-box;
           }
           .print-container {
             max-width: 100%;
             margin: 0 auto;
+            padding: 0;
           }
           h1 {
             text-align: center;
             color: #2563eb;
-            border-bottom: 2px solid #2563eb;
             padding-bottom: 10px;
             margin-top: 0;
           }
@@ -231,46 +231,69 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
             align-items: center;
             margin-bottom: 20px;
             border-bottom: 1px solid #ddd;
-            padding-bottom: 15px;
+            padding-bottom: 10px;
           }
           .logo-container {
-            width: 120px;
-            margin-right: 20px;
+            width: 100px;
+            margin-right: 15px;
           }
           .logo-container img {
             max-width: 100%;
-            max-height: 80px;
+            max-height: 60px;
             object-fit: contain;
           }
           .company-info {
             flex-grow: 1;
           }
           .company-name {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
           }
           .order-number {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: bold;
             text-align: center;
             margin: 15px 0;
             color: #2563eb;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 10px;
           }
           .order-info {
-            font-size: 14px;
+            font-size: 12px;
           }
           .client-info {
-            margin-bottom: 20px;
-            padding: 10px;
+            margin-bottom: 15px;
+            padding: 8px;
             border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: 3px;
             background-color: #f9fafb;
+          }
+          .patient-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+            font-size: 12px;
+          }
+          .patient-info .full-width {
+            grid-column: 1 / -1;
+          }
+          .patient-info .label {
+            font-weight: bold;
+            display: block;
+            font-size: 10px;
+            color: #4b5563;
+            margin-bottom: 2px;
+          }
+          .patient-info .value {
+            display: block;
           }
           .section-title {
             font-weight: bold;
             margin-bottom: 5px;
             color: #2563eb;
+            font-size: 14px;
           }
           table {
             width: 100%;
@@ -285,32 +308,49 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
           }
           th {
             background-color: #f2f2f2;
+            font-size: 11px;
           }
           .footer {
-            margin-top: 30px;
+            margin-top: 20px;
             border-top: 1px solid #ddd;
             padding-top: 10px;
             text-align: center;
-            font-size: 12px;
+            font-size: 10px;
             position: relative;
             clear: both;
           }
           .total {
             text-align: right;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 14px;
             margin: 15px 0;
           }
           .signatures {
             display: flex;
             justify-content: space-between;
-            margin-top: 50px;
+            margin-top: 40px;
             page-break-inside: avoid;
           }
           .signature-line {
             width: 45%;
             border-top: 1px solid #000;
             padding-top: 5px;
+            text-align: center;
+            font-size: 12px;
+          }
+          .qrcode {
+            text-align: center;
+            float: right;
+            margin-left: 10px;
+            max-width: 100px;
+          }
+          .qrcode img {
+            max-width: 100%;
+            height: auto;
+          }
+          .qrcode-info {
+            font-size: 9px;
+            margin-top: 5px;
             text-align: center;
           }
           .status-${ordem.status} {
@@ -331,7 +371,13 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
             font-weight: bold;
           }
           .description, .observations {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            font-size: 12px;
+          }
+          .item-observation {
+            font-size: 10px;
+            color: #666;
+            font-style: italic;
           }
           @media print {
             .no-print {
@@ -339,17 +385,15 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
             }
             body {
               padding: 0;
-              margin: 10mm;
+              margin: 0;
               width: auto;
             }
             .print-container {
               width: 100%;
+              padding: 0;
             }
             html, body {
               height: 99%;
-            }
-            @page {
-              margin: 10mm;
             }
           }
         </style>
@@ -372,29 +416,54 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
             </div>
             <div class="company-info">
               <div class="company-name">${empresaInfo.nome || 'Sua Empresa'}</div>
-              ${empresaInfo.cnpj ? `<div>${empresaInfo.cnpj}</div>` : ''}
-              ${empresaInfo.endereco ? `<div>${empresaInfo.endereco}${empresaInfo.cidade ? ', ' + empresaInfo.cidade : ''}${empresaInfo.estado ? '/' + empresaInfo.estado : ''}</div>` : ''}
-              ${empresaInfo.telefone || empresaInfo.email ? `<div>${empresaInfo.telefone || ''}${empresaInfo.telefone && empresaInfo.email ? ' | ' : ''}${empresaInfo.email || ''}</div>` : ''}
-              ${empresaInfo.site ? `<div>${empresaInfo.site}</div>` : ''}
+              ${empresaInfo.cnpj ? `<div style="font-size:11px">${empresaInfo.cnpj}</div>` : ''}
+              ${empresaInfo.endereco ? `<div style="font-size:11px">${empresaInfo.endereco}${empresaInfo.cidade ? ', ' + empresaInfo.cidade : ''}${empresaInfo.estado ? '/' + empresaInfo.estado : ''}</div>` : ''}
+              ${empresaInfo.telefone || empresaInfo.email ? `<div style="font-size:11px">${empresaInfo.telefone || ''}${empresaInfo.telefone && empresaInfo.email ? ' | ' : ''}${empresaInfo.email || ''}</div>` : ''}
             </div>
           </div>
 
           <div class="order-number">ORDEM DE SERVIÇO #${ordem.numero}</div>
           
+          <!-- Client information in the new compact format -->
+          <div class="patient-info">
+            <div>
+              <span class="label">Cliente:</span>
+              <span class="value">${cliente?.nome || 'N/A'}</span>
+            </div>
+            <div>
+              <span class="label">CPF/CNPJ:</span>
+              <span class="value">${cliente?.documento || 'N/A'}</span>
+            </div>
+            ${cliente?.telefone ? `
+            <div>
+              <span class="label">Telefone:</span>
+              <span class="value">${cliente.telefone}</span>
+            </div>` : ''}
+            ${cliente?.email ? `
+            <div>
+              <span class="label">Email:</span>
+              <span class="value">${cliente.email}</span>
+            </div>` : ''}
+            <div class="full-width">
+              <span class="label">Endereço:</span>
+              <span class="value">${cliente?.endereco || 'N/A'}${cliente?.cidade ? ', ' + cliente.cidade : ''}${cliente?.estado ? '/' + cliente.estado : ''}${cliente?.cep ? ' - CEP: ' + cliente.cep : ''}</span>
+            </div>
+          </div>
+          
           <div class="header">
             <div class="order-info">
-              <p><span class="section-title">Data Abertura:</span> ${formatDate(ordem.data_abertura || '')}</p>
-              <p><span class="section-title">Previsão:</span> ${formatDate(ordem.data_previsao || '')}</p>
-              ${ordem.data_conclusao ? `<p><span class="section-title">Conclusão:</span> ${formatDate(ordem.data_conclusao)}</p>` : ''}
+              <p style="margin: 4px 0;"><span class="section-title">Data Abertura:</span> ${formatDate(ordem.data_abertura || '')}</p>
+              <p style="margin: 4px 0;"><span class="section-title">Previsão:</span> ${formatDate(ordem.data_previsao || '')}</p>
+              ${ordem.data_conclusao ? `<p style="margin: 4px 0;"><span class="section-title">Conclusão:</span> ${formatDate(ordem.data_conclusao)}</p>` : ''}
             </div>
             <div class="order-info">
-              <p><span class="section-title">Status:</span> <span class="status-${ordem.status}">${
+              <p style="margin: 4px 0;"><span class="section-title">Status:</span> <span class="status-${ordem.status}">${
                 ordem.status === "aberta" ? "Aberta" :
                 ordem.status === "em_andamento" ? "Em Andamento" :
                 ordem.status === "concluida" ? "Concluída" :
                 ordem.status === "cancelada" ? "Cancelada" : ordem.status
               }</span></p>
-              <p><span class="section-title">Prioridade:</span> <span class="priority-${ordem.prioridade}">${
+              <p style="margin: 4px 0;"><span class="section-title">Prioridade:</span> <span class="priority-${ordem.prioridade}">${
                 ordem.prioridade === "baixa" ? "Baixa" :
                 ordem.prioridade === "media" ? "Média" :
                 ordem.prioridade === "alta" ? "Alta" : ordem.prioridade
@@ -402,19 +471,10 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
             </div>
           </div>
           
-          <div class="client-info">
-            <p class="section-title">DADOS DO CLIENTE</p>
-            <p><strong>Nome:</strong> ${cliente?.nome || 'N/A'}</p>
-            ${cliente?.documento ? `<p><strong>Documento:</strong> ${cliente.documento}</p>` : ''}
-            ${cliente?.telefone ? `<p><strong>Telefone:</strong> ${cliente.telefone}</p>` : ''}
-            ${cliente?.email ? `<p><strong>Email:</strong> ${cliente.email}</p>` : ''}
-            ${cliente?.endereco ? `<p><strong>Endereço:</strong> ${cliente.endereco}${cliente.cidade ? ', ' + cliente.cidade : ''}${cliente.estado ? '/' + cliente.estado : ''}${cliente.cep ? ' - CEP: ' + cliente.cep : ''}</p>` : ''}
-          </div>
-          
           ${ordem.descricao ? `
           <div class="description">
             <p class="section-title">DESCRIÇÃO DO SERVIÇO</p>
-            <p>${ordem.descricao}</p>
+            <p style="margin-top: 5px;">${ordem.descricao}</p>
           </div>
           ` : ''}
           
@@ -423,15 +483,15 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
             <thead>
               <tr>
                 <th>Item</th>
-                <th>Quantidade</th>
-                <th>Valor Unitário</th>
-                <th>Subtotal</th>
+                <th style="width: 15%;">Qtd</th>
+                <th style="width: 20%;">Valor Unit.</th>
+                <th style="width: 20%;">Subtotal</th>
               </tr>
             </thead>
             <tbody>
               ${itens.map(item => `
               <tr>
-                <td>${item.produto?.nome || 'Item sem nome'} ${item.observacao ? `<br><small>${item.observacao}</small>` : ''}</td>
+                <td>${item.produto?.nome || 'Item sem nome'} ${item.observacao ? `<div class="item-observation">${item.observacao}</div>` : ''}</td>
                 <td>${item.quantidade}</td>
                 <td>${formatCurrency(item.valor_unitario)}</td>
                 <td>${formatCurrency(item.valor_total)}</td>
@@ -447,7 +507,7 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
           ${ordem.observacoes ? `
           <div class="observations">
             <p class="section-title">OBSERVAÇÕES</p>
-            <p>${ordem.observacoes}</p>
+            <p style="margin-top: 5px;">${ordem.observacoes}</p>
           </div>
           ` : ''}
           
@@ -462,7 +522,8 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
           
           <div class="footer">
             <p>Documento gerado em ${new Date().toLocaleString('pt-BR')}</p>
-            ${empresaInfo.observacoes ? `<p>${empresaInfo.observacoes}</p>` : ''}
+            ${empresaInfo.observacoes ? `<p style="font-size:9px">${empresaInfo.observacoes}</p>` : ''}
+            ${empresaInfo.site ? `<p><a href="${empresaInfo.site}" style="color:#2563eb; text-decoration:none;">${empresaInfo.site}</a></p>` : ''}
           </div>
         </div>
 
