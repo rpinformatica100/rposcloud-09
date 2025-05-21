@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from "./components/theme-provider"
@@ -26,6 +27,7 @@ import OrdensList from './pages/ordens/OrdensList';
 import OrdensForm from './pages/ordens/OrdensForm';
 import OrdensView from './pages/ordens/OrdensView';
 import FinanceiroList from './pages/financeiro/FinanceiroList';
+import FinanceiroForm from './pages/financeiro/FinanceiroForm';
 import ConfiguracoesList from "./pages/configuracoes/ConfiguracoesList";
 import PerfilEmpresa from "./pages/configuracoes/PerfilEmpresa";
 
@@ -59,6 +61,8 @@ function App() {
                 <Route path="ordens/:id/visualizar" element={<OrdensView />} />
                 
                 <Route path="financeiro" element={<FinanceiroList />} />
+                <Route path="financeiro/novo" element={<FinanceiroForm />} />
+                <Route path="financeiro/:id" element={<FinanceiroForm />} />
                 
                 <Route path="configuracoes" element={<ConfiguracoesList />} />
                 <Route path="configuracoes/perfil" element={<PerfilEmpresa />} />

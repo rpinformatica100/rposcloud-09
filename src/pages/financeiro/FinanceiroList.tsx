@@ -1,42 +1,24 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { financeirosData, ordensData } from "@/data/dados";
+import { financeirosData } from "@/data/dados";
 import { MovimentoFinanceiro } from "@/types";
-import { CreditCard, Plus, Search, Check, X, Calendar, DollarSign } from "lucide-react";
+import { CreditCard, Plus, Search, Check, X, DollarSign, Edit } from "lucide-react";
 import { formatarMoeda } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Switch } from "@/components/ui/switch";
-import { gerarId } from "@/lib/utils";
 
 const FinanceiroList = () => {
   const [movimentos, setMovimentos] = useState<MovimentoFinanceiro[]>(financeirosData);
   const [filtro, setFiltro] = useState("");
   const [periodoFiltro, setPeriodoFiltro] = useState("todos");
   const [tipoFiltro, setTipoFiltro] = useState("todos");
-  const [dialogAberto, setDialogAberto] = useState(false);
   const { toast } = useToast();
-  
-  // Estado para novo movimento financeiro
-  const [novoMovimento, setNovoMovimento] = useState<MovimentoFinanceiro>({
-    id: "",
-    tipo: "receita",
-    descricao: "",
-    valor: 0,
-    data: new Date().toISOString().split('T')[0],
-    pago: true,
-    dataPagamento: new Date().toISOString().split('T')[0],
-    categoria: "Geral",
-    metodoPagamento: "Dinheiro"
-  });
+  const navigate = useNavigate();
 
   const handleExcluir = (id: string) => {
     if (confirm("Tem certeza que deseja excluir este movimento?")) {
@@ -110,246 +92,14 @@ const FinanceiroList = () => {
     
   const saldo = totalReceitas - totalDespesas;
 
-  // Manipular formulário de novo movimento
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setNovoMovimento(prev => ({ 
-      ...prev, 
-      [name]: name === "valor" ? parseFloat(value) || 0 : value 
-    }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setNovoMovimento(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleTipoChange = (value: "receita" | "despesa") => {
-    setNovoMovimento(prev => ({ ...prev, tipo: value }));
-  };
-
-  const handlePagoChange = (checked: boolean) => {
-    setNovoMovimento(prev => ({ 
-      ...prev, 
-      pago: checked,
-      dataPagamento: checked ? new Date().toISOString().split('T')[0] : undefined
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!novoMovimento.descricao) {
-      toast({
-        title: "Campo obrigatório",
-        description: "Preencha a descrição do movimento",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (novoMovimento.valor <= 0) {
-      toast({
-        title: "Valor inválido",
-        description: "O valor deve ser maior que zero",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const movimentoCompleto: MovimentoFinanceiro = {
-      ...novoMovimento,
-      id: gerarId(),
-    };
-    
-    // Adicionar ao array de movimentos
-    setMovimentos(prev => [movimentoCompleto, ...prev]);
-    
-    toast({
-      title: "Movimento registrado",
-      description: "O movimento financeiro foi registrado com sucesso",
-    });
-    
-    // Resetar formulário e fechar diálogo
-    setNovoMovimento({
-      id: "",
-      tipo: "receita",
-      descricao: "",
-      valor: 0,
-      data: new Date().toISOString().split('T')[0],
-      pago: true,
-      dataPagamento: new Date().toISOString().split('T')[0],
-      categoria: "Geral",
-      metodoPagamento: "Dinheiro"
-    });
-    setDialogAberto(false);
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Financeiro</h1>
-        <Dialog open={dialogAberto} onOpenChange={setDialogAberto}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Movimento
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Novo Movimento Financeiro</DialogTitle>
-              <DialogDescription>
-                Registre um novo movimento financeiro no sistema
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit}>
-              <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                  <Label>Tipo de Movimento</Label>
-                  <RadioGroup 
-                    value={novoMovimento.tipo} 
-                    onValueChange={(value) => handleTipoChange(value as "receita" | "despesa")}
-                    className="flex space-x-4"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="receita" id="receita" />
-                      <Label htmlFor="receita" className="text-green-600">Receita</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="despesa" id="despesa" />
-                      <Label htmlFor="despesa" className="text-red-600">Despesa</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="descricao">Descrição *</Label>
-                  <Input 
-                    id="descricao" 
-                    name="descricao" 
-                    value={novoMovimento.descricao} 
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="valor">Valor *</Label>
-                    <Input 
-                      id="valor" 
-                      name="valor" 
-                      type="number"
-                      step="0.01"
-                      min="0.01"
-                      value={novoMovimento.valor || ""} 
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="data">Data *</Label>
-                    <Input 
-                      id="data" 
-                      name="data" 
-                      type="date"
-                      value={novoMovimento.data} 
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="categoria">Categoria</Label>
-                  <Select 
-                    value={novoMovimento.categoria} 
-                    onValueChange={(value) => handleSelectChange("categoria", value)}
-                  >
-                    <SelectTrigger id="categoria">
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Geral">Geral</SelectItem>
-                      <SelectItem value="Serviços">Serviços</SelectItem>
-                      <SelectItem value="Produtos">Produtos</SelectItem>
-                      <SelectItem value="Fornecedores">Fornecedores</SelectItem>
-                      <SelectItem value="Impostos">Impostos</SelectItem>
-                      <SelectItem value="Funcionários">Funcionários</SelectItem>
-                      <SelectItem value="Infraestrutura">Infraestrutura</SelectItem>
-                      <SelectItem value="Marketing">Marketing</SelectItem>
-                      <SelectItem value="Outros">Outros</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="pago">Status de Pagamento</Label>
-                    <div className="flex items-center space-x-2">
-                      <Switch 
-                        id="pago" 
-                        checked={novoMovimento.pago}
-                        onCheckedChange={handlePagoChange}
-                      />
-                      <Label htmlFor="pago">
-                        {novoMovimento.pago ? "Pago" : "Pendente"}
-                      </Label>
-                    </div>
-                  </div>
-                </div>
-                
-                {novoMovimento.pago && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="dataPagamento">Data de Pagamento</Label>
-                      <Input 
-                        id="dataPagamento" 
-                        name="dataPagamento" 
-                        type="date"
-                        value={novoMovimento.dataPagamento} 
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="metodoPagamento">Método de Pagamento</Label>
-                      <Select 
-                        value={novoMovimento.metodoPagamento || ""} 
-                        onValueChange={(value) => handleSelectChange("metodoPagamento", value)}
-                      >
-                        <SelectTrigger id="metodoPagamento">
-                          <SelectValue placeholder="Selecione um método" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                          <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
-                          <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
-                          <SelectItem value="Transferência">Transferência</SelectItem>
-                          <SelectItem value="PIX">PIX</SelectItem>
-                          <SelectItem value="Boleto">Boleto</SelectItem>
-                          <SelectItem value="Cheque">Cheque</SelectItem>
-                          <SelectItem value="Outro">Outro</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setDialogAberto(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit">Salvar</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => navigate("/app/financeiro/novo")}>
+          <Plus className="mr-2 h-4 w-4" />
+          Novo Movimento
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -449,18 +199,19 @@ const FinanceiroList = () => {
             <TabsContent value={tipoFiltro}>
               {movimentosFiltrados.length > 0 ? (
                 <div className="rounded-md border">
-                  <div className="grid grid-cols-1 md:grid-cols-6 p-4 bg-muted/50 font-medium text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-7 p-4 bg-muted/50 font-medium text-sm">
                     <div className="md:col-span-2">Descrição</div>
                     <div className="hidden md:block">Data</div>
                     <div className="hidden md:block">Categoria</div>
                     <div className="text-right">Valor</div>
                     <div className="text-center">Status</div>
+                    <div className="text-center">Ações</div>
                   </div>
 
                   {movimentosFiltrados.map((movimento) => (
                     <div 
                       key={movimento.id} 
-                      className="grid grid-cols-1 md:grid-cols-6 p-4 border-t items-center"
+                      className="grid grid-cols-1 md:grid-cols-7 p-4 border-t items-center"
                     >
                       <div className="md:col-span-2">
                         <div className="flex items-center gap-2">
@@ -506,6 +257,24 @@ const FinanceiroList = () => {
                             <span className="hidden md:inline">Pendente</span>
                           </Button>
                         )}
+                      </div>
+                      <div className="flex justify-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-blue-500 hover:text-blue-600"
+                          onClick={() => navigate(`/app/financeiro/${movimento.id}`)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-500 hover:text-red-600"
+                          onClick={() => handleExcluir(movimento.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   ))}
