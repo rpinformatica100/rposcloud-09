@@ -28,6 +28,17 @@ interface ProfileType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Usuário administrador pré-definido para demonstração
+const ADMIN_EMAIL = "admin@sistema.com";
+const ADMIN_PASSWORD = "admin123";
+const ADMIN_PROFILE: ProfileType = {
+  id: "admin-id",
+  nome: "Administrador do Sistema",
+  email: ADMIN_EMAIL,
+  cargo: "Gerente",
+  role: "admin"
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -110,6 +121,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, senha: string) => {
     try {
+      // Verificar se é o login do administrador pré-definido
+      if (email === ADMIN_EMAIL && senha === ADMIN_PASSWORD) {
+        // Simular um login bem-sucedido para o administrador
+        setUser({ id: ADMIN_PROFILE.id, email: ADMIN_EMAIL } as User);
+        setProfile(ADMIN_PROFILE);
+        setIsAuthenticated(true);
+        setIsAdmin(true);
+        
+        // Salvar em localStorage para manter a sessão
+        localStorage.setItem('admin-session', 'true');
+        localStorage.setItem('admin-profile', JSON.stringify(ADMIN_PROFILE));
+        
+        return true;
+      }
+      
+      // Login normal via Supabase para outros usuários
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password: senha,
@@ -165,7 +192,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
+      // Se for o administrador pré-definido
+      if (profile?.id === ADMIN_PROFILE.id) {
+        localStorage.removeItem('admin-session');
+        localStorage.removeItem('admin-profile');
+        setUser(null);
+        setProfile(null);
+        setIsAuthenticated(false);
+        setIsAdmin(false);
+      } else {
+        // Logout normal via Supabase
+        await supabase.auth.signOut();
+      }
+      
       setProfile(null);
       setIsAdmin(false);
     } catch (error) {
@@ -173,6 +212,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast.error("Ocorreu um erro ao fazer logout");
     }
   };
+
+  // Verificar ao iniciar se há uma sessão de admin armazenada
+  useEffect(() => {
+    const adminSession = localStorage.getItem('admin-session');
+    const adminProfile = localStorage.getItem('admin-profile');
+    
+    if (adminSession === 'true' && adminProfile) {
+      try {
+        const parsedProfile = JSON.parse(adminProfile);
+        setUser({ id: parsedProfile.id, email: parsedProfile.email } as User);
+        setProfile(parsedProfile);
+        setIsAuthenticated(true);
+        setIsAdmin(true);
+        setLoading(false);
+      } catch (e) {
+        console.error('Erro ao carregar perfil admin:', e);
+        localStorage.removeItem('admin-session');
+        localStorage.removeItem('admin-profile');
+      }
+    }
+  }, []);
 
   return (
     <AuthContext.Provider value={{ 

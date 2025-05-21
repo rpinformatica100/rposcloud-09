@@ -13,7 +13,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,7 +26,13 @@ const Login = () => {
         toast.success("Login realizado com sucesso", {
           description: "Bem-vindo ao Sistema de Ordens de Serviço",
         });
-        navigate("/app");
+        
+        // Verifica se é admin para redirecionar para o painel administrativo
+        if (isAdmin) {
+          navigate("/admin");
+        } else {
+          navigate("/app");
+        }
       } else {
         toast.error("Erro ao fazer login", {
           description: "Verifique suas credenciais e tente novamente",
@@ -83,6 +89,9 @@ const Login = () => {
                   required
                 />
               </div>
+              <div className="text-sm text-right">
+                <a href="#" className="text-primary hover:underline">Esqueceu sua senha?</a>
+              </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <Button className="w-full" type="submit" disabled={isLoading}>
@@ -95,13 +104,20 @@ const Login = () => {
               </Button>
               <div className="text-center text-sm">
                 Não tem uma conta?{" "}
-                <Link to="/registrar" className="text-primary hover:underline">
+                <Link to="/register" className="text-primary hover:underline">
                   Registre-se
                 </Link>
               </div>
             </CardFooter>
           </form>
         </Card>
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            <strong>Dica:</strong> Acesse com o email <span className="font-mono">admin@sistema.com</span> e 
+            senha <span className="font-mono">admin123</span> para entrar no painel administrativo
+          </p>
+        </div>
       </div>
     </div>
   );
