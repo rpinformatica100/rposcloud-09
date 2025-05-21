@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from "./components/theme-provider"
@@ -13,6 +12,15 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import NotFound from './pages/NotFound';
+
+// Landing Extra Pages
+import IntegracoesPage from './pages/landing_extra/IntegracoesPage';
+import DocumentacaoTecnicaPage from './pages/landing_extra/DocumentacaoTecnicaPage';
+import SobreNosPage from './pages/landing_extra/SobreNosPage';
+import ContatoPage from './pages/landing_extra/ContatoPage';
+import CentroAjudaPage from './pages/landing_extra/CentroAjudaPage';
+import TermosServicoPage from './pages/landing_extra/TermosServicoPage';
+import PoliticaPrivacidadePage from './pages/landing_extra/PoliticaPrivacidadePage';
 
 // App Layout
 import Layout from './components/layout/Layout';
@@ -55,6 +63,15 @@ function App() {
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              
+              {/* Landing Extra Pages */}
+              <Route path="/integracoes" element={<IntegracoesPage />} />
+              <Route path="/documentacao-tecnica" element={<DocumentacaoTecnicaPage />} />
+              <Route path="/sobre-nos" element={<SobreNosPage />} />
+              <Route path="/contato" element={<ContatoPage />} />
+              <Route path="/centro-de-ajuda" element={<CentroAjudaPage />} />
+              <Route path="/termos-de-servico" element={<TermosServicoPage />} />
+              <Route path="/politica-de-privacidade" element={<PoliticaPrivacidadePage />} />
               
               {/* App Routes (require authentication) */}
               <Route element={<Layout />}>

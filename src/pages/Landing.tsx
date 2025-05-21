@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import PlanosSection from '@/components/landing/PlanosSection';
@@ -290,34 +289,29 @@ export default function Landing() {
               <ul className="space-y-2 text-sm">
                 <li><a href="#features" className="text-gray-500 hover:text-primary">Recursos</a></li>
                 <li><a href="#planos" className="text-gray-500 hover:text-primary">Planos e Preços</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-primary">Integrações</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-primary">Atualizações</a></li>
+                <li><Link to="/integracoes" className="text-gray-500 hover:text-primary">Integrações</Link></li>
+                <li><Link to="/documentacao-tecnica" className="text-gray-500 hover:text-primary">Documentação Técnica</Link></li>
               </ul>
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold">Empresa</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-gray-500 hover:text-primary">Sobre nós</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-primary">Blog</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-primary">Carreiras</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-primary">Contato</a></li>
+                <li><Link to="/sobre-nos" className="text-gray-500 hover:text-primary">Sobre nós</Link></li>
+                <li><Link to="/contato" className="text-gray-500 hover:text-primary">Contato</Link></li>
               </ul>
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold">Suporte</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-gray-500 hover:text-primary">Centro de ajuda</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-primary">Documentação</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-primary">Status</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-primary">Contato</a></li>
+                <li><Link to="/centro-de-ajuda" className="text-gray-500 hover:text-primary">Centro de Ajuda</Link></li>
               </ul>
             </div>
           </div>
           <div className="mt-8 border-t pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-gray-500 dark:text-gray-400">© 2025 TechOS. Todos os direitos reservados.</p>
             <div className="flex space-x-4 mt-4 md:mt-0">
-              <a href="#" className="text-sm text-gray-500 hover:text-primary">Termos de Serviço</a>
-              <a href="#" className="text-sm text-gray-500 hover:text-primary">Política de Privacidade</a>
+              <Link to="/termos-de-servico" className="text-sm text-gray-500 hover:text-primary">Termos de Serviço</Link>
+              <Link to="/politica-de-privacidade" className="text-sm text-gray-500 hover:text-primary">Política de Privacidade</Link>
             </div>
           </div>
         </div>
