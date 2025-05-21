@@ -104,7 +104,6 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
   // Generate a shareable link for the order
   const generateShareableLink = () => {
     // Create a shareable link with a JWT or some other form of authentication token
-    // This is a placeholder implementation - in a real app, you would generate a secure token
     const host = window.location.origin;
     const linkId = btoa(`${ordem.id}-${Date.now()}`); // Simple encoding - not secure
     const shareLink = `${host}/share/ordem/${linkId}`;
@@ -198,19 +197,29 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Ordem de Serviço #${ordem.numero}</title>
         <style>
+          @page {
+            size: A4;
+            margin: 10mm;
+          }
           body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
             color: #333;
-            max-width: 800px;
+            width: 210mm;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10mm;
+            box-sizing: border-box;
+          }
+          .print-container {
+            max-width: 100%;
+            margin: 0 auto;
           }
           h1 {
             text-align: center;
             color: #2563eb;
             border-bottom: 2px solid #2563eb;
             padding-bottom: 10px;
+            margin-top: 0;
           }
           .header {
             display: flex;
@@ -245,7 +254,7 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
             font-size: 24px;
             font-weight: bold;
             text-align: center;
-            margin-bottom: 20px;
+            margin: 15px 0;
             color: #2563eb;
           }
           .order-info {
@@ -256,6 +265,7 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
+            background-color: #f9fafb;
           }
           .section-title {
             font-weight: bold;
@@ -266,10 +276,11 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            font-size: 12px;
           }
           th, td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 6px;
             text-align: left;
           }
           th {
@@ -281,17 +292,20 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
             padding-top: 10px;
             text-align: center;
             font-size: 12px;
+            position: relative;
+            clear: both;
           }
           .total {
             text-align: right;
             font-weight: bold;
             font-size: 16px;
-            margin-top: 10px;
+            margin: 15px 0;
           }
           .signatures {
             display: flex;
             justify-content: space-between;
             margin-top: 50px;
+            page-break-inside: avoid;
           }
           .signature-line {
             width: 45%;
@@ -316,13 +330,26 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
             };
             font-weight: bold;
           }
+          .description, .observations {
+            margin-bottom: 20px;
+          }
           @media print {
             .no-print {
               display: none;
             }
             body {
               padding: 0;
-              margin: 0;
+              margin: 10mm;
+              width: auto;
+            }
+            .print-container {
+              width: 100%;
+            }
+            html, body {
+              height: 99%;
+            }
+            @page {
+              margin: 10mm;
             }
           }
         </style>
@@ -337,104 +364,106 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
           </button>
         </div>
         
-        <!-- Company Information -->
-        <div class="company-header">
-          <div class="logo-container">
-            ${empresaInfo.logo ? `<img src="${empresaInfo.logo}" alt="Logo da Empresa">` : ''}
+        <div class="print-container">
+          <!-- Company Information -->
+          <div class="company-header">
+            <div class="logo-container">
+              ${empresaInfo.logo ? `<img src="${empresaInfo.logo}" alt="Logo da Empresa">` : ''}
+            </div>
+            <div class="company-info">
+              <div class="company-name">${empresaInfo.nome || 'Sua Empresa'}</div>
+              ${empresaInfo.cnpj ? `<div>${empresaInfo.cnpj}</div>` : ''}
+              ${empresaInfo.endereco ? `<div>${empresaInfo.endereco}${empresaInfo.cidade ? ', ' + empresaInfo.cidade : ''}${empresaInfo.estado ? '/' + empresaInfo.estado : ''}</div>` : ''}
+              ${empresaInfo.telefone || empresaInfo.email ? `<div>${empresaInfo.telefone || ''}${empresaInfo.telefone && empresaInfo.email ? ' | ' : ''}${empresaInfo.email || ''}</div>` : ''}
+              ${empresaInfo.site ? `<div>${empresaInfo.site}</div>` : ''}
+            </div>
           </div>
-          <div class="company-info">
-            <div class="company-name">${empresaInfo.nome || 'Sua Empresa'}</div>
-            ${empresaInfo.cnpj ? `<div>${empresaInfo.cnpj}</div>` : ''}
-            ${empresaInfo.endereco ? `<div>${empresaInfo.endereco}${empresaInfo.cidade ? ', ' + empresaInfo.cidade : ''}${empresaInfo.estado ? '/' + empresaInfo.estado : ''}</div>` : ''}
-            ${empresaInfo.telefone || empresaInfo.email ? `<div>${empresaInfo.telefone || ''}${empresaInfo.telefone && empresaInfo.email ? ' | ' : ''}${empresaInfo.email || ''}</div>` : ''}
-            ${empresaInfo.site ? `<div>${empresaInfo.site}</div>` : ''}
-          </div>
-        </div>
 
-        <div class="order-number">ORDEM DE SERVIÇO #${ordem.numero}</div>
-        
-        <div class="header">
-          <div class="order-info">
-            <p><span class="section-title">Data Abertura:</span> ${formatDate(ordem.data_abertura || '')}</p>
-            <p><span class="section-title">Previsão:</span> ${formatDate(ordem.data_previsao || '')}</p>
-            ${ordem.data_conclusao ? `<p><span class="section-title">Conclusão:</span> ${formatDate(ordem.data_conclusao)}</p>` : ''}
+          <div class="order-number">ORDEM DE SERVIÇO #${ordem.numero}</div>
+          
+          <div class="header">
+            <div class="order-info">
+              <p><span class="section-title">Data Abertura:</span> ${formatDate(ordem.data_abertura || '')}</p>
+              <p><span class="section-title">Previsão:</span> ${formatDate(ordem.data_previsao || '')}</p>
+              ${ordem.data_conclusao ? `<p><span class="section-title">Conclusão:</span> ${formatDate(ordem.data_conclusao)}</p>` : ''}
+            </div>
+            <div class="order-info">
+              <p><span class="section-title">Status:</span> <span class="status-${ordem.status}">${
+                ordem.status === "aberta" ? "Aberta" :
+                ordem.status === "em_andamento" ? "Em Andamento" :
+                ordem.status === "concluida" ? "Concluída" :
+                ordem.status === "cancelada" ? "Cancelada" : ordem.status
+              }</span></p>
+              <p><span class="section-title">Prioridade:</span> <span class="priority-${ordem.prioridade}">${
+                ordem.prioridade === "baixa" ? "Baixa" :
+                ordem.prioridade === "media" ? "Média" :
+                ordem.prioridade === "alta" ? "Alta" : ordem.prioridade
+              }</span></p>
+            </div>
           </div>
-          <div class="order-info">
-            <p><span class="section-title">Status:</span> <span class="status-${ordem.status}">${
-              ordem.status === "aberta" ? "Aberta" :
-              ordem.status === "em_andamento" ? "Em Andamento" :
-              ordem.status === "concluida" ? "Concluída" :
-              ordem.status === "cancelada" ? "Cancelada" : ordem.status
-            }</span></p>
-            <p><span class="section-title">Prioridade:</span> <span class="priority-${ordem.prioridade}">${
-              ordem.prioridade === "baixa" ? "Baixa" :
-              ordem.prioridade === "media" ? "Média" :
-              ordem.prioridade === "alta" ? "Alta" : ordem.prioridade
-            }</span></p>
+          
+          <div class="client-info">
+            <p class="section-title">DADOS DO CLIENTE</p>
+            <p><strong>Nome:</strong> ${cliente?.nome || 'N/A'}</p>
+            ${cliente?.documento ? `<p><strong>Documento:</strong> ${cliente.documento}</p>` : ''}
+            ${cliente?.telefone ? `<p><strong>Telefone:</strong> ${cliente.telefone}</p>` : ''}
+            ${cliente?.email ? `<p><strong>Email:</strong> ${cliente.email}</p>` : ''}
+            ${cliente?.endereco ? `<p><strong>Endereço:</strong> ${cliente.endereco}${cliente.cidade ? ', ' + cliente.cidade : ''}${cliente.estado ? '/' + cliente.estado : ''}${cliente.cep ? ' - CEP: ' + cliente.cep : ''}</p>` : ''}
           </div>
-        </div>
-        
-        <div class="client-info">
-          <p class="section-title">DADOS DO CLIENTE</p>
-          <p><strong>Nome:</strong> ${cliente?.nome || 'N/A'}</p>
-          ${cliente?.documento ? `<p><strong>Documento:</strong> ${cliente.documento}</p>` : ''}
-          ${cliente?.telefone ? `<p><strong>Telefone:</strong> ${cliente.telefone}</p>` : ''}
-          ${cliente?.email ? `<p><strong>Email:</strong> ${cliente.email}</p>` : ''}
-          ${cliente?.endereco ? `<p><strong>Endereço:</strong> ${cliente.endereco}${cliente.cidade ? ', ' + cliente.cidade : ''}${cliente.estado ? '/' + cliente.estado : ''}${cliente.cep ? ' - CEP: ' + cliente.cep : ''}</p>` : ''}
-        </div>
-        
-        ${ordem.descricao ? `
-        <div class="description">
-          <p class="section-title">DESCRIÇÃO DO SERVIÇO</p>
-          <p>${ordem.descricao}</p>
-        </div>
-        ` : ''}
-        
-        <p class="section-title">ITENS</p>
-        <table>
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th>Quantidade</th>
-              <th>Valor Unitário</th>
-              <th>Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${itens.map(item => `
-            <tr>
-              <td>${item.produto?.nome || 'Item sem nome'} ${item.observacao ? `<br><small>${item.observacao}</small>` : ''}</td>
-              <td>${item.quantidade}</td>
-              <td>${formatCurrency(item.valor_unitario)}</td>
-              <td>${formatCurrency(item.valor_total)}</td>
-            </tr>
-            `).join('')}
-          </tbody>
-        </table>
-        
-        <div class="total">
-          <p>Total: ${formatCurrency(ordem.valor_total || 0)}</p>
-        </div>
-        
-        ${ordem.observacoes ? `
-        <div class="observations">
-          <p class="section-title">OBSERVAÇÕES</p>
-          <p>${ordem.observacoes}</p>
-        </div>
-        ` : ''}
-        
-        <div class="signatures">
-          <div class="signature-line">
-            Assinatura do Técnico
+          
+          ${ordem.descricao ? `
+          <div class="description">
+            <p class="section-title">DESCRIÇÃO DO SERVIÇO</p>
+            <p>${ordem.descricao}</p>
           </div>
-          <div class="signature-line">
-            Assinatura do Cliente
+          ` : ''}
+          
+          <p class="section-title">ITENS</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Quantidade</th>
+                <th>Valor Unitário</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itens.map(item => `
+              <tr>
+                <td>${item.produto?.nome || 'Item sem nome'} ${item.observacao ? `<br><small>${item.observacao}</small>` : ''}</td>
+                <td>${item.quantidade}</td>
+                <td>${formatCurrency(item.valor_unitario)}</td>
+                <td>${formatCurrency(item.valor_total)}</td>
+              </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          
+          <div class="total">
+            <p>Total: ${formatCurrency(ordem.valor_total || 0)}</p>
           </div>
-        </div>
-        
-        <div class="footer">
-          <p>Documento gerado em ${new Date().toLocaleString('pt-BR')}</p>
-          ${empresaInfo.observacoes ? `<p>${empresaInfo.observacoes}</p>` : ''}
+          
+          ${ordem.observacoes ? `
+          <div class="observations">
+            <p class="section-title">OBSERVAÇÕES</p>
+            <p>${ordem.observacoes}</p>
+          </div>
+          ` : ''}
+          
+          <div class="signatures">
+            <div class="signature-line">
+              Assinatura do Técnico
+            </div>
+            <div class="signature-line">
+              Assinatura do Cliente
+            </div>
+          </div>
+          
+          <div class="footer">
+            <p>Documento gerado em ${new Date().toLocaleString('pt-BR')}</p>
+            ${empresaInfo.observacoes ? `<p>${empresaInfo.observacoes}</p>` : ''}
+          </div>
         </div>
 
         <script>
