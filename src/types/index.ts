@@ -1,4 +1,3 @@
-
 // Tipos de dados para o sistema de OS
 
 export interface Cliente {
@@ -46,6 +45,10 @@ export interface OrdemServico {
   observacoes?: string;
   assistenciaId?: string;  // ID da assistência técnica responsável
   assistencia?: Assistencia;  // Dados da assistência técnica
+  solucao?: string;
+  formaPagamento?: string;
+  integradoFinanceiro?: boolean;
+  movimentoFinanceiroId?: string;
 }
 
 export interface ItemOrdemServico {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,14 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Edit, AlertTriangle, Loader2 } from "lucide-react";
+import { ArrowLeft, Edit, AlertTriangle, Loader2, Check, DollarSign } from "lucide-react";
 import PrintOrderButton from "@/components/ordens/PrintOrderButton";
+import FinalizarOrdemModal from "@/components/ordens/FinalizarOrdemModal";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import { ordensData, clientesData } from "@/data/dados"; // Import mock data
 
 const OrdensView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [finalizarModalOpen, setFinalizarModalOpen] = useState(false);
 
   // First try to fetch from Supabase, fallback to mock data if that fails
   const fetchOrdem = async () => {
@@ -60,6 +61,10 @@ const OrdensView = () => {
         observacoes: mockOrdem.observacoes,
         valor_total: mockOrdem.valorTotal,
         responsavel: mockOrdem.responsavel,
+        solucao: mockOrdem.solucao,
+        forma_pagamento: mockOrdem.formaPagamento,
+        integrado_financeiro: mockOrdem.integradoFinanceiro,
+        movimento_financeiro_id: mockOrdem.movimentoFinanceiroId,
         cliente: mockCliente
       };
     }
@@ -187,6 +192,25 @@ const OrdensView = () => {
     }
   };
 
+  const handleFinalizarOrdem = (ordemAtualizada) => {
+    // Atualizar os dados da ordem nos dados mockados
+    const index = ordensData.findIndex(o => o.id === id);
+    if (index !== -1) {
+      ordensData[index] = {
+        ...ordensData[index],
+        status: ordemAtualizada.status,
+        dataConclusao: ordemAtualizada.dataConclusao,
+        solucao: ordemAtualizada.solucao,
+        formaPagamento: ordemAtualizada.formaPagamento,
+        integradoFinanceiro: ordemAtualizada.integradoFinanceiro,
+        movimentoFinanceiroId: ordemAtualizada.movimentoFinanceiroId
+      };
+    }
+    
+    // Recarregar dados
+    ordem.refetch();
+  };
+
   return (
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
@@ -201,6 +225,16 @@ const OrdensView = () => {
             <Edit className="mr-2 h-4 w-4" />
             Editar
           </Button>
+          
+          {ordem && ordem.status !== 'concluida' && ordem.status !== 'cancelada' && (
+            <Button 
+              onClick={() => setFinalizarModalOpen(true)}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Check className="mr-2 h-4 w-4" />
+              Finalizar OS
+            </Button>
+          )}
         </div>
       </div>
 
@@ -428,6 +462,55 @@ const OrdensView = () => {
           </Card>
         </div>
       </div>
+
+      {/* Adicionar seção de solução quando a ordem estiver concluída */}
+      {ordem && ordem.status === 'concluida' && (
+        <Card className="mt-6">
+          <CardHeader className="pb-3">
+            <CardTitle>Detalhes da Finalização</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-medium">Solução Aplicada</h3>
+                <p className="text-muted-foreground mt-1 whitespace-pre-line">
+                  {ordem.solucao || "Não informada"}
+                </p>
+              </div>
+              
+              <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                <div>
+                  <span className="font-medium">Data de Conclusão:</span>{" "}
+                  {formatDate(ordem.data_conclusao || '')}
+                </div>
+                {ordem.forma_pagamento && (
+                  <div>
+                    <span className="font-medium">Forma de Pagamento:</span>{" "}
+                    {ordem.forma_pagamento.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </div>
+                )}
+              </div>
+              
+              {ordem.integrado_financeiro && (
+                <div className="flex items-center text-green-600">
+                  <DollarSign className="h-4 w-4 mr-1" />
+                  <span>Pagamento registrado no módulo financeiro</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Modal de finalização */}
+      {ordem && (
+        <FinalizarOrdemModal 
+          ordem={ordem} 
+          isOpen={finalizarModalOpen} 
+          onClose={() => setFinalizarModalOpen(false)}
+          onSave={handleFinalizarOrdem}
+        />
+      )}
     </div>
   );
 };

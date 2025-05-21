@@ -33,6 +33,7 @@ import FinanceiroForm from './pages/financeiro/FinanceiroForm';
 import ConfiguracoesList from "./pages/configuracoes/ConfiguracoesList";
 import PerfilEmpresa from "./pages/configuracoes/PerfilEmpresa";
 import ConfiguracoesAssistencia from "./pages/configuracoes/ConfiguracoesAssistencia";
+import RelatoriosPage from "./pages/relatorios/RelatoriosPage";
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -76,6 +77,8 @@ function App() {
                 <Route path="/financeiro/novo" element={<FinanceiroForm />} />
                 <Route path="/financeiro/editar/:id" element={<FinanceiroForm />} />
                 
+                <Route path="/relatorios" element={<RelatoriosPage />} />
+                
                 {/* Rotas de Configurações */}
                 <Route path="/configuracoes" element={<ConfiguracoesList />} />
                 <Route path="/configuracoes/perfil" element={<PerfilEmpresa />} />
@@ -103,6 +106,8 @@ function App() {
                 <Route path="financeiro" element={<FinanceiroList />} />
                 <Route path="financeiro/novo" element={<FinanceiroForm />} />
                 <Route path="financeiro/editar/:id" element={<FinanceiroForm />} />
+                
+                <Route path="relatorios" element={<RelatoriosPage />} />
                 
                 <Route path="configuracoes" element={<ConfiguracoesList />} />
                 <Route path="configuracoes/perfil" element={<PerfilEmpresa />} />
