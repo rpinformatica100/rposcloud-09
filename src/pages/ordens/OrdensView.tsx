@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useOrdemData } from "@/hooks/ordens/useOrdemData";
 import { OrdemServico } from "@/types";
@@ -10,19 +10,12 @@ import { DetalhesFinalizacao } from "@/components/ordens/view/DetalhesFinalizaca
 import { OrdemViewLoader } from "@/components/ordens/view/OrdemViewLoader";
 import FinalizarOrdemModal from "@/components/ordens/FinalizarOrdemModal";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 
 const OrdensView = () => {
   const { id } = useParams<{ id: string }>();
   const [finalizarModalOpen, setFinalizarModalOpen] = useState(false);
   const { toast } = useToast();
-  const { checkAuth } = useAuth();
-  
-  // Check authentication on component mount
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
   
   // Fetch ordem data using the custom hook
   const {

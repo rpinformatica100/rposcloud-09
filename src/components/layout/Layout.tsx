@@ -7,20 +7,20 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
 
 const Layout = () => {
-  const { isAuthenticated, loading, checkAuth } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Verificar autenticação sempre que este componente é montado ou remontado
-    checkAuth();
-    
     // Verificar autenticação a cada 5 minutos para garantir persistência
     const interval = setInterval(() => {
-      checkAuth();
+      // Verificamos apenas se o usuário está autenticado usando o estado já existente
+      if (!isAuthenticated) {
+        navigate("/login");
+      }
     }, 5 * 60 * 1000);
     
     return () => clearInterval(interval);
-  }, [checkAuth]);
+  }, [isAuthenticated, navigate]);
 
   useEffect(() => {
     // Redireciona para login apenas quando terminamos de verificar a autenticação

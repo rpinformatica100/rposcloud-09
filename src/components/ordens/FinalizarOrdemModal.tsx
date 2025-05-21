@@ -5,13 +5,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, X } from "lucide-react";
+import { Check, X, Loader2 } from "lucide-react"; // Added Loader2 icon from lucide-react
 import { useToast } from "@/hooks/use-toast";
 import { OrdemServico, MovimentoFinanceiro } from "@/types";
 import { formatarMoeda, gerarId } from "@/lib/utils";
 import { financeirosData } from "@/data/dados";
 import { Switch } from "@/components/ui/switch";
-import { ReloadIcon } from "@radix-ui/react-icons";
 
 interface FinalizarOrdemModalProps {
   ordem: OrdemServico;
@@ -153,7 +152,7 @@ const FinalizarOrdemModal = ({ ordem, isOpen, onClose, onSave }: FinalizarOrdemM
           <Button onClick={handleSave} disabled={isSubmitting}>
             {isSubmitting ? (
               <>
-                <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Processando...
               </>
             ) : (
