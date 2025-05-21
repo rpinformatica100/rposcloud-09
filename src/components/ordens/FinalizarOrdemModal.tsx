@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, X, Loader2 } from "lucide-react"; // Added Loader2 icon from lucide-react
+import { Check, X, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { OrdemServico, MovimentoFinanceiro } from "@/types";
 import { formatarMoeda, gerarId } from "@/lib/utils";
@@ -55,7 +55,7 @@ const FinalizarOrdemModal = ({ ordem, isOpen, onClose, onSave }: FinalizarOrdemM
           id: gerarId(),
           tipo: "receita",
           descricao: `Pagamento OS #${ordem.numero} - ${ordem.cliente?.nome || "Cliente"}`,
-          valor: ordem.valorTotal,
+          valor: Number(ordem.valorTotal) || 0,
           data: new Date().toISOString().split('T')[0],
           pago: true,
           dataPagamento: new Date().toISOString().split('T')[0],
@@ -135,7 +135,7 @@ const FinalizarOrdemModal = ({ ordem, isOpen, onClose, onSave }: FinalizarOrdemM
           </div>
           
           <div className="bg-muted/50 p-3 rounded-md text-sm">
-            <p className="font-medium">Valor total da ordem: {formatarMoeda(ordem.valorTotal)}</p>
+            <p className="font-medium">Valor total da ordem: {formatarMoeda(Number(ordem.valorTotal) || 0)}</p>
             {integrarFinanceiro && (
               <p className="text-green-600 mt-1">
                 Uma receita será gerada automaticamente no módulo financeiro

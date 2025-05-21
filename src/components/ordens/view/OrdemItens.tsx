@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/formatters";
+import { formatarMoeda } from "@/lib/utils";
 import { ItemOrdemServico } from "@/types";
 
 interface OrdemItensProps {
@@ -37,10 +37,10 @@ export function OrdemItens({ itens, valorTotal }: OrdemItensProps) {
                   </div>
                   <div className="text-right">
                     <p className="font-medium">
-                      {formatCurrency(item.valorTotal)}
+                      {formatarMoeda(Number(item.valorTotal) || 0)}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {item.quantidade} x {formatCurrency(item.valorUnitario)}
+                      {item.quantidade} x {formatarMoeda(Number(item.valorUnitario) || 0)}
                     </p>
                   </div>
                 </div>
@@ -51,7 +51,7 @@ export function OrdemItens({ itens, valorTotal }: OrdemItensProps) {
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Total</p>
                 <p className="text-xl font-semibold">
-                  {formatCurrency(valorTotal || 0)}
+                  {formatarMoeda(Number(valorTotal) || 0)}
                 </p>
               </div>
             </div>

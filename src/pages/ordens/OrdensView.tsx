@@ -11,6 +11,7 @@ import { OrdemViewLoader } from "@/components/ordens/view/OrdemViewLoader";
 import FinalizarOrdemModal from "@/components/ordens/FinalizarOrdemModal";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
+import { ordensData } from "@/data/dados";
 
 const OrdensView = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +39,17 @@ const OrdensView = () => {
 
   // Handler for finalizar ordem
   const handleFinalizarOrdem = (ordemAtualizada: OrdemServico) => {
+    // Atualiza a ordem nos dados mockados
+    if (id) {
+      const ordemIndex = ordensData.findIndex(o => o.id === id);
+      if (ordemIndex !== -1) {
+        ordensData[ordemIndex] = {
+          ...ordensData[ordemIndex],
+          ...ordemAtualizada
+        };
+      }
+    }
+    
     // Mostra toast de confirmação
     if (ordemAtualizada.status === "concluida") {
       toast({
