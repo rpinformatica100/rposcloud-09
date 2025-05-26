@@ -8,10 +8,10 @@ const HeroSection = () => {
       <div className="container px-4 md:px-6 flex flex-col items-center justify-center space-y-6 md:space-y-10 text-center">
         <div className="space-y-4 max-w-4xl">
           <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl animate-fade-in">
-            Gerencie sua <span className="text-primary">Assistência Técnica</span> de maneira completa
+            Gerencie sua <span className="text-primary">Assistência Técnica</span> na nuvem
           </h1>
           <p className="mx-auto max-w-[600px] md:max-w-[700px] text-gray-500 text-base md:text-xl/relaxed lg:text-xl/relaxed dark:text-gray-400 animate-fade-in px-4">
-            Simplifique processos, organize ordens de serviço e tenha controle financeiro em uma única plataforma.
+            Acesse de qualquer lugar com o RP OS Cloud. Simplifique processos, organize ordens de serviço e tenha controle financeiro em uma única plataforma.
           </p>
         </div>
         
@@ -31,7 +31,7 @@ const HeroSection = () => {
         <div className="w-full max-w-sm sm:max-w-2xl md:max-w-4xl lg:max-w-5xl rounded-lg border overflow-hidden shadow-xl animate-scale-in mx-4">
           <img 
             src="https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            alt="Dashboard da plataforma TechOS"
+            alt="Dashboard da plataforma RP OS Cloud"
             className="w-full h-auto"
           />
         </div>

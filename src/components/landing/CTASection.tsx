@@ -10,7 +10,7 @@ const CTASection = () => {
           <div className="space-y-2 animate-scale-in">
             <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tighter">Pronto para transformar sua assistência técnica?</h2>
             <p className="max-w-[600px] md:max-w-[700px] text-base md:text-xl/relaxed px-4">
-              Comece agora mesmo e descubra como o TechOS pode melhorar a eficiência do seu negócio.
+              Comece agora mesmo e descubra como o RP OS Cloud pode melhorar a eficiência do seu negócio.
             </p>
           </div>
           <Link to="/register" className="animate-fade-in">
