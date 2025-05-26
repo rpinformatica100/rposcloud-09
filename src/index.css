@@ -361,7 +361,8 @@
 /* PWA optimizations */
 @media (display-mode: standalone) {
   .pwa-header {
-    @apply pt-safe pt-8;
+    padding-top: env(safe-area-inset-top);
+    @apply pt-8;
   }
 }
 
