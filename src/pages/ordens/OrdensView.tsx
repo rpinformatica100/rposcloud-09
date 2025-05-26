@@ -5,12 +5,12 @@ import { useOrdemData } from "@/hooks/ordens/useOrdemData";
 import { OrdemServico } from "@/types";
 import { OrdemHeader } from "@/components/ordens/view/OrdemHeader";
 import { OrdemItens } from "@/components/ordens/view/OrdemItens";
+import { OrdemDescricoes } from "@/components/ordens/view/OrdemDescricoes";
 import { ClienteCard } from "@/components/ordens/view/ClienteCard";
 import { DetalhesFinalizacao } from "@/components/ordens/view/DetalhesFinalizacao";
 import { OrdemViewLoader } from "@/components/ordens/view/OrdemViewLoader";
 import FinalizarOrdemModal from "@/components/ordens/FinalizarOrdemModal";
 import { useToast } from "@/hooks/use-toast";
-import { Card } from "@/components/ui/card";
 import { ordensData } from "@/data/dados";
 
 const OrdensView = () => {
@@ -65,24 +65,26 @@ const OrdensView = () => {
   };
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-6 space-y-6">
       <OrdemHeader 
         ordem={ordem} 
         itens={itens} 
         openFinalizarModal={() => setFinalizarModalOpen(true)}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        {/* Coluna lateral com informações do cliente (agora menor) */}
-        <div>
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        {/* Coluna lateral com informações do cliente - 1 coluna */}
+        <div className="xl:col-span-1">
           <ClienteCard cliente={ordem.cliente} />
         </div>
         
-        {/* Coluna principal com itens da ordem (agora maior, ocupando mais espaço) */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <OrdemItens itens={ordem.itens || []} valorTotal={ordem.valorTotal} />
-          </Card>
+        {/* Coluna principal com conteúdo - 3 colunas */}
+        <div className="xl:col-span-3 space-y-6">
+          {/* Produtos e Serviços */}
+          <OrdemItens itens={ordem.itens || []} valorTotal={ordem.valorTotal} />
+          
+          {/* Descrições e Observações */}
+          <OrdemDescricoes ordem={ordem} />
           
           {/* Detalhes da finalização quando concluída */}
           <DetalhesFinalizacao ordem={ordem} />

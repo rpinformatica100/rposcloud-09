@@ -1,8 +1,9 @@
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OrdemServico, ItemOrdemServico } from "@/types";
-import { ArrowLeft, Check, Edit } from "lucide-react";
+import { ArrowLeft, Check, Edit, Calendar, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDate } from "@/lib/formatters";
 import PrintOrderButton from "@/components/ordens/PrintOrderButton";
@@ -47,17 +48,17 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
 
   return (
     <>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <Button onClick={() => navigate("/ordens")} variant="outline" size="sm">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Voltar
+          Voltar para Ordens
         </Button>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <PrintOrderButton ordem={ordem} itens={itens} cliente={ordem.cliente} />
           
           {ordem && ordem.status !== 'concluida' && ordem.status !== 'cancelada' && (
             <>
-              <Button onClick={() => navigate(`/ordens/editar/${ordem.id}`)} size="sm">
+              <Button onClick={() => navigate(`/ordens/editar/${ordem.id}`)} variant="outline" size="sm">
                 <Edit className="mr-2 h-4 w-4" />
                 Editar
               </Button>
@@ -82,67 +83,57 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
         </div>
       </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-start">
+      <Card className="mb-6">
+        <CardHeader className="pb-4">
+          <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
             <div>
-              <CardTitle className="text-2xl">
-                Ordem de Serviço #{ordem.numero}
+              <CardTitle className="text-2xl text-primary">
+                OS #{ordem.numero}
               </CardTitle>
-              <p className="text-muted-foreground mt-1">
-                {formatDate(ordem.dataAbertura || '')}
-              </p>
+              <div className="flex items-center text-muted-foreground mt-2">
+                <Calendar className="h-4 w-4 mr-1" />
+                <span className="text-sm">Abertura: {formatDate(ordem.dataAbertura || '')}</span>
+              </div>
             </div>
             <div className="flex flex-col gap-2">
-              <div>
-                Status: {getStatusBadge(ordem.status)}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Status:</span>
+                {getStatusBadge(ordem.status)}
               </div>
-              <div>
-                Prioridade: {getPrioridadeBadge(ordem.prioridade)}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Prioridade:</span>
+                {getPrioridadeBadge(ordem.prioridade)}
               </div>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium">Descrição</h3>
-              <p className="text-muted-foreground mt-1">
-                {ordem.descricao || "Sem descrição"}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-              <div>
-                <span className="font-medium">Data de Abertura:</span>{" "}
-                {formatDate(ordem.dataAbertura || '')}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+            {ordem.dataPrevisao && (
+              <div className="flex items-center">
+                <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                <div>
+                  <span className="text-muted-foreground">Previsão:</span>
+                  <p className="font-medium">{formatDate(ordem.dataPrevisao)}</p>
+                </div>
               </div>
-              {ordem.dataPrevisao && (
+            )}
+            {ordem.dataConclusao && (
+              <div className="flex items-center">
+                <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
                 <div>
-                  <span className="font-medium">Previsão de Conclusão:</span>{" "}
-                  {formatDate(ordem.dataPrevisao)}
+                  <span className="text-muted-foreground">Conclusão:</span>
+                  <p className="font-medium">{formatDate(ordem.dataConclusao)}</p>
                 </div>
-              )}
-              {ordem.dataConclusao && (
+              </div>
+            )}
+            {ordem.responsavel && (
+              <div className="flex items-center">
+                <User className="h-4 w-4 mr-2 text-muted-foreground" />
                 <div>
-                  <span className="font-medium">Data de Conclusão:</span>{" "}
-                  {formatDate(ordem.dataConclusao)}
+                  <span className="text-muted-foreground">Responsável:</span>
+                  <p className="font-medium">{ordem.responsavel}</p>
                 </div>
-              )}
-              {ordem.responsavel && (
-                <div>
-                  <span className="font-medium">Responsável:</span>{" "}
-                  {ordem.responsavel}
-                </div>
-              )}
-            </div>
-
-            {ordem.observacoes && (
-              <div>
-                <h3 className="font-medium">Observações</h3>
-                <p className="text-muted-foreground mt-1 whitespace-pre-line">
-                  {ordem.observacoes}
-                </p>
               </div>
             )}
           </div>
