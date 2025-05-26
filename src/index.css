@@ -114,6 +114,17 @@
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground) / 0.5);
   }
+
+  /* Mobile-first responsive typography */
+  html {
+    font-size: 14px;
+  }
+
+  @media (min-width: 768px) {
+    html {
+      font-size: 16px;
+    }
+  }
 }
 
 @layer components {
@@ -190,6 +201,108 @@
   .form-input-group {
     @apply flex flex-col space-y-1.5;
   }
+
+  /* Mobile-optimized animations */
+  @keyframes fade-in-mobile {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scale-in-mobile {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in-mobile 0.6s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scale-in-mobile 0.4s ease-out;
+  }
+
+  /* Mobile-optimized hover effects */
+  .hover-scale {
+    @apply transition-transform duration-200;
+  }
+
+  @media (hover: hover) {
+    .hover-scale:hover {
+      @apply scale-105;
+    }
+  }
+
+  /* Story link animation for mobile */
+  .story-link {
+    @apply relative inline-block;
+  }
+
+  @media (hover: hover) {
+    .story-link::after {
+      content: '';
+      @apply absolute w-full scale-x-0 h-0.5 bottom-0 left-0 bg-primary origin-bottom-right transition-transform duration-300;
+    }
+
+    .story-link:hover::after {
+      @apply scale-x-100 origin-bottom-left;
+    }
+  }
+
+  /* Mobile touch optimization */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  /* Mobile-friendly form inputs */
+  .mobile-input {
+    @apply text-base; /* Prevents zoom on iOS */
+  }
+
+  /* Mobile table optimization */
+  .mobile-table-card {
+    @apply block border rounded-lg p-4 mb-4 shadow-sm bg-white;
+  }
+
+  .mobile-table-header {
+    @apply font-semibold text-sm text-gray-500 uppercase tracking-wide;
+  }
+
+  .mobile-table-value {
+    @apply text-base font-medium text-gray-900 mt-1;
+  }
+
+  /* Mobile navigation */
+  .mobile-nav-item {
+    @apply block px-4 py-3 text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0;
+  }
+
+  /* Mobile sidebar overlay */
+  .mobile-sidebar-overlay {
+    @apply fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity;
+  }
+
+  /* Safe area padding for mobile devices */
+  .safe-area-padding {
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
 }
 
 /* Fix for shadcn dropdown z-index issues */
@@ -198,4 +311,67 @@
   background-color: hsl(var(--background));
   border: 1px solid hsl(var(--border));
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* Mobile viewport optimizations */
+@media screen and (max-width: 768px) {
+  /* Improve button tap targets */
+  .btn {
+    @apply min-h-[44px] px-4;
+  }
+
+  /* Optimize text sizes for mobile */
+  h1 {
+    @apply text-2xl;
+  }
+
+  h2 {
+    @apply text-xl;
+  }
+
+  h3 {
+    @apply text-lg;
+  }
+
+  /* Mobile-specific spacing */
+  .container {
+    @apply px-4;
+  }
+
+  /* Mobile table improvements */
+  .table-responsive {
+    @apply overflow-x-auto;
+  }
+
+  .table-responsive table {
+    @apply min-w-full;
+  }
+
+  /* Mobile form improvements */
+  .form-group {
+    @apply mb-4;
+  }
+
+  /* Mobile card improvements */
+  .card {
+    @apply rounded-lg shadow-sm;
+  }
+}
+
+/* PWA optimizations */
+@media (display-mode: standalone) {
+  .pwa-header {
+    @apply pt-safe pt-8;
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-scale-in,
+  .hover-scale,
+  .story-link {
+    @apply transition-none;
+    animation: none;
+  }
 }
