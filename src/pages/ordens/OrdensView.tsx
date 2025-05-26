@@ -72,19 +72,19 @@ const OrdensView = () => {
         openFinalizarModal={() => setFinalizarModalOpen(true)}
       />
 
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        {/* Coluna lateral com informações do cliente - 1 coluna */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Coluna lateral com informações do cliente - mais compacta */}
         <div className="xl:col-span-1">
           <ClienteCard cliente={ordem.cliente} />
         </div>
         
-        {/* Coluna principal com conteúdo - 3 colunas */}
-        <div className="xl:col-span-3 space-y-6">
-          {/* Produtos e Serviços */}
-          <OrdemItens itens={ordem.itens || []} valorTotal={ordem.valorTotal} />
-          
-          {/* Descrições e Observações */}
+        {/* Coluna principal com conteúdo reorganizado - 2 colunas */}
+        <div className="xl:col-span-2 space-y-6">
+          {/* SEÇÃO DESCRITIVA - Priorizada no topo */}
           <OrdemDescricoes ordem={ordem} />
+          
+          {/* SEÇÃO FINANCEIRA - Produtos e valores por último */}
+          <OrdemItens itens={ordem.itens || []} valorTotal={ordem.valorTotal} />
           
           {/* Detalhes da finalização quando concluída */}
           <DetalhesFinalizacao ordem={ordem} />

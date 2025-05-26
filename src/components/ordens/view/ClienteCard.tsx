@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Cliente } from "@/types";
 import { useNavigate } from "react-router-dom";
-import { User } from "lucide-react";
+import { User, Phone, Mail, MapPin } from "lucide-react";
 
 interface ClienteCardProps {
   cliente?: Cliente;
@@ -13,8 +13,8 @@ export function ClienteCard({ cliente }: ClienteCardProps) {
   const navigate = useNavigate();
   
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="pb-2">
+    <Card className="shadow-sm h-fit">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center">
             <User className="h-4 w-4 mr-2 text-primary" />
@@ -24,7 +24,7 @@ export function ClienteCard({ cliente }: ClienteCardProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 text-xs"
+              className="h-7 text-xs text-primary"
               onClick={() => navigate(`/clientes/editar/${cliente.id}`)}
             >
               Ver perfil
@@ -32,54 +32,54 @@ export function ClienteCard({ cliente }: ClienteCardProps) {
           )}
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 space-y-3">
         {cliente ? (
-          <div className="space-y-2 text-sm">
-            <div className="font-medium">{cliente.nome}</div>
+          <>
+            {/* Nome do cliente destacado */}
+            <div className="font-semibold text-gray-900">{cliente.nome}</div>
             
-            {/* Informações principais em layout horizontal */}
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-              {cliente.documento && (
-                <div>
-                  <span className="text-muted-foreground">CPF/CNPJ:</span>{" "}
-                  {cliente.documento}
-                </div>
-              )}
+            {/* Informações essenciais com ícones */}
+            <div className="space-y-2">
               {cliente.telefone && (
-                <div>
-                  <span className="text-muted-foreground">Tel:</span>{" "}
-                  {cliente.telefone}
-                </div>
-              )}
-              {cliente.email && (
-                <div className="col-span-2">
-                  <span className="text-muted-foreground">Email:</span>{" "}
-                  {cliente.email}
+                <div className="flex items-center text-sm">
+                  <Phone className="h-3 w-3 mr-2 text-gray-400 flex-shrink-0" />
+                  <span className="text-gray-700">{cliente.telefone}</span>
                 </div>
               )}
               
-              {/* Endereço em formato compacto */}
-              {(cliente.endereco || cliente.cidade || cliente.estado) && (
-                <div className="col-span-2 pt-1">
-                  <p className="text-muted-foreground text-xs mb-0.5">Endereço:</p>
-                  <p className="text-xs">
-                    {cliente.endereco}
-                    {(cliente.cidade || cliente.estado || cliente.cep) && (
-                      <span>, {[
-                        cliente.cidade,
-                        cliente.estado,
-                        cliente.cep
-                      ].filter(Boolean).join(" - ")}</span>
+              {cliente.email && (
+                <div className="flex items-center text-sm">
+                  <Mail className="h-3 w-3 mr-2 text-gray-400 flex-shrink-0" />
+                  <span className="text-gray-700 truncate">{cliente.email}</span>
+                </div>
+              )}
+              
+              {(cliente.endereco || cliente.cidade) && (
+                <div className="flex items-start text-sm">
+                  <MapPin className="h-3 w-3 mr-2 text-gray-400 flex-shrink-0 mt-0.5" />
+                  <div className="text-gray-700 text-xs leading-relaxed">
+                    {cliente.endereco && <div>{cliente.endereco}</div>}
+                    {(cliente.cidade || cliente.estado) && (
+                      <div className="text-gray-500">
+                        {[cliente.cidade, cliente.estado, cliente.cep].filter(Boolean).join(" - ")}
+                      </div>
                     )}
-                  </p>
+                  </div>
+                </div>
+              )}
+              
+              {cliente.documento && (
+                <div className="text-xs text-gray-500 pt-1 border-t">
+                  <span className="font-medium">Doc:</span> {cliente.documento}
                 </div>
               )}
             </div>
-          </div>
+          </>
         ) : (
-          <p className="text-muted-foreground text-center py-4">
-            Nenhum cliente vinculado
-          </p>
+          <div className="text-center py-6">
+            <User className="h-8 w-8 mx-auto text-gray-300 mb-2" />
+            <p className="text-gray-500 text-sm">Nenhum cliente vinculado</p>
+          </div>
         )}
       </CardContent>
     </Card>
