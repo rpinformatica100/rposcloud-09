@@ -17,7 +17,7 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
-  CloudCheck,
+  Cloud,
   BarChart2
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -64,7 +64,7 @@ const AdminSidebar = () => {
             <div className="flex items-center w-full">
               <Link to="/admin" className="text-lg font-semibold text-white flex items-center overflow-hidden">
                 <div className="bg-primary text-white rounded-md w-8 h-8 flex items-center justify-center mr-2 flex-shrink-0">
-                  <CloudCheck size={18} />
+                  <Cloud size={18} />
                 </div>
                 <div className="truncate font-medium">RP OS Cloud Admin</div>
               </Link>
@@ -79,12 +79,12 @@ const AdminSidebar = () => {
             <div className="flex items-center justify-between w-full">
               <Link to="/admin" className="flex justify-center">
                 <div className="bg-primary text-white rounded-md w-8 h-8 flex items-center justify-center">
-                  <CloudCheck size={18} />
+                  <Cloud size={18} />
                 </div>
               </Link>
               
               <SidebarTrigger>
-                <div className="p-1.5 rounded-md bg-gray-800 hover:bg-gray-600 text-gray-300 transition-colors shadow-lg border border-gray-600">
+                <div className="p-1.5 rounded-md bg-gray-800/90 hover:bg-gray-600 text-gray-300 transition-colors shadow-lg border border-gray-600 backdrop-blur-sm">
                   <ChevronLeft size={18} className="transform rotate-180" />
                 </div>
               </SidebarTrigger>
