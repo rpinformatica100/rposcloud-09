@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Settings, ChevronLeft, Building } from "lucide-react";
+import { Settings, ChevronDown, Building } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
 interface ConfigMenuItem {
@@ -24,16 +24,20 @@ const SidebarConfigMenu = ({ isCollapsed }: SidebarConfigMenuProps) => {
   ];
 
   const toggleConfigMenu = () => {
-    setConfigExpanded(!configExpanded);
+    if (!isCollapsed) {
+      setConfigExpanded(!configExpanded);
+    }
   };
+
+  const isConfigActive = window.location.pathname.startsWith('/configuracoes');
 
   return (
     <div className="relative">
       <button
         onClick={toggleConfigMenu}
         className={`
-          flex items-center w-full px-3 py-2.5 mx-2 my-1 rounded-lg
-          ${window.location.pathname.startsWith('/configuracoes')
+          flex items-center w-full px-3 py-2.5 mx-2 my-1 rounded-lg transition-colors
+          ${isConfigActive
             ? "bg-primary/20 text-white font-medium" 
             : "text-gray-300 hover:bg-gray-700 hover:text-white"
           }
@@ -43,9 +47,9 @@ const SidebarConfigMenu = ({ isCollapsed }: SidebarConfigMenuProps) => {
         {!isCollapsed && (
           <>
             <span className="ml-3 flex-grow text-left">Configurações</span>
-            <ChevronLeft 
+            <ChevronDown 
               size={16} 
-              className={`transition-transform duration-200 ${configExpanded ? 'rotate-270' : 'rotate-180'}`} 
+              className={`transition-transform duration-200 ${configExpanded ? 'rotate-180' : 'rotate-0'}`} 
             />
           </>
         )}
@@ -53,11 +57,11 @@ const SidebarConfigMenu = ({ isCollapsed }: SidebarConfigMenuProps) => {
       
       <div 
         className={`
-          ml-6 overflow-hidden transition-all duration-200 ease-in-out
-          ${configExpanded && !isCollapsed ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}
+          overflow-hidden transition-all duration-200 ease-in-out
+          ${configExpanded && !isCollapsed ? 'max-h-24 opacity-100 mb-2' : 'max-h-0 opacity-0'}
         `}
       >
-        <div className="py-1">
+        <div className="ml-6 py-1">
           {configMenuItems.map((item) => (
             <NavLink
               key={item.path}

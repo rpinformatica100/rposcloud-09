@@ -34,7 +34,7 @@ const SidebarHeader = ({ isCollapsed }: SidebarHeaderProps) => {
           </Link>
           
           <SidebarTrigger>
-            <div className="p-1.5 rounded-md bg-gray-800 hover:bg-gray-600 text-gray-300 transition-colors shadow-lg border border-gray-600">
+            <div className="p-1.5 rounded-md bg-gray-800/90 hover:bg-gray-600 text-gray-300 transition-colors shadow-lg border border-gray-600 backdrop-blur-sm">
               <ChevronLeft size={18} className="transform rotate-180" />
             </div>
           </SidebarTrigger>
