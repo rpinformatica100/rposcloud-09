@@ -1,10 +1,12 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { ordensData, clientesData, produtosData, financeirosData } from "@/data/dados";
 import { formatarMoeda } from "@/lib/utils";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { FileText, Users, Package, CreditCard, Clipboard, ArrowRight } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
+import { FileText, Users, Package, CreditCard, Clipboard, ArrowRight, TrendingUp } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -14,21 +16,43 @@ const Dashboard = () => {
   
   // Status das ordens para o gráfico de pizza
   const statusOrdens = [
-    { name: "Abertas", value: ordensData.filter(o => o.status === "aberta").length, color: "#3b82f6" },
-    { name: "Em andamento", value: ordensData.filter(o => o.status === "andamento").length, color: "#f59e0b" },
-    { name: "Concluídas", value: ordensData.filter(o => o.status === "concluida").length, color: "#10b981" },
-    { name: "Canceladas", value: ordensData.filter(o => o.status === "cancelada").length, color: "#ef4444" },
+    { name: "Abertas", value: ordensData.filter(o => o.status === "aberta").length, fill: "hsl(var(--chart-1))" },
+    { name: "Em andamento", value: ordensData.filter(o => o.status === "andamento").length, fill: "hsl(var(--chart-2))" },
+    { name: "Concluídas", value: ordensData.filter(o => o.status === "concluida").length, fill: "hsl(var(--chart-3))" },
+    { name: "Canceladas", value: ordensData.filter(o => o.status === "cancelada").length, fill: "hsl(var(--chart-4))" },
   ];
   
   // Dados para o gráfico de linha (financeiro por mês)
   const dataFinanceiro = [
-    { name: "Jan", receitas: 4500, despesas: 3000 },
-    { name: "Fev", receitas: 5500, despesas: 3500 },
-    { name: "Mar", receitas: 6000, despesas: 3800 },
-    { name: "Abr", receitas: 7000, despesas: 4000 },
-    { name: "Mai", receitas: 7500, despesas: 4200 },
-    { name: "Jun", receitas: 8000, despesas: 4500 },
+    { mes: "Jan", receitas: 4500, despesas: 3000 },
+    { mes: "Fev", receitas: 5500, despesas: 3500 },
+    { mes: "Mar", receitas: 6000, despesas: 3800 },
+    { mes: "Abr", receitas: 7000, despesas: 4000 },
+    { mes: "Mai", receitas: 7500, despesas: 4200 },
+    { mes: "Jun", receitas: 8000, despesas: 4500 },
   ];
+
+  // Configuração dos charts
+  const chartConfig = {
+    receitas: {
+      label: "Receitas",
+    },
+    despesas: {
+      label: "Despesas",
+    },
+    abertas: {
+      label: "Abertas",
+    },
+    andamento: {
+      label: "Em andamento",
+    },
+    concluidas: {
+      label: "Concluídas",
+    },
+    canceladas: {
+      label: "Canceladas",
+    },
+  };
 
   // Total de receitas e despesas
   const totalReceitas = financeirosData
@@ -55,9 +79,9 @@ const Dashboard = () => {
 
       {/* Cards informativos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+        <Card className="border-l-4 border-l-blue-500">
           <CardContent className="flex items-center p-6">
-            <div className="bg-blue-100 p-3 rounded-full mr-4">
+            <div className="bg-blue-50 p-3 rounded-full mr-4">
               <FileText className="h-6 w-6 text-blue-600" />
             </div>
             <div>
@@ -69,9 +93,9 @@ const Dashboard = () => {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-l-4 border-l-green-500">
           <CardContent className="flex items-center p-6">
-            <div className="bg-green-100 p-3 rounded-full mr-4">
+            <div className="bg-green-50 p-3 rounded-full mr-4">
               <Users className="h-6 w-6 text-green-600" />
             </div>
             <div>
@@ -83,9 +107,9 @@ const Dashboard = () => {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-l-4 border-l-amber-500">
           <CardContent className="flex items-center p-6">
-            <div className="bg-amber-100 p-3 rounded-full mr-4">
+            <div className="bg-amber-50 p-3 rounded-full mr-4">
               <Package className="h-6 w-6 text-amber-600" />
             </div>
             <div>
@@ -97,16 +121,16 @@ const Dashboard = () => {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-l-4 border-l-purple-500">
           <CardContent className="flex items-center p-6">
-            <div className="bg-purple-100 p-3 rounded-full mr-4">
+            <div className="bg-purple-50 p-3 rounded-full mr-4">
               <CreditCard className="h-6 w-6 text-purple-600" />
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">
                 Saldo Atual
               </p>
-              <h3 className="text-2xl font-bold">{formatarMoeda(totalReceitas - totalDespesas)}</h3>
+              <h3 className="text-2xl font-bold text-green-600">{formatarMoeda(totalReceitas - totalDespesas)}</h3>
             </div>
           </CardContent>
         </Card>
@@ -117,97 +141,118 @@ const Dashboard = () => {
         {/* Gráfico de status de ordens */}
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle>Status das Ordens</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Status das Ordens
+            </CardTitle>
             <CardDescription>
               Distribuição das ordens por status
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] w-full">
+            <ChartContainer config={chartConfig} className="h-[250px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={statusOrdens}
                     cx="50%"
                     cy="50%"
-                    labelLine={false}
-                    label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    innerRadius={40}
                     outerRadius={80}
-                    fill="#8884d8"
+                    paddingAngle={2}
                     dataKey="value"
                   >
                     {statusOrdens.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
                 </PieChart>
               </ResponsiveContainer>
-            </div>
+            </ChartContainer>
           </CardContent>
         </Card>
 
         {/* Gráfico de receitas e despesas */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Receitas x Despesas</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Receitas x Despesas
+            </CardTitle>
             <CardDescription>
               Histórico financeiro dos últimos 6 meses
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] w-full">
+            <ChartContainer config={chartConfig} className="h-[250px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={dataFinanceiro}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip 
-                    formatter={(value) => formatarMoeda(Number(value))}
+                <BarChart data={dataFinanceiro} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis 
+                    dataKey="mes" 
+                    tick={{ fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
                   />
-                  <Line 
-                    type="monotone" 
+                  <YAxis 
+                    tick={{ fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`}
+                  />
+                  <ChartTooltip 
+                    content={<ChartTooltipContent 
+                      formatter={(value) => [formatarMoeda(Number(value)), ""]}
+                    />} 
+                  />
+                  <Bar 
                     dataKey="receitas" 
-                    stroke="#10b981" 
-                    activeDot={{ r: 8 }} 
+                    fill="hsl(var(--chart-1))"
+                    radius={[4, 4, 0, 0]}
                     name="Receitas"
                   />
-                  <Line 
-                    type="monotone" 
+                  <Bar 
                     dataKey="despesas" 
-                    stroke="#ef4444" 
+                    fill="hsl(var(--chart-2))"
+                    radius={[4, 4, 0, 0]}
                     name="Despesas"
                   />
-                </LineChart>
+                  <ChartLegend content={<ChartLegendContent />} />
+                </BarChart>
               </ResponsiveContainer>
-            </div>
+            </ChartContainer>
           </CardContent>
         </Card>
       </div>
       
       {/* Últimas ordens */}
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Últimas Ordens de Serviço</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Clipboard className="h-5 w-5" />
+              Últimas Ordens de Serviço
+            </CardTitle>
             <CardDescription>
               As ordens mais recentemente abertas
             </CardDescription>
           </div>
           <Button 
-            variant="ghost" 
-            className="flex items-center" 
+            variant="outline" 
+            className="flex items-center gap-2" 
             onClick={() => navigate('/app/ordens')}
           >
             Ver todas
-            <ArrowRight className="ml-1 h-4 w-4" />
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {ultimasOrdens.length > 0 ? (
-              <div className="rounded-md border">
-                <div className="grid grid-cols-3 md:grid-cols-5 p-3 bg-muted/50 font-medium text-sm">
+              <div className="rounded-lg border overflow-hidden">
+                <div className="grid grid-cols-3 md:grid-cols-5 p-4 bg-muted/30 font-medium text-sm border-b">
                   <div>Número</div>
                   <div>Cliente</div>
                   <div className="hidden md:block">Data</div>
@@ -217,20 +262,20 @@ const Dashboard = () => {
                 {ultimasOrdens.map((ordem) => (
                   <div 
                     key={ordem.id} 
-                    className="grid grid-cols-3 md:grid-cols-5 p-3 border-t items-center hover:bg-muted/30 cursor-pointer"
+                    className="grid grid-cols-3 md:grid-cols-5 p-4 border-b last:border-b-0 items-center hover:bg-muted/20 cursor-pointer transition-colors"
                     onClick={() => navigate(`/app/ordens/editar/${ordem.id}`)}
                   >
-                    <div className="font-medium">{ordem.numero}</div>
+                    <div className="font-semibold text-primary">{ordem.numero}</div>
                     <div className="truncate">{ordem.cliente?.nome}</div>
-                    <div className="hidden md:block text-muted-foreground">
+                    <div className="hidden md:block text-muted-foreground text-sm">
                       {new Date(ordem.dataAbertura).toLocaleDateString('pt-BR')}
                     </div>
                     <div className="text-center">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        ordem.status === "aberta" ? "bg-blue-100 text-blue-700" :
-                        ordem.status === "andamento" ? "bg-amber-100 text-amber-700" :
-                        ordem.status === "concluida" ? "bg-green-100 text-green-700" :
-                        "bg-red-100 text-red-700"
+                      <span className={`px-3 py-1 text-xs rounded-full font-medium ${
+                        ordem.status === "aberta" ? "bg-blue-100 text-blue-700 border border-blue-200" :
+                        ordem.status === "andamento" ? "bg-amber-100 text-amber-700 border border-amber-200" :
+                        ordem.status === "concluida" ? "bg-green-100 text-green-700 border border-green-200" :
+                        "bg-red-100 text-red-700 border border-red-200"
                       }`}>
                         {ordem.status === "aberta" ? "Aberta" :
                          ordem.status === "andamento" ? "Em andamento" :
@@ -238,16 +283,17 @@ const Dashboard = () => {
                          "Cancelada"}
                       </span>
                     </div>
-                    <div className="text-right font-medium">
+                    <div className="text-right font-semibold">
                       {formatarMoeda(ordem.valorTotal)}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Clipboard className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                <p>Nenhuma ordem de serviço cadastrada</p>
+              <div className="text-center py-12 text-muted-foreground">
+                <Clipboard className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium mb-2">Nenhuma ordem de serviço cadastrada</p>
+                <p className="text-sm">Comece criando sua primeira ordem de serviço</p>
               </div>
             )}
           </div>

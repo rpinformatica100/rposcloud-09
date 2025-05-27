@@ -46,7 +46,7 @@ const SidebarConfigMenu = ({ isCollapsed }: SidebarConfigMenuProps) => {
         <Settings size={20} className="flex-shrink-0" />
         {!isCollapsed && (
           <>
-            <span className="ml-3 flex-grow text-left">Configurações</span>
+            <span className="ml-3 flex-grow text-left text-sm">Configurações</span>
             <ChevronDown 
               size={16} 
               className={`transition-transform duration-200 ${configExpanded ? 'rotate-180' : 'rotate-0'}`} 
@@ -58,24 +58,24 @@ const SidebarConfigMenu = ({ isCollapsed }: SidebarConfigMenuProps) => {
       <div 
         className={`
           overflow-hidden transition-all duration-300 ease-in-out
-          ${configExpanded && !isCollapsed ? 'max-h-32 opacity-100 mb-2' : 'max-h-0 opacity-0'}
+          ${configExpanded && !isCollapsed ? 'max-h-40 opacity-100 mb-2' : 'max-h-0 opacity-0'}
         `}
       >
-        <div className="ml-6 py-1 space-y-1">
+        <div className="ml-4 py-1 space-y-1 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
           {configMenuItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               end={item.exact}
               className={({ isActive }) => `
-                flex items-center px-3 py-2.5 mx-2 rounded-lg text-sm transition-all duration-200
+                flex items-center px-3 py-2 mx-2 rounded-lg text-xs transition-all duration-200
                 ${isActive 
                   ? "bg-primary/15 text-white font-medium shadow-sm" 
                   : "text-gray-300 hover:bg-gray-700/70 hover:text-white"
                 }
               `}
             >
-              <item.icon size={16} className="flex-shrink-0" />
+              <item.icon size={14} className="flex-shrink-0" />
               <span className="ml-3 truncate">{item.title}</span>
             </NavLink>
           ))}
