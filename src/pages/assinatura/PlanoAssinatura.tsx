@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   CreditCard, 
   Calendar, 
@@ -15,11 +17,21 @@ import {
   Users,
   Database,
   Shield,
-  TrendingUp
+  TrendingUp,
+  ArrowUp,
+  ArrowDown,
+  Gift,
+  Zap
 } from "lucide-react";
 import { formatarData, formatarMoeda } from "@/lib/utils";
+import { toast } from "sonner";
 
 const PlanoAssinatura = () => {
+  // Estados para modais e interações
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [planoParaUpgrade, setPlanoParaUpgrade] = useState<any>(null);
+
   // Dados simulados - em um cenário real, viriam de uma API
   const [planoAtual] = useState({
     nome: "Plano Profissional",
@@ -48,26 +60,30 @@ const PlanoAssinatura = () => {
       data: "2024-11-25",
       valor: 89.90,
       status: "pago",
-      metodo: "Cartão de Crédito"
+      metodo: "Cartão de Crédito",
+      descricao: "Mensalidade Plano Profissional"
     },
     {
       id: "2", 
       data: "2024-10-25",
       valor: 89.90,
       status: "pago",
-      metodo: "Cartão de Crédito"
+      metodo: "Cartão de Crédito",
+      descricao: "Mensalidade Plano Profissional"
     },
     {
       id: "3",
       data: "2024-09-25", 
       valor: 89.90,
       status: "pago",
-      metodo: "PIX"
+      metodo: "PIX",
+      descricao: "Mensalidade Plano Profissional"
     }
   ]);
 
   const [planosDisponiveis] = useState([
     {
+      id: 1,
       nome: "Básico",
       preco: 29.90,
       periodo: "mensal",
@@ -75,11 +91,14 @@ const PlanoAssinatura = () => {
         "Até 100 ordens/mês",
         "2 usuários",
         "Suporte por email",
-        "Relatórios básicos"
+        "Relatórios básicos",
+        "Backup semanal"
       ],
-      recomendado: false
+      recomendado: false,
+      tipo: "downgrade"
     },
     {
+      id: 2,
       nome: "Profissional", 
       preco: 89.90,
       periodo: "mensal",
@@ -90,9 +109,11 @@ const PlanoAssinatura = () => {
         "Suporte prioritário",
         "Relatórios avançados"
       ],
-      recomendado: true
+      recomendado: false,
+      tipo: "atual"
     },
     {
+      id: 3,
       nome: "Enterprise",
       preco: 199.90,
       periodo: "mensal", 
@@ -101,11 +122,19 @@ const PlanoAssinatura = () => {
         "Usuários ilimitados",
         "Backup em tempo real",
         "Suporte 24/7",
-        "API personalizada"
+        "API personalizada",
+        "Relatórios customizados"
       ],
-      recomendado: false
+      recomendado: true,
+      tipo: "upgrade"
     }
   ]);
+
+  // Cálculos de economia
+  const calcularEconomia = (planoOrigem: any, planoDestino: any) => {
+    const economiaAnual = (planoOrigem.preco - planoDestino.preco) * 12;
+    return economiaAnual;
+  };
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -125,6 +154,38 @@ const PlanoAssinatura = () => {
     }
   };
 
+  const handleUpgradePlano = (plano: any) => {
+    setPlanoParaUpgrade(plano);
+    setUpgradeModalOpen(true);
+  };
+
+  const confirmarUpgrade = () => {
+    if (planoParaUpgrade) {
+      toast.success(`Upgrade para ${planoParaUpgrade.nome} solicitado!`, {
+        description: "Você será redirecionado para o pagamento."
+      });
+      setUpgradeModalOpen(false);
+      setPlanoParaUpgrade(null);
+    }
+  };
+
+  const handleCancelarRenovacao = () => {
+    setCancelModalOpen(true);
+  };
+
+  const confirmarCancelamento = () => {
+    toast.success("Renovação automática cancelada", {
+      description: "Seu plano permanecerá ativo até o vencimento."
+    });
+    setCancelModalOpen(false);
+  };
+
+  const getProgressColor = (percentage: number) => {
+    if (percentage >= 90) return "bg-red-500";
+    if (percentage >= 70) return "bg-yellow-500";
+    return "bg-green-500";
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -132,7 +193,26 @@ const PlanoAssinatura = () => {
           <h1 className="text-3xl font-bold tracking-tight">Plano de Assinatura</h1>
           <p className="text-muted-foreground">Gerencie sua assinatura e histórico de pagamentos</p>
         </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleCancelarRenovacao}>
+            Cancelar Renovação
+          </Button>
+          <Button>
+            <Gift className="h-4 w-4 mr-2" />
+            Aplicar Cupom
+          </Button>
+        </div>
       </div>
+
+      {/* Alertas importantes */}
+      {planoAtual.diasRestantes <= 7 && (
+        <Alert className="border-yellow-200 bg-yellow-50">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Seu plano vence em {planoAtual.diasRestantes} dias. Renove para continuar usando todos os recursos.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Status atual */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -220,6 +300,11 @@ const PlanoAssinatura = () => {
                   value={(planoAtual.uso.ordens.usado / planoAtual.uso.ordens.limite) * 100}
                   className="h-2"
                 />
+                {(planoAtual.uso.ordens.usado / planoAtual.uso.ordens.limite) * 100 > 80 && (
+                  <p className="text-xs text-yellow-600">
+                    Você está próximo do limite mensal. Considere fazer upgrade.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -268,19 +353,29 @@ const PlanoAssinatura = () => {
             <CardContent>
               <div className="space-y-4">
                 {historicoPagamentos.map((pagamento) => (
-                  <div key={pagamento.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={pagamento.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <CreditCard className="h-8 w-8 p-2 bg-gray-100 rounded-full" />
+                      <div className="p-2 bg-green-100 rounded-full">
+                        <CreditCard className="h-4 w-4 text-green-600" />
+                      </div>
                       <div>
                         <p className="font-medium">{formatarMoeda(pagamento.valor)}</p>
                         <p className="text-sm text-muted-foreground">
                           {formatarData(pagamento.data)} - {pagamento.metodo}
                         </p>
+                        <p className="text-xs text-muted-foreground">
+                          {pagamento.descricao}
+                        </p>
                       </div>
                     </div>
-                    <Badge className={getStatusColor(pagamento.status)}>
-                      {pagamento.status === "pago" ? "Pago" : "Pendente"}
-                    </Badge>
+                    <div className="text-right">
+                      <Badge className={getStatusColor(pagamento.status)}>
+                        {pagamento.status === "pago" ? "Pago" : "Pendente"}
+                      </Badge>
+                      <Button variant="ghost" size="sm" className="ml-2">
+                        Ver Detalhes
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -291,36 +386,69 @@ const PlanoAssinatura = () => {
         <TabsContent value="planos" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {planosDisponiveis.map((plano) => (
-              <Card key={plano.nome} className={`relative ${plano.recomendado ? 'border-primary' : ''}`}>
+              <Card key={plano.nome} className={`relative transition-all duration-200 hover:shadow-lg ${plano.recomendado ? 'border-primary ring-2 ring-primary/20' : ''} ${plano.tipo === 'atual' ? 'border-green-500' : ''}`}>
                 {plano.recomendado && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                     <Badge className="bg-primary text-primary-foreground">
+                      <Star className="h-3 w-3 mr-1" />
+                      Recomendado
+                    </Badge>
+                  </div>
+                )}
+                {plano.tipo === 'atual' && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <Badge className="bg-green-500 text-white">
+                      <CheckCircle className="h-3 w-3 mr-1" />
                       Plano Atual
                     </Badge>
                   </div>
                 )}
                 <CardHeader className="text-center">
-                  <CardTitle className="text-xl">{plano.nome}</CardTitle>
+                  <CardTitle className="text-xl flex items-center justify-center gap-2">
+                    {plano.nome}
+                    {plano.tipo === 'upgrade' && <ArrowUp className="h-4 w-4 text-green-500" />}
+                    {plano.tipo === 'downgrade' && <ArrowDown className="h-4 w-4 text-yellow-500" />}
+                  </CardTitle>
                   <CardDescription>
                     <span className="text-3xl font-bold">{formatarMoeda(plano.preco)}</span>
                     <span className="text-muted-foreground">/{plano.periodo}</span>
                   </CardDescription>
+                  {plano.tipo === 'upgrade' && (
+                    <div className="mt-2 p-2 bg-green-50 rounded-lg">
+                      <p className="text-xs text-green-700">
+                        <Zap className="h-3 w-3 inline mr-1" />
+                        Recursos premium inclusos
+                      </p>
+                    </div>
+                  )}
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <ul className="space-y-2">
                     {plano.caracteristicas.map((caracteristica, index) => (
                       <li key={index} className="flex items-center gap-2 text-sm">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                         {caracteristica}
                       </li>
                     ))}
                   </ul>
+                  
+                  {plano.tipo === 'upgrade' && (
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <p className="text-xs text-blue-700 font-medium">
+                        Economia anual: {formatarMoeda(Math.abs(calcularEconomia(planoAtual, plano)))}
+                      </p>
+                    </div>
+                  )}
+
                   <Button 
                     className="w-full" 
-                    variant={plano.recomendado ? "default" : "outline"}
-                    disabled={plano.recomendado}
+                    variant={plano.tipo === 'atual' ? "outline" : plano.recomendado ? "default" : "outline"}
+                    disabled={plano.tipo === 'atual'}
+                    onClick={() => plano.tipo !== 'atual' && handleUpgradePlano(plano)}
                   >
-                    {plano.recomendado ? "Plano Atual" : "Alterar Plano"}
+                    {plano.tipo === 'atual' ? "Plano Atual" : 
+                     plano.tipo === 'upgrade' ? "Fazer Upgrade" : 
+                     "Fazer Downgrade"}
                   </Button>
                 </CardContent>
               </Card>
@@ -375,7 +503,7 @@ const PlanoAssinatura = () => {
                     Sua assinatura será renovada automaticamente
                   </p>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={handleCancelarRenovacao}>
                   Cancelar Renovação
                 </Button>
               </div>
@@ -383,6 +511,65 @@ const PlanoAssinatura = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modal de Upgrade */}
+      <Dialog open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Upgrade de Plano</DialogTitle>
+          </DialogHeader>
+          {planoParaUpgrade && (
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="font-medium">Upgrade para: {planoParaUpgrade.nome}</p>
+                <p className="text-sm text-muted-foreground">
+                  Novo valor: {formatarMoeda(planoParaUpgrade.preco)}/mês
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Diferença: +{formatarMoeda(planoParaUpgrade.preco - planoAtual.preco)}/mês
+                </p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                O upgrade será aplicado imediatamente e você será cobrado proporcionalmente pelo período restante.
+              </p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUpgradeModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={confirmarUpgrade}>
+              Confirmar Upgrade
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Cancelamento */}
+      <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancelar Renovação Automática</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p>Tem certeza que deseja cancelar a renovação automática?</p>
+            <div className="p-4 bg-yellow-50 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                ⚠️ Seu plano permanecerá ativo até {formatarData(planoAtual.proximoVencimento)}, 
+                mas não será renovado automaticamente.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelModalOpen(false)}>
+              Manter Renovação
+            </Button>
+            <Button variant="destructive" onClick={confirmarCancelamento}>
+              Cancelar Renovação
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

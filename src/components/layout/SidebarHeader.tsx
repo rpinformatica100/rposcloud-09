@@ -12,7 +12,7 @@ const SidebarHeader = ({ isCollapsed }: SidebarHeaderProps) => {
     <>
       {!isCollapsed ? (
         <div className="flex items-center w-full">
-          <Link to="/dashboard" className="text-lg font-semibold text-white flex items-center overflow-hidden">
+          <Link to="/app" className="text-lg font-semibold text-white flex items-center overflow-hidden">
             <div className="bg-primary text-white rounded-md w-8 h-8 flex items-center justify-center mr-2 flex-shrink-0">
               <Cloud size={18} />
             </div>
@@ -27,7 +27,7 @@ const SidebarHeader = ({ isCollapsed }: SidebarHeaderProps) => {
         </div>
       ) : (
         <div className="flex items-center justify-between w-full">
-          <Link to="/dashboard" className="flex justify-center">
+          <Link to="/app" className="flex justify-center">
             <div className="bg-primary text-white rounded-md w-8 h-8 flex items-center justify-center">
               <Cloud size={18} />
             </div>
