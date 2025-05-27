@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { UserPlan, PlanStatus, PlanType, PLAN_CONFIGS } from '@/types/plan';
+import { UserPlan, PlanStatus, PlanType, PLAN_CONFIGS, PLAN_METADATA } from '@/types/plan';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function usePlanStatus() {
@@ -15,54 +15,26 @@ export function usePlanStatus() {
       return;
     }
 
-    // Simular busca do plano do usuário
-    // Em produção, isso viria do banco de dados
-    const mockUserPlan = createMockUserPlan(user.id);
-    setUserPlan(mockUserPlan);
-    setLoading(false);
-  }, [user, isAuthenticated]);
-
-  const createMockUserPlan = (userId: string): UserPlan => {
-    // Verificar se é um usuário existente com plano ativo
-    const savedPlan = localStorage.getItem(`plan_${userId}`);
+    // Buscar plano do usuário
+    const savedPlan = localStorage.getItem(`plan_${user.id}`);
     
     if (savedPlan) {
       const parsedPlan = JSON.parse(savedPlan);
       const remainingDays = calculateRemainingDays(parsedPlan.endDate);
       const status = determineStatus(parsedPlan, remainingDays);
       
-      return {
+      const updatedPlan = {
         ...parsedPlan,
         remainingDays,
         status,
+        isPaid: PLAN_METADATA[parsedPlan.planType as PlanType]?.isPaid || false,
       };
+      
+      setUserPlan(updatedPlan);
     }
-
-    // Novo usuário - criar trial de 7 dias
-    const trialStartDate = new Date().toISOString();
-    const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
     
-    const newPlan: UserPlan = {
-      id: `plan_${userId}`,
-      userId,
-      planType: 'free_trial',
-      status: 'trial',
-      startDate: trialStartDate,
-      endDate: trialEndDate,
-      trialStartDate,
-      trialEndDate,
-      isTrialUsed: true,
-      remainingDays: 7,
-      features: PLAN_CONFIGS.free_trial,
-      billing: {
-        autoRenewal: false,
-      },
-    };
-
-    // Salvar no localStorage (em produção seria no banco)
-    localStorage.setItem(`plan_${userId}`, JSON.stringify(newPlan));
-    return newPlan;
-  };
+    setLoading(false);
+  }, [user, isAuthenticated]);
 
   const calculateRemainingDays = (endDate: string): number => {
     const end = new Date(endDate);
@@ -74,16 +46,54 @@ export function usePlanStatus() {
 
   const determineStatus = (plan: any, remainingDays: number): PlanStatus => {
     if (remainingDays <= 0) {
-      return plan.planType === 'free_trial' ? 'expired' : 'expired';
+      return 'expired';
     }
-    if (plan.planType === 'free_trial') {
+    if (plan.planType === 'trial_plan') {
       return 'trial';
     }
     return 'active';
   };
 
+  const activateTrial = () => {
+    if (!user) return;
+
+    // Verificar se já usou o trial
+    const existingPlan = localStorage.getItem(`plan_${user.id}`);
+    if (existingPlan) {
+      const parsed = JSON.parse(existingPlan);
+      if (parsed.isTrialUsed) {
+        console.log('Trial já foi utilizado');
+        return;
+      }
+    }
+
+    const trialStartDate = new Date().toISOString();
+    const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    
+    const trialPlan: UserPlan = {
+      id: `plan_${user.id}`,
+      userId: user.id,
+      planType: 'trial_plan',
+      status: 'trial',
+      startDate: trialStartDate,
+      endDate: trialEndDate,
+      trialStartDate,
+      trialEndDate,
+      isTrialUsed: true,
+      remainingDays: 7,
+      features: PLAN_CONFIGS.trial_plan,
+      isPaid: false,
+      billing: {
+        autoRenewal: false,
+      },
+    };
+
+    setUserPlan(trialPlan);
+    localStorage.setItem(`plan_${user.id}`, JSON.stringify(trialPlan));
+  };
+
   const upgradePlan = (newPlanType: PlanType) => {
-    if (!userPlan) return;
+    if (!userPlan || !PLAN_METADATA[newPlanType]?.isPaid) return;
 
     const newEndDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
     
@@ -94,6 +104,7 @@ export function usePlanStatus() {
       endDate: newEndDate,
       remainingDays: 30,
       features: PLAN_CONFIGS[newPlanType],
+      isPaid: true,
       billing: {
         ...userPlan.billing,
         autoRenewal: true,
@@ -122,14 +133,14 @@ export function usePlanStatus() {
     localStorage.setItem(`plan_${userPlan.userId}`, JSON.stringify(updatedPlan));
   };
 
-  const isFeatureAllowed = (feature: keyof PlanFeatures): boolean => {
+  const isFeatureAllowed = (feature: keyof typeof PLAN_CONFIGS.trial_plan): boolean => {
     if (!userPlan || userPlan.status === 'expired' || userPlan.status === 'blocked') {
       return false;
     }
     return userPlan.features[feature] as boolean;
   };
 
-  const getUsageLimit = (feature: keyof PlanFeatures): number => {
+  const getUsageLimit = (feature: keyof typeof PLAN_CONFIGS.trial_plan): number => {
     if (!userPlan) return 0;
     return userPlan.features[feature] as number;
   };
@@ -137,12 +148,12 @@ export function usePlanStatus() {
   const shouldShowUpgradePrompt = (): boolean => {
     if (!userPlan) return false;
     return (
-      userPlan.status === 'trial' && userPlan.remainingDays <= 3
+      userPlan.planType === 'trial_plan' && userPlan.remainingDays <= 3
     ) || userPlan.status === 'expired';
   };
 
   const getTrialProgressPercentage = (): number => {
-    if (!userPlan || userPlan.planType !== 'free_trial') return 0;
+    if (!userPlan || userPlan.planType !== 'trial_plan') return 0;
     const totalDays = 7;
     const elapsed = totalDays - userPlan.remainingDays;
     return Math.min(100, (elapsed / totalDays) * 100);
@@ -151,6 +162,7 @@ export function usePlanStatus() {
   return {
     userPlan,
     loading,
+    activateTrial,
     upgradePlan,
     cancelPlan,
     isFeatureAllowed,

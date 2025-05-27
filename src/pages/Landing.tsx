@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import PlanosSection from '@/components/landing/PlanosSection';
+import TrialSection from '@/components/landing/TrialSection';
 import MobileNav from '@/components/landing/MobileNav';
 import HeroSection from '@/components/landing/HeroSection';
 import FeaturesSection from '@/components/landing/FeaturesSection';
@@ -29,6 +30,7 @@ export default function Landing() {
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <a href="#features" className="font-medium transition-colors hover:text-primary">Recursos</a>
             <a href="#stats" className="font-medium transition-colors hover:text-primary">Números</a>
+            <a href="#trial" className="font-medium transition-colors hover:text-primary">Teste Grátis</a>
             <a href="#planos" className="font-medium transition-colors hover:text-primary">Planos</a>
             <a href="#testimonials" className="font-medium transition-colors hover:text-primary">Depoimentos</a>
             <a href="#faq" className="font-medium transition-colors hover:text-primary">Perguntas</a>
@@ -58,6 +60,11 @@ export default function Landing() {
       {/* Stats Section */}
       <div id="stats">
         <StatsSection />
+      </div>
+      
+      {/* Trial Section */}
+      <div id="trial">
+        <TrialSection />
       </div>
       
       {/* Planos Section */}

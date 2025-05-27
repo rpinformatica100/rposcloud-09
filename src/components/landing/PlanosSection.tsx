@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,40 +20,39 @@ type PlanoType = {
   descricao: string;
 }
 
-// Esta é uma função simulada que mais tarde será substituída por uma chamada real à API
+// Função para buscar apenas planos pagos
 const fetchPlanos = async (): Promise<PlanoType[]> => {
-  // Simulando uma chamada à API
   return [
     { 
       id: 1, 
-      nome: "Plano Mensal", 
+      nome: "Plano Básico", 
       periodo: "mensal",
       preco: 49.90,
       destacado: false,
-      descricao: "Acesso completo por 1 mês"
+      descricao: "Ideal para pequenas assistências técnicas"
     },
     { 
       id: 2, 
-      nome: "Plano Trimestral", 
+      nome: "Plano Profissional", 
       periodo: "trimestral",
       preco: 129.90,
       destacado: true,
-      descricao: "Acesso completo por 3 meses, economia de 15%"
+      descricao: "Para assistências em crescimento, economia de 15%"
     },
     { 
       id: 3, 
-      nome: "Plano Anual", 
+      nome: "Plano Enterprise", 
       periodo: "anual",
       preco: 399.90,
       destacado: false,
-      descricao: "Acesso completo por 12 meses, economia de 35%"
+      descricao: "Recursos avançados, economia de 35%"
     }
   ];
 };
 
 export default function PlanosSection() {
   const { data: planos, isLoading, error } = useQuery({
-    queryKey: ['planos-landing'],
+    queryKey: ['planos-pagos'],
     queryFn: fetchPlanos
   });
 
@@ -62,52 +62,45 @@ export default function PlanosSection() {
   const [authModalAberto, setAuthModalAberto] = useState(false);
   const [planoSelecionado, setPlanoSelecionado] = useState<PlanoType | null>(null);
 
-  // Features comuns a todos os planos
-  const features = [
-    "Gestão completa de ordens de serviço",
+  // Features dos planos pagos
+  const paidFeatures = [
+    "Ordens de serviço ilimitadas",
     "Cadastro ilimitado de clientes",
-    "Controle de estoque de peças e produtos",
-    "Relatórios financeiros",
-    "Suporte técnico prioritário"
+    "Controle avançado de estoque",
+    "Relatórios detalhados e análises",
+    "Suporte técnico prioritário",
+    "Backup automático dos dados",
+    "Integração com sistemas externos"
   ];
 
-  const handleAssinatura = (plano: PlanoType) => {
+  const handleAssinaturaPaga = (plano: PlanoType) => {
     setPlanoSelecionado(plano);
     
     if (!isAuthenticated) {
       localStorage.setItem('plano-pendente', JSON.stringify(plano));
       setAuthModalAberto(true);
     } else {
-      // Se já está autenticado e tem um plano trial, redirecionar para a página de assinatura
-      if (userPlan?.status === 'trial') {
-        window.location.href = '/assinatura';
-        return;
-      }
       setModalPagamentoAberto(true);
     }
   };
 
   const handleAuthSuccess = () => {
     setAuthModalAberto(false);
-    // Redirecionar para a página de assinatura após autenticação
     setTimeout(() => {
       window.location.href = '/assinatura';
     }, 1000);
   };
 
   const handleCheckout = (checkout: PagamentoCheckout) => {
-    // Simular redirecionamento para checkout
     if (checkout.metodoPagamento === 'stripe') {
       toast.info("Redirecionando para checkout Stripe...", {
         description: `Plano: ${checkout.planoNome} - R$ ${checkout.preco.toFixed(2)}`
       });
-      // Aqui seria o redirecionamento real para Stripe
       console.log("Checkout Stripe:", checkout);
     } else {
       toast.info("Redirecionando para PIX Mercado Pago...", {
         description: `Plano: ${checkout.planoNome} - R$ ${checkout.preco.toFixed(2)}`
       });
-      // Aqui seria o redirecionamento real para Mercado Pago
       console.log("Checkout Mercado Pago:", checkout);
     }
   };
@@ -121,7 +114,6 @@ export default function PlanosSection() {
           const plano = JSON.parse(planoPendente);
           setPlanoSelecionado(plano);
           localStorage.removeItem('plano-pendente');
-          // Pequeno delay para melhor UX
           setTimeout(() => {
             setModalPagamentoAberto(true);
           }, 500);
@@ -134,14 +126,16 @@ export default function PlanosSection() {
   }, [isAuthenticated]);
 
   return (
-    <section id="planos" className="py-12 md:py-16 bg-gray-50 dark:bg-gray-900">
+    <section id="planos" className="py-12 md:py-16 bg-white dark:bg-gray-800">
       <div className="container px-4 md:px-6 mx-auto">
         <div className="flex flex-col items-center justify-center space-y-4 text-center mb-10">
           <div className="space-y-2">
-            <Badge variant="outline" className="border-primary text-primary animate-fade-in">Planos & Preços</Badge>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl animate-fade-in">Escolha o plano ideal para o seu negócio</h2>
+            <Badge variant="outline" className="border-primary text-primary animate-fade-in">Planos Comerciais</Badge>
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl animate-fade-in">
+              Planos para fazer seu negócio crescer
+            </h2>
             <p className="max-w-[700px] text-gray-500 md:text-xl/relaxed dark:text-gray-400 animate-fade-in mx-auto">
-              Oferecemos soluções adaptadas a diversos tipos e tamanhos de assistências técnicas.
+              Escolha o plano ideal para sua assistência técnica e tenha acesso a todos os recursos avançados.
             </p>
           </div>
         </div>
@@ -182,20 +176,8 @@ export default function PlanosSection() {
                     </span>
                   </div>
                   
-                  {/* Mostrar informação especial sobre o trial gratuito */}
-                  {!isAuthenticated && (
-                    <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <p className="text-sm text-blue-700 font-medium">
-                        🎉 Teste grátis por 7 dias!
-                      </p>
-                      <p className="text-xs text-blue-600">
-                        Experimente todas as funcionalidades sem compromisso
-                      </p>
-                    </div>
-                  )}
-                  
                   <ul className="space-y-2 text-left">
-                    {features.map((feature, index) => (
+                    {paidFeatures.map((feature, index) => (
                       <li key={index} className="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -207,11 +189,11 @@ export default function PlanosSection() {
                 </CardContent>
                 <CardFooter>
                   <Button 
-                    className="w-full story-link" 
+                    className="w-full" 
                     size="lg"
-                    onClick={() => handleAssinatura(plano)}
+                    onClick={() => handleAssinaturaPaga(plano)}
                   >
-                    {!isAuthenticated ? 'Começar Teste Grátis' : 'Assinar Agora'}
+                    Assinar Agora
                   </Button>
                 </CardFooter>
               </Card>

@@ -13,6 +13,7 @@ import {
   Crown
 } from 'lucide-react';
 import { usePlanStatus } from '@/hooks/usePlanStatus';
+import { PLAN_METADATA } from '@/types/plan';
 import { useNavigate } from 'react-router-dom';
 
 interface PlanNotificationProps {
@@ -26,23 +27,18 @@ export function PlanNotification({ showInHeader = false, compact = false }: Plan
 
   if (!userPlan) return null;
 
-  const planNames = {
-    free_trial: 'Trial Gratuito',
-    basic: 'Básico',
-    professional: 'Profissional',
-    enterprise: 'Enterprise'
-  };
+  const planName = PLAN_METADATA[userPlan.planType]?.name || userPlan.planType;
 
   const getAlertType = () => {
     if (userPlan.status === 'expired' || userPlan.status === 'blocked') return 'destructive';
-    if (userPlan.status === 'trial' && userPlan.remainingDays <= 1) return 'destructive';
-    if (userPlan.status === 'trial' && userPlan.remainingDays <= 3) return 'default';
+    if (userPlan.planType === 'trial_plan' && userPlan.remainingDays <= 1) return 'destructive';
+    if (userPlan.planType === 'trial_plan' && userPlan.remainingDays <= 3) return 'default';
     return 'default';
   };
 
   const getIcon = () => {
     if (userPlan.status === 'expired' || userPlan.status === 'blocked') return AlertTriangle;
-    if (userPlan.status === 'trial') return Clock;
+    if (userPlan.planType === 'trial_plan') return Clock;
     if (userPlan.status === 'active') return CheckCircle;
     return Crown;
   };
@@ -58,8 +54,8 @@ export function PlanNotification({ showInHeader = false, compact = false }: Plan
           className="flex items-center gap-1"
         >
           <Icon className="h-3 w-3" />
-          {planNames[userPlan.planType]}
-          {userPlan.status === 'trial' && ` (${userPlan.remainingDays}d)`}
+          {planName}
+          {userPlan.planType === 'trial_plan' && ` (${userPlan.remainingDays}d)`}
         </Badge>
         
         {shouldShowUpgradePrompt() && (
@@ -78,7 +74,7 @@ export function PlanNotification({ showInHeader = false, compact = false }: Plan
   }
 
   // Não mostrar notificação se o plano está ativo e não é trial
-  if (userPlan.status === 'active' && userPlan.planType !== 'free_trial') {
+  if (userPlan.status === 'active' && userPlan.planType !== 'trial_plan') {
     return null;
   }
 
@@ -97,7 +93,7 @@ export function PlanNotification({ showInHeader = false, compact = false }: Plan
               </div>
             )}
             
-            {userPlan.status === 'trial' && (
+            {userPlan.planType === 'trial_plan' && userPlan.status === 'trial' && (
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <strong>Período gratuito ativo</strong>
@@ -134,7 +130,7 @@ export function PlanNotification({ showInHeader = false, compact = false }: Plan
           </div>
           
           <div className="flex gap-2 ml-4">
-            {userPlan.status === 'trial' && (
+            {userPlan.planType === 'trial_plan' && userPlan.status === 'trial' && (
               <Button 
                 size="sm" 
                 onClick={() => navigate('/assinatura')}

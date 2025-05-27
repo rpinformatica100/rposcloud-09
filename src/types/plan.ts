@@ -1,6 +1,5 @@
-
 export type PlanStatus = 'trial' | 'active' | 'expired' | 'cancelled' | 'blocked';
-export type PlanType = 'free_trial' | 'basic' | 'professional' | 'enterprise';
+export type PlanType = 'trial_plan' | 'basic' | 'professional' | 'enterprise';
 
 export interface UserPlan {
   id: string;
@@ -15,6 +14,7 @@ export interface UserPlan {
   remainingDays: number;
   features: PlanFeatures;
   billing?: BillingInfo;
+  isPaid: boolean; // Nova propriedade para distinguir planos pagos
 }
 
 export interface PlanFeatures {
@@ -62,7 +62,7 @@ export interface PlanLimitation {
 }
 
 export const PLAN_CONFIGS: Record<PlanType, PlanFeatures> = {
-  free_trial: {
+  trial_plan: {
     maxOrders: 50,
     maxUsers: 2,
     maxStorage: 1,
@@ -99,3 +99,26 @@ export const PLAN_CONFIGS: Record<PlanType, PlanFeatures> = {
     hasCustomization: true,
   },
 };
+
+export const PLAN_METADATA = {
+  trial_plan: {
+    name: 'Trial Gratuito',
+    isPaid: false,
+    trialDays: 7,
+  },
+  basic: {
+    name: 'Básico',
+    isPaid: true,
+    price: 49.90,
+  },
+  professional: {
+    name: 'Profissional',
+    isPaid: true,
+    price: 129.90,
+  },
+  enterprise: {
+    name: 'Enterprise',
+    isPaid: true,
+    price: 399.90,
+  },
+} as const;
