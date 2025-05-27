@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 const HeroSection = () => {
   return (
     <section className="w-full py-12 md:py-24 lg:py-32 xl:py-40 bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-      <div className="container px-4 md:px-6 flex flex-col items-center justify-center space-y-6 md:space-y-10 text-center">
-        <div className="space-y-4 max-w-4xl">
+      <div className="container px-4 md:px-6 mx-auto flex flex-col items-center justify-center space-y-6 md:space-y-10 text-center">
+        <div className="space-y-4 max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl animate-fade-in">
             Gerencie sua <span className="text-primary">Assistência Técnica</span> na nuvem
           </h1>
@@ -15,20 +15,20 @@ const HeroSection = () => {
           </p>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 animate-fade-in w-full max-w-sm sm:max-w-none">
-          <Link to="/register" className="w-full sm:w-auto">
-            <Button size="lg" className="story-link hover-scale w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 animate-fade-in justify-center items-center">
+          <Link to="/register">
+            <Button size="lg" className="story-link hover-scale min-w-[160px]">
               Comece Grátis
             </Button>
           </Link>
-          <a href="#features" className="w-full sm:w-auto">
-            <Button variant="outline" size="lg" className="hover-scale w-full sm:w-auto">
+          <a href="#features">
+            <Button variant="outline" size="lg" className="hover-scale min-w-[160px]">
               Saiba Mais
             </Button>
           </a>
         </div>
         
-        <div className="w-full max-w-sm sm:max-w-2xl md:max-w-4xl lg:max-w-5xl rounded-lg border overflow-hidden shadow-xl animate-scale-in mx-4">
+        <div className="w-full max-w-sm sm:max-w-2xl md:max-w-4xl lg:max-w-5xl rounded-lg border overflow-hidden shadow-xl animate-scale-in mx-auto">
           <img 
             src="https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
             alt="Dashboard da plataforma RP OS Cloud"

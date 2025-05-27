@@ -1,4 +1,3 @@
-
 // Tipos de dados para o sistema de OS
 
 export interface Cliente {
@@ -81,6 +80,28 @@ export interface Configuracao {
   chave: string;
   valor: string;
   descricao: string;
+}
+
+// Novas interfaces para configurações de pagamento
+export interface ConfiguracoesPagamento {
+  stripe: {
+    secretKey: string;
+    publishableKey: string;
+    webhookSecret: string;
+    ativo: boolean;
+  };
+  mercadoPago: {
+    accessToken: string;
+    publicKey: string;
+    ativo: boolean;
+  };
+}
+
+export interface PagamentoCheckout {
+  planoId: number;
+  metodoPagamento: 'stripe' | 'mercadopago';
+  preco: number;
+  planoNome: string;
 }
 
 // Tipo para Assistências Técnicas

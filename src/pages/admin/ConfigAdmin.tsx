@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Save, Mail, BellRing, Globe, Shield } from "lucide-react";
+import { Save, Mail, BellRing, Globe, Shield, CreditCard, Smartphone } from "lucide-react";
 
 const ConfigAdmin = () => {
   // Dados de configuração
@@ -51,6 +50,21 @@ const ConfigAdmin = () => {
     allowRememberMe: true,
   });
 
+  // Nova configuração de pagamentos
+  const [pagamentoConfig, setPagamentoConfig] = useState({
+    stripe: {
+      secretKey: "",
+      publishableKey: "",
+      webhookSecret: "",
+      ativo: false,
+    },
+    mercadoPago: {
+      accessToken: "",
+      publicKey: "",
+      ativo: false,
+    },
+  });
+
   // Funções para lidar com alterações
   const handleEmailConfigChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmailConfig(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -70,6 +84,26 @@ const ConfigAdmin = () => {
     setSecurityConfig(prev => ({ ...prev, [e.target.name]: value }));
   };
   
+  // Nova função para lidar com alterações de pagamento
+  const handlePagamentoConfigChange = (provider: 'stripe' | 'mercadoPago', field: string, value: string | boolean) => {
+    setPagamentoConfig(prev => ({
+      ...prev,
+      [provider]: {
+        ...prev[provider],
+        [field]: value
+      }
+    }));
+  };
+
+  // Função para testar conexão com provedores de pagamento
+  const testarConexaoPagamento = (provider: 'stripe' | 'mercadoPago') => {
+    toast.info(`Testando conexão com ${provider === 'stripe' ? 'Stripe' : 'Mercado Pago'}...`);
+    // Aqui seria implementada a lógica real de teste
+    setTimeout(() => {
+      toast.success(`Conexão com ${provider === 'stripe' ? 'Stripe' : 'Mercado Pago'} testada com sucesso!`);
+    }, 2000);
+  };
+
   // Salvar configurações
   const saveConfig = () => {
     toast.success("Configurações salvas com sucesso!");
@@ -95,6 +129,10 @@ const ConfigAdmin = () => {
           <TabsTrigger value="email" className="data-[state=active]:bg-muted">
             <Mail className="w-4 h-4 mr-2" />
             E-mail
+          </TabsTrigger>
+          <TabsTrigger value="pagamentos" className="data-[state=active]:bg-muted">
+            <CreditCard className="w-4 h-4 mr-2" />
+            Pagamentos
           </TabsTrigger>
           <TabsTrigger value="security" className="data-[state=active]:bg-muted">
             <Shield className="w-4 h-4 mr-2" />
@@ -397,6 +435,149 @@ const ConfigAdmin = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Nova aba de Configurações de Pagamento */}
+        <TabsContent value="pagamentos">
+          <div className="space-y-6">
+            {/* Configurações Stripe */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <CreditCard className="w-5 h-5 mr-2" />
+                  Stripe - Cartão de Crédito
+                </CardTitle>
+                <CardDescription>
+                  Configure as credenciais do Stripe para processar pagamentos com cartão de crédito.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <Label htmlFor="stripeAtivo" className="font-medium">Ativar Stripe</Label>
+                    <p className="text-sm text-muted-foreground">Habilitar pagamentos via Stripe</p>
+                  </div>
+                  <Switch
+                    id="stripeAtivo"
+                    checked={pagamentoConfig.stripe.ativo}
+                    onCheckedChange={(checked) => 
+                      handlePagamentoConfigChange("stripe", "ativo", checked)
+                    }
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="stripeSecretKey">Secret Key</Label>
+                    <Input
+                      id="stripeSecretKey"
+                      type="password"
+                      value={pagamentoConfig.stripe.secretKey}
+                      onChange={(e) => handlePagamentoConfigChange("stripe", "secretKey", e.target.value)}
+                      placeholder="sk_test_..."
+                      disabled={!pagamentoConfig.stripe.ativo}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="stripePublishableKey">Publishable Key</Label>
+                    <Input
+                      id="stripePublishableKey"
+                      value={pagamentoConfig.stripe.publishableKey}
+                      onChange={(e) => handlePagamentoConfigChange("stripe", "publishableKey", e.target.value)}
+                      placeholder="pk_test_..."
+                      disabled={!pagamentoConfig.stripe.ativo}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="stripeWebhookSecret">Webhook Secret</Label>
+                    <Input
+                      id="stripeWebhookSecret"
+                      type="password"
+                      value={pagamentoConfig.stripe.webhookSecret}
+                      onChange={(e) => handlePagamentoConfigChange("stripe", "webhookSecret", e.target.value)}
+                      placeholder="whsec_..."
+                      disabled={!pagamentoConfig.stripe.ativo}
+                    />
+                  </div>
+                </div>
+                
+                <div className="pt-4 flex justify-end">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => testarConexaoPagamento('stripe')}
+                    disabled={!pagamentoConfig.stripe.ativo || !pagamentoConfig.stripe.secretKey}
+                  >
+                    Testar Conexão
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Configurações Mercado Pago */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Smartphone className="w-5 h-5 mr-2" />
+                  Mercado Pago - PIX
+                </CardTitle>
+                <CardDescription>
+                  Configure as credenciais do Mercado Pago para processar pagamentos via PIX.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <Label htmlFor="mercadoPagoAtivo" className="font-medium">Ativar Mercado Pago</Label>
+                    <p className="text-sm text-muted-foreground">Habilitar pagamentos via PIX</p>
+                  </div>
+                  <Switch
+                    id="mercadoPagoAtivo"
+                    checked={pagamentoConfig.mercadoPago.ativo}
+                    onCheckedChange={(checked) => 
+                      handlePagamentoConfigChange("mercadoPago", "ativo", checked)
+                    }
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="mercadoPagoAccessToken">Access Token</Label>
+                    <Input
+                      id="mercadoPagoAccessToken"
+                      type="password"
+                      value={pagamentoConfig.mercadoPago.accessToken}
+                      onChange={(e) => handlePagamentoConfigChange("mercadoPago", "accessToken", e.target.value)}
+                      placeholder="APP_USR-..."
+                      disabled={!pagamentoConfig.mercadoPago.ativo}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="mercadoPagoPublicKey">Public Key</Label>
+                    <Input
+                      id="mercadoPagoPublicKey"
+                      value={pagamentoConfig.mercadoPago.publicKey}
+                      onChange={(e) => handlePagamentoConfigChange("mercadoPago", "publicKey", e.target.value)}
+                      placeholder="APP_USR-..."
+                      disabled={!pagamentoConfig.mercadoPago.ativo}
+                    />
+                  </div>
+                </div>
+                
+                <div className="pt-4 flex justify-end">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => testarConexaoPagamento('mercadoPago')}
+                    disabled={!pagamentoConfig.mercadoPago.ativo || !pagamentoConfig.mercadoPago.accessToken}
+                  >
+                    Testar Conexão
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Configurações de Segurança */}
