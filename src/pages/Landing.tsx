@@ -5,6 +5,7 @@ import PlanosSection from '@/components/landing/PlanosSection';
 import MobileNav from '@/components/landing/MobileNav';
 import HeroSection from '@/components/landing/HeroSection';
 import FeaturesSection from '@/components/landing/FeaturesSection';
+import StatsSection from '@/components/landing/StatsSection';
 import TestimonialsSection from '@/components/landing/TestimonialsSection';
 import FAQSection from '@/components/landing/FAQSection';
 import CTASection from '@/components/landing/CTASection';
@@ -27,6 +28,7 @@ export default function Landing() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <a href="#features" className="font-medium transition-colors hover:text-primary">Recursos</a>
+            <a href="#stats" className="font-medium transition-colors hover:text-primary">Números</a>
             <a href="#planos" className="font-medium transition-colors hover:text-primary">Planos</a>
             <a href="#testimonials" className="font-medium transition-colors hover:text-primary">Depoimentos</a>
             <a href="#faq" className="font-medium transition-colors hover:text-primary">Perguntas</a>
@@ -52,6 +54,11 @@ export default function Landing() {
       
       {/* Features Section */}
       <FeaturesSection />
+      
+      {/* Stats Section */}
+      <div id="stats">
+        <StatsSection />
+      </div>
       
       {/* Planos Section */}
       <PlanosSection />

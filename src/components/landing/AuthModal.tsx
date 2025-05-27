@@ -42,7 +42,9 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
     try {
       const success = await login(loginEmail, loginSenha);
       if (success) {
-        toast.success("Login realizado com sucesso!");
+        toast.success("Login realizado com sucesso!", {
+          description: "Redirecionando para seu painel..."
+        });
         onSuccess();
         // Redirecionar para a área correta baseado no tipo de usuário
         if (loginEmail === "admin@sistema.com") {
@@ -51,11 +53,15 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
           navigate("/app");
         }
       } else {
-        toast.error("Credenciais inválidas");
+        toast.error("Credenciais inválidas", {
+          description: "Verifique seu email e senha e tente novamente."
+        });
       }
     } catch (error) {
       console.error("Erro ao fazer login:", error);
-      toast.error("Erro ao fazer login");
+      toast.error("Erro ao fazer login", {
+        description: "Ocorreu um erro inesperado. Tente novamente."
+      });
     } finally {
       setLoading(false);
     }
@@ -65,7 +71,16 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
     e.preventDefault();
     
     if (registerSenha !== confirmSenha) {
-      toast.error("As senhas não conferem");
+      toast.error("As senhas não conferem", {
+        description: "Verifique se ambas as senhas são idênticas."
+      });
+      return;
+    }
+    
+    if (registerSenha.length < 6) {
+      toast.error("Senha muito fraca", {
+        description: "A senha deve ter pelo menos 6 caracteres."
+      });
       return;
     }
     
@@ -74,15 +89,21 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
     try {
       const success = await registrar(registerNome, registerEmail, registerSenha, tipoUsuario);
       if (success) {
-        toast.success("Conta criada com sucesso!");
+        toast.success("Conta criada com sucesso!", {
+          description: "Bem-vindo ao RP OS Cloud! Redirecionando..."
+        });
         onSuccess();
         navigate("/app");
       } else {
-        toast.error("Erro ao criar conta");
+        toast.error("Erro ao criar conta", {
+          description: "Verifique os dados e tente novamente."
+        });
       }
     } catch (error) {
       console.error("Erro ao registrar:", error);
-      toast.error("Erro ao criar conta");
+      toast.error("Erro ao criar conta", {
+        description: "Ocorreu um erro inesperado. Tente novamente."
+      });
     } finally {
       setLoading(false);
     }
@@ -209,9 +230,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
                 <Input
                   id="register-password"
                   type="password"
+                  placeholder="Mínimo 6 caracteres"
                   value={registerSenha}
                   onChange={(e) => setRegisterSenha(e.target.value)}
                   required
+                  minLength={6}
                 />
               </div>
               
@@ -220,6 +243,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
                 <Input
                   id="confirm-password"
                   type="password"
+                  placeholder="Repita sua senha"
                   value={confirmSenha}
                   onChange={(e) => setConfirmSenha(e.target.value)}
                   required

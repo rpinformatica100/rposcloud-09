@@ -13,10 +13,10 @@ const LandingFooter = () => {
                   <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
                 </svg>
               </div>
-              <span className="text-base md:text-lg font-semibold text-foreground">TechOS</span>
+              <span className="text-base md:text-lg font-semibold text-foreground">RP OS Cloud</span>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Soluções completas para gerenciamento de assistências técnicas.
+              Soluções completas para gerenciamento de assistências técnicas na nuvem.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-500 hover:text-primary">
@@ -57,15 +57,15 @@ const LandingFooter = () => {
           <div className="space-y-4">
             <h4 className="font-semibold text-sm md:text-base">Suporte</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/centro-de-ajuda" className="text-gray-500 hover:text-primary">Centro de Ajuda</Link></li>
+              <li><Link to="/centro-ajuda" className="text-gray-500 hover:text-primary">Centro de Ajuda</Link></li>
             </ul>
           </div>
         </div>
         <div className="mt-6 md:mt-8 border-t pt-6 md:pt-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 text-center md:text-left">© 2025 TechOS. Todos os direitos reservados.</p>
+          <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 text-center md:text-left">© 2025 RP OS Cloud. Todos os direitos reservados.</p>
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-            <Link to="/termos-de-servico" className="text-xs md:text-sm text-gray-500 hover:text-primary text-center">Termos de Serviço</Link>
-            <Link to="/politica-de-privacidade" className="text-xs md:text-sm text-gray-500 hover:text-primary text-center">Política de Privacidade</Link>
+            <Link to="/termos-servico" className="text-xs md:text-sm text-gray-500 hover:text-primary text-center">Termos de Serviço</Link>
+            <Link to="/politica-privacidade" className="text-xs md:text-sm text-gray-500 hover:text-primary text-center">Política de Privacidade</Link>
           </div>
         </div>
       </div>
