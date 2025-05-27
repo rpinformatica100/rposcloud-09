@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,6 +96,8 @@ const ConfiguracoesAssistencia = () => {
         setTimeout(() => setSaveSuccess(false), 3000);
         
         toast.success(`Configurações de ${secao} atualizadas com sucesso`);
+      } else {
+        toast.error(`Erro ao atualizar ${secao}. Tente novamente.`);
       }
     } catch (error) {
       console.error(`Erro ao salvar configurações de ${secao}:`, error);

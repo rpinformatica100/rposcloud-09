@@ -1,5 +1,5 @@
-
 import { createContext, useContext, useState, useEffect } from 'react';
+import { Assistencia } from '@/types';
 
 interface Usuario {
   id: string;
@@ -22,14 +22,6 @@ interface Profile {
   empresa?: string;
 }
 
-interface Assistencia {
-  id?: string;
-  nome?: string;
-  logo?: string;
-  cadastroCompleto?: boolean;
-  mensagemCadastroExibida?: boolean;
-}
-
 interface AuthContextProps {
   usuario: Usuario | null;
   user: Usuario | null;
@@ -43,7 +35,7 @@ interface AuthContextProps {
   registrar: (nome: string, email: string, senha: string, tipo?: 'cliente' | 'assistencia') => Promise<boolean>;
   logout: () => void;
   atualizarUltimoAcesso: (id: string) => void;
-  atualizarPerfilAssistencia: (dados: Partial<Assistencia>) => Promise<void>;
+  atualizarPerfilAssistencia: (dados: Partial<Assistencia>) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextProps>({
@@ -59,7 +51,7 @@ const AuthContext = createContext<AuthContextProps>({
   registrar: async () => false,
   logout: () => {},
   atualizarUltimoAcesso: () => {},
-  atualizarPerfilAssistencia: async () => {},
+  atualizarPerfilAssistencia: async () => false,
 });
 
 interface AuthProviderProps {
@@ -149,12 +141,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const atualizarPerfilAssistencia = async (dados: Partial<Assistencia>): Promise<void> => {
+  const atualizarPerfilAssistencia = async (dados: Partial<Assistencia>): Promise<boolean> => {
     try {
       // Mock implementation - em um ambiente real seria uma API call
       console.log('Atualizando perfil da assistência:', dados);
+      return true;
     } catch (error) {
       console.error('Erro ao atualizar perfil da assistência:', error);
+      return false;
     }
   };
 
@@ -171,8 +165,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   } : null;
 
   const assistencia: Assistencia | null = isAssistencia ? {
-    id: usuario?.id,
-    nome: usuario?.nome,
+    id: usuario?.id || '',
+    nome: usuario?.nome || '',
+    email: usuario?.email || '',
+    plano: usuario?.plano || 'trial_plan',
+    status: 'Ativa',
+    dataRegistro: usuario?.data_cadastro || new Date().toISOString(),
     cadastroCompleto: false,
     mensagemCadastroExibida: false
   } : null;
