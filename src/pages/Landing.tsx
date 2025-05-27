@@ -41,9 +41,6 @@ export default function Landing() {
             <Link to="/login">
               <Button variant="outline" size="sm">Entrar</Button>
             </Link>
-            <Link to="/register">
-              <Button size="sm">Registrar</Button>
-            </Link>
           </div>
 
           {/* Mobile Navigation */}

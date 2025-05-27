@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { TypingEffect } from '@/components/ui/typing-effect';
-import { Play, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const HeroSection = () => {
   const [typingComplete, setTypingComplete] = useState(false);
@@ -64,18 +64,13 @@ const HeroSection = () => {
           </p>
         </div>
         
-        <div className={`flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center w-full max-w-md mx-auto transition-all duration-1000 ${typingComplete ? 'animate-fade-in animation-delay-3000' : 'opacity-0 translate-y-8'}`}>
-          <Link to="/register" className="w-full sm:w-auto">
-            <Button size="lg" className="group w-full sm:min-w-[160px] bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
-              Comece Grátis
+        <div className={`flex justify-center items-center w-full max-w-md mx-auto transition-all duration-1000 ${typingComplete ? 'animate-fade-in animation-delay-3000' : 'opacity-0 translate-y-8'}`}>
+          <a href="#trial" className="w-full">
+            <Button size="lg" className="group w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+              Teste Grátis por 7 Dias
               <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Button>
-          </Link>
-          
-          <Button variant="outline" size="lg" className="group w-full sm:w-auto sm:min-w-[160px] border-2 hover:bg-primary/5 hover:border-primary/50 transform transition-all duration-300 hover:scale-105">
-            <Play className="mr-2 h-4 w-4" />
-            Ver Demo
-          </Button>
+          </a>
         </div>
 
         {/* Trust indicators */}
