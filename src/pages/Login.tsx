@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogIn, Cloud } from "lucide-react";
 import { toast } from "sonner";
+import AuthModal from "@/components/auth/AuthModal";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -15,6 +15,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const [isRegisterModalOpen, setRegisterModalOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,8 +28,7 @@ const Login = () => {
           description: "Bem-vindo ao RP OS Cloud",
         });
         
-        // Verifica se é admin para redirecionar para o painel administrativo
-        if (isAdmin || email === "admin@sistema.com") {
+        if (email === "admin@sistema.com") {
           navigate("/admin");
         } else {
           navigate("/app");
@@ -46,6 +46,11 @@ const Login = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRegistrationSuccess = () => {
+    setRegisterModalOpen(false);
+    navigate("/app");
   };
 
   return (
@@ -106,9 +111,13 @@ const Login = () => {
               </Button>
               <div className="text-center text-sm">
                 Não tem uma conta?{" "}
-                <Link to="/register" className="text-primary hover:underline">
+                <button 
+                  type="button"
+                  onClick={() => setRegisterModalOpen(true)} 
+                  className="text-primary hover:underline font-medium"
+                >
                   Registre-se
-                </Link>
+                </button>
               </div>
             </CardFooter>
           </form>
@@ -121,6 +130,14 @@ const Login = () => {
           </p>
         </div>
       </div>
+
+      <AuthModal
+        isOpen={isRegisterModalOpen}
+        onClose={() => setRegisterModalOpen(false)}
+        onSuccess={handleRegistrationSuccess}
+        defaultTab="register"
+        // Não passamos 'plano' aqui, então o modal usará o comportamento padrão
+      />
     </div>
   );
 };
