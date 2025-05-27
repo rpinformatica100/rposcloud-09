@@ -6,7 +6,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { ConfiguracaoRow, fetchConfiguracoes, upsertConfiguracoes } from "@/integrations/supabase/helpers";
-import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Save, Upload, Image, Building, CheckCircle, Loader2, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,13 +13,13 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useInputMask } from "@/hooks/use-input-mask";
 import { useExternalServices } from "@/hooks/use-external-services";
+import { toast } from "sonner";
 
 const PerfilEmpresa = () => {
   const [configuracoes, setConfiguracoes] = useState<ConfiguracaoRow[]>([]);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   
   // Hooks para máscaras e serviços externos
@@ -53,19 +52,11 @@ const PerfilEmpresa = () => {
       queryClient.invalidateQueries({ queryKey: ['configuracoes'] });
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
-      toast({
-        title: "Configurações salvas",
-        description: "As configurações da empresa foram atualizadas com sucesso",
-        variant: "default",
-      });
+      toast.success("Configurações salvas com sucesso!");
     },
     onError: (error) => {
       console.error("Erro ao salvar configurações:", error);
-      toast({
-        title: "Erro ao salvar",
-        description: "Não foi possível salvar as configurações da empresa",
-        variant: "destructive",
-      });
+      toast.error("Erro ao salvar configurações");
     }
   });
 
@@ -76,45 +67,6 @@ const PerfilEmpresa = () => {
       }
       return config;
     }));
-  };
-
-  const handleSalvar = () => {
-    updateMutation.mutate(configuracoes);
-  };
-
-  // Função para buscar CEP automaticamente
-  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>, configId: string) => {
-    const maskedEvent = cepMask(e);
-    handleInputChange(configId, maskedEvent.target.value);
-    
-    // Se o CEP está completo (8 dígitos), buscar automaticamente
-    const cepDigits = maskedEvent.target.value.replace(/\D/g, '');
-    if (cepDigits.length === 8) {
-      const cepData = await fetchCep(maskedEvent.target.value);
-      
-      if (cepData) {
-        // Buscar IDs das configurações de endereço
-        const enderecoConfig = configuracoes.find(c => c.chave === 'empresa_endereco');
-        const cidadeConfig = configuracoes.find(c => c.chave === 'empresa_cidade');
-        const estadoConfig = configuracoes.find(c => c.chave === 'empresa_estado');
-        
-        // Atualizar automaticamente os campos
-        if (enderecoConfig && cepData.logradouro) {
-          handleInputChange(enderecoConfig.id, cepData.logradouro);
-        }
-        if (cidadeConfig && cepData.localidade) {
-          handleInputChange(cidadeConfig.id, cepData.localidade);
-        }
-        if (estadoConfig && cepData.uf) {
-          handleInputChange(estadoConfig.id, cepData.uf);
-        }
-        
-        toast({
-          title: "CEP encontrado!",
-          description: "Endereço preenchido automaticamente",
-        });
-      }
-    }
   };
 
   const createOrUpdateConfig = (chave: string, valor: string, descricao: string) => {
@@ -132,6 +84,44 @@ const PerfilEmpresa = () => {
         updated_at: new Date().toISOString()
       };
       setConfiguracoes([...configuracoes, newConfig]);
+    }
+  };
+
+  const handleSalvar = () => {
+    updateMutation.mutate(configuracoes);
+  };
+
+  // Função para buscar CEP automaticamente - CORRIGIDA
+  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const maskedEvent = cepMask(e);
+    
+    // Atualizar ou criar configuração de CEP
+    const cepConfig = configuracoes.find(c => c.chave === 'empresa_cep');
+    if (cepConfig) {
+      handleInputChange(cepConfig.id, maskedEvent.target.value);
+    } else {
+      createOrUpdateConfig('empresa_cep', maskedEvent.target.value, 'CEP');
+    }
+    
+    // Se o CEP está completo (8 dígitos), buscar automaticamente
+    const cepDigits = maskedEvent.target.value.replace(/\D/g, '');
+    if (cepDigits.length === 8) {
+      const cepData = await fetchCep(maskedEvent.target.value);
+      
+      if (cepData) {
+        // Atualizar automaticamente os campos de endereço
+        if (cepData.logradouro) {
+          createOrUpdateConfig('empresa_endereco', cepData.logradouro, 'Endereço');
+        }
+        if (cepData.localidade) {
+          createOrUpdateConfig('empresa_cidade', cepData.localidade, 'Cidade');
+        }
+        if (cepData.uf) {
+          createOrUpdateConfig('empresa_estado', cepData.uf, 'Estado');
+        }
+        
+        toast.success("CEP encontrado! Endereço preenchido automaticamente");
+      }
     }
   };
 
@@ -169,38 +159,13 @@ const PerfilEmpresa = () => {
         .getPublicUrl(fileName);
 
       if (urlData?.publicUrl) {
-        // Find and update the logo configuration
-        const logoConfig = configuracoes.find(config => config.chave === 'empresa_logo');
-        if (logoConfig) {
-          handleInputChange(logoConfig.id, urlData.publicUrl);
-          setLogoUrl(urlData.publicUrl);
-        } else {
-          // If logo config doesn't exist, create a new one
-          const newConfig: ConfiguracaoRow = {
-            id: crypto.randomUUID(),
-            chave: 'empresa_logo',
-            valor: urlData.publicUrl,
-            descricao: 'Logo da empresa',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          setConfiguracoes([...configuracoes, newConfig]);
-          setLogoUrl(urlData.publicUrl);
-        }
-        
-        toast({
-          title: "Logo carregado",
-          description: "O logo foi carregado com sucesso",
-          variant: "default",
-        });
+        createOrUpdateConfig('empresa_logo', urlData.publicUrl, 'Logo da empresa');
+        setLogoUrl(urlData.publicUrl);
+        toast.success("Logo carregado com sucesso!");
       }
     } catch (error) {
       console.error("Erro ao fazer upload do logo:", error);
-      toast({
-        title: "Erro no upload",
-        description: "Não foi possível fazer o upload do logo",
-        variant: "destructive",
-      });
+      toast.error("Erro ao carregar logo");
     } finally {
       setUploading(false);
     }
@@ -367,7 +332,7 @@ const PerfilEmpresa = () => {
                   />
                 </div>
 
-                {/* CNPJ */}
+                {/* CNPJ com máscara */}
                 <div className="space-y-2">
                   <Label htmlFor="empresa_cnpj">CNPJ</Label>
                   <Input 
@@ -386,7 +351,7 @@ const PerfilEmpresa = () => {
                   />
                 </div>
 
-                {/* Telefone */}
+                {/* Telefone com máscara */}
                 <div className="space-y-2">
                   <Label htmlFor="empresa_telefone">Telefone</Label>
                   <Input 
@@ -444,27 +409,28 @@ const PerfilEmpresa = () => {
               </TabsContent>
               
               <TabsContent value="endereco" className="space-y-4">
-                {/* CEP com busca automática */}
+                {/* CEP com busca automática - CORRIGIDO */}
                 <div className="space-y-2">
                   <Label htmlFor="empresa_cep" className="flex items-center gap-2">
                     CEP 
                     {loadingCep && <Loader2 className="h-4 w-4 animate-spin" />}
                   </Label>
-                  <Input 
-                    id="empresa_cep" 
-                    value={infoEndereco.find(c => c.chave === 'empresa_cep')?.valor || ''} 
-                    onChange={(e) => {
-                      const config = infoEndereco.find(c => c.chave === 'empresa_cep');
-                      if (config) {
-                        handleCepChange(e, config.id);
-                      } else {
-                        const maskedEvent = cepMask(e);
-                        createOrUpdateConfig('empresa_cep', maskedEvent.target.value, 'CEP');
-                      }
-                    }}
-                    placeholder="00000-000"
-                    endContent={loadingCep ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4 text-muted-foreground" />}
-                  />
+                  <div className="relative">
+                    <Input 
+                      id="empresa_cep" 
+                      value={infoEndereco.find(c => c.chave === 'empresa_cep')?.valor || ''} 
+                      onChange={handleCepChange}
+                      placeholder="00000-000"
+                      disabled={loadingCep}
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {loadingCep ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Digite o CEP para preencher automaticamente o endereço
                   </p>

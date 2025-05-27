@@ -14,7 +14,8 @@ import {
   FileText,
   Package,
   CreditCard,
-  BarChart2
+  BarChart2,
+  Star
 } from "lucide-react";
 
 // Import the new components
@@ -35,6 +36,7 @@ const Sidebar = () => {
     { title: "Produtos", path: "/app/produtos", icon: Package },
     { title: "Financeiro", path: "/app/financeiro", icon: CreditCard },
     { title: "Relatórios", path: "/app/relatorios", icon: BarChart2 },
+    { title: "Plano", path: "/app/assinatura", icon: Star },
   ];
 
   return (

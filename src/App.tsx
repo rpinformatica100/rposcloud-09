@@ -42,6 +42,10 @@ import RelatoriosPage from "@/pages/relatorios/RelatoriosPage"
 import ConfiguracoesList from "@/pages/configuracoes/ConfiguracoesList"
 import ConfiguracoesAssistencia from "@/pages/configuracoes/ConfiguracoesAssistencia"
 import PerfilEmpresa from "@/pages/configuracoes/PerfilEmpresa"
+import ConfiguracoesSistema from "@/pages/configuracoes/ConfiguracoesSistema"
+
+// Subscription pages
+import PlanoAssinatura from "@/pages/assinatura/PlanoAssinatura"
 
 // Landing extra pages
 import SobreNosPage from "@/pages/landing_extra/SobreNosPage"
@@ -119,6 +123,10 @@ function App() {
                   <Route path="configuracoes" element={<ConfiguracoesList />} />
                   <Route path="configuracoes/assistencia" element={<ConfiguracoesAssistencia />} />
                   <Route path="configuracoes/perfil" element={<PerfilEmpresa />} />
+                  <Route path="configuracoes/sistema" element={<ConfiguracoesSistema />} />
+                  
+                  {/* Subscription */}
+                  <Route path="assinatura" element={<PlanoAssinatura />} />
                 </Route>
 
                 {/* Admin routes */}

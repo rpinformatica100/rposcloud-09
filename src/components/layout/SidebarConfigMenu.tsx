@@ -20,7 +20,7 @@ const SidebarConfigMenu = ({ isCollapsed }: SidebarConfigMenuProps) => {
 
   const configMenuItems: ConfigMenuItem[] = [
     { title: "Perfil da Empresa", path: "/app/configuracoes/perfil", icon: Building },
-    { title: "Configurações do Sistema", path: "/app/configuracoes/assistencia", icon: Cog, exact: true },
+    { title: "Configurações do Sistema", path: "/app/configuracoes/sistema", icon: Cog },
   ];
 
   const toggleConfigMenu = () => {
