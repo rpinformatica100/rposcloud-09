@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Gift, Clock } from 'lucide-react';
+import { Check, Gift, Clock, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlanStatus } from '@/hooks/usePlanStatus';
 import AuthModal from '@/components/auth/AuthModal';
@@ -50,55 +50,75 @@ export default function TrialSection() {
   };
 
   return (
-    <section className="py-12 md:py-16 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <section className="py-16 md:py-24 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
       <div className="container px-4 md:px-6 mx-auto">
-        <div className="flex flex-col items-center justify-center space-y-4 text-center mb-10">
-          <div className="space-y-2">
-            <Badge variant="outline" className="border-blue-500 text-blue-600 animate-fade-in">
-              <Gift className="w-3 h-3 mr-1" />
-              Teste Grátis
+        <div className="flex flex-col items-center justify-center space-y-6 text-center mb-12">
+          <div className="space-y-4">
+            <Badge variant="outline" className="border-blue-500 text-blue-600 px-4 py-2 text-sm font-semibold">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Teste Grátis por 7 Dias
             </Badge>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl animate-fade-in">
-              Experimente gratuitamente por 7 dias
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
+              Experimente
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> Gratuitamente</span>
             </h2>
-            <p className="max-w-[700px] text-gray-600 md:text-xl/relaxed dark:text-gray-300 animate-fade-in mx-auto">
-              Teste todas as funcionalidades do RP OS Cloud sem compromisso. Sem cartão de crédito necessário.
+            <p className="max-w-2xl text-gray-600 md:text-xl leading-relaxed dark:text-gray-300 mx-auto">
+              Teste todas as funcionalidades do RP OS Cloud sem compromisso. 
+              <br className="hidden md:block" />
+              <strong>Sem cartão de crédito necessário.</strong>
             </p>
           </div>
         </div>
 
-        <div className="max-w-lg mx-auto">
-          <Card className="relative overflow-hidden border-2 border-blue-200 shadow-lg">
-            <div className="absolute top-0 right-0 bg-blue-500 text-white px-4 py-1 rounded-bl-lg font-medium">
-              <Clock className="w-3 h-3 inline mr-1" />
+        <div className="max-w-md mx-auto">
+          <Card className="relative overflow-hidden border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10"></div>
+            <div className="absolute top-0 right-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-bl-xl font-bold shadow-lg">
+              <Clock className="w-4 h-4 inline mr-2" />
               7 Dias Grátis
             </div>
             
-            <CardHeader className="text-center pb-4">
-              <CardTitle className="text-2xl text-blue-600">Trial Gratuito</CardTitle>
-              <CardDescription>
-                Acesso completo por 7 dias, sem limitações
+            <CardHeader className="text-center pb-6 pt-8 relative">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <Gift className="w-8 h-8 text-white" />
+              </div>
+              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Trial Gratuito
+              </CardTitle>
+              <CardDescription className="text-base text-gray-600">
+                Acesso completo por 7 dias, todas as funcionalidades liberadas
               </CardDescription>
             </CardHeader>
             
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-8 px-8 pb-8 relative">
               <div className="text-center">
-                <span className="text-4xl font-bold text-blue-600">R$ 0</span>
-                <span className="text-gray-500"> por 7 dias</span>
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    R$ 0
+                  </span>
+                  <div className="text-left">
+                    <div className="text-sm text-gray-500">por</div>
+                    <div className="text-sm font-semibold text-gray-700">7 dias</div>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500">Depois apenas R$ 49,90/mês</p>
               </div>
               
-              <ul className="space-y-3">
+              <ul className="space-y-4">
                 {trialFeatures.map((feature, index) => (
-                  <li key={index} className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-                    <span className="text-sm">{feature}</span>
+                  <li key={index} className="flex items-start gap-3">
+                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
+                      <Check className="h-3 w-3 text-green-600" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">{feature}</span>
                   </li>
                 ))}
               </ul>
               
-              <div className="bg-blue-50 rounded-lg p-4 text-center">
-                <p className="text-sm text-blue-700 font-medium mb-2">
-                  🎉 Sem cartão de crédito necessário
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 text-center border border-blue-100">
+                <div className="text-2xl mb-2">🎉</div>
+                <p className="text-sm font-semibold text-blue-700 mb-1">
+                  Sem cartão de crédito necessário
                 </p>
                 <p className="text-xs text-blue-600">
                   Cancele a qualquer momento durante o período de teste
@@ -107,12 +127,16 @@ export default function TrialSection() {
               
               <Button 
                 onClick={handleStartTrial}
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                 size="lg"
               >
-                <Gift className="w-4 h-4 mr-2" />
-                Começar Teste Grátis
+                <Gift className="w-5 h-5 mr-2" />
+                Começar Teste Grátis Agora
               </Button>
+              
+              <p className="text-xs text-center text-gray-500">
+                Ao clicar em "Começar Teste Grátis", você concorda com nossos termos de uso
+              </p>
             </CardContent>
           </Card>
         </div>

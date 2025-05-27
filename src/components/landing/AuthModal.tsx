@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,9 +15,10 @@ interface AuthModalProps {
   onClose: () => void;
   onSuccess: () => void;
   defaultTab?: 'login' | 'register';
+  plano?: any; // Quando vem de um plano específico
 }
 
-export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'login' }: AuthModalProps) {
+export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'login', plano }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -33,7 +33,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerSenha, setRegisterSenha] = useState("");
   const [confirmSenha, setConfirmSenha] = useState("");
-  const [tipoUsuario, setTipoUsuario] = useState<'cliente' | 'assistencia'>('cliente');
+  // Quando vem de um plano, assume que é assistência técnica
+  const [tipoUsuario, setTipoUsuario] = useState<'cliente' | 'assistencia'>(plano ? 'assistencia' : 'cliente');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,10 +131,13 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="w-5 h-5" />
-            Acesse sua conta
+            {plano ? 'Criar conta para assinar' : 'Acesse sua conta'}
           </DialogTitle>
           <DialogDescription>
-            Faça login ou crie uma conta para continuar
+            {plano 
+              ? `Crie uma conta para assinar o ${plano.nome}` 
+              : 'Faça login ou crie uma conta para continuar'
+            }
           </DialogDescription>
         </DialogHeader>
 
@@ -181,28 +185,41 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
 
           <TabsContent value="register" className="space-y-4">
             <form onSubmit={handleRegister} className="space-y-4">
-              <div className="space-y-3">
-                <Label>Tipo de conta</Label>
-                <RadioGroup value={tipoUsuario} onValueChange={(value) => setTipoUsuario(value as 'cliente' | 'assistencia')}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="cliente" id="cliente" />
-                    <Label htmlFor="cliente" className="flex items-center cursor-pointer">
-                      <User className="w-4 h-4 mr-2" />
-                      Cliente
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="assistencia" id="assistencia" />
-                    <Label htmlFor="assistencia" className="flex items-center cursor-pointer">
-                      <Building className="w-4 h-4 mr-2" />
-                      Assistência Técnica
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
+              {/* Mostrar seleção de tipo apenas quando não vem de um plano */}
+              {!plano && (
+                <div className="space-y-3">
+                  <Label>Tipo de conta</Label>
+                  <RadioGroup value={tipoUsuario} onValueChange={(value) => setTipoUsuario(value as 'cliente' | 'assistencia')}>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="cliente" id="cliente" />
+                      <Label htmlFor="cliente" className="flex items-center cursor-pointer">
+                        <User className="w-4 h-4 mr-2" />
+                        Cliente
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="assistencia" id="assistencia" />
+                      <Label htmlFor="assistencia" className="flex items-center cursor-pointer">
+                        <Building className="w-4 h-4 mr-2" />
+                        Assistência Técnica
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              )}
+
+              {plano && (
+                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-700 font-medium">
+                    Criando conta como Assistência Técnica para o {plano.nome}
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-2">
-                <Label htmlFor="register-nome">Nome {tipoUsuario === 'assistencia' ? 'da Empresa' : 'Completo'}</Label>
+                <Label htmlFor="register-nome">
+                  {tipoUsuario === 'assistencia' ? 'Nome da Empresa' : 'Nome Completo'}
+                </Label>
                 <Input
                   id="register-nome"
                   type="text"
@@ -256,7 +273,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
                 ) : (
                   <>
                     <UserPlus className="mr-2 h-4 w-4" />
-                    Criar Conta
+                    {plano ? `Criar Conta e Assinar ${plano.nome}` : 'Criar Conta'}
                   </>
                 )}
               </Button>

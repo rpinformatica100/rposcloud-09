@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -136,6 +135,22 @@ const PlanoAssinatura = () => {
       tipo: userPlan?.planType === 'enterprise' ? 'atual' : 'upgrade'
     }
   ]);
+
+  useEffect(() => {
+    // Verificar se o usuário tem plano ativo
+    if (userPlan) {
+      // Se o plano expirou ou é trial, permitir upgrade
+      if (userPlan.status === 'expired' || userPlan.planType === 'trial_plan') { // Corrigido: usar trial_plan
+        setMostrarPlanos(true);
+      } else if (userPlan.status === 'active') {
+        // Usuário já tem plano ativo
+        setMostrarPlanos(false);
+      }
+    } else {
+      // Sem plano, mostrar opções
+      setMostrarPlanos(true);
+    }
+  }, [userPlan]);
 
   if (!userPlan) {
     return (
