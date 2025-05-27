@@ -118,7 +118,7 @@ function App() {
                   {/* Settings */}
                   <Route path="configuracoes" element={<ConfiguracoesList />} />
                   <Route path="configuracoes/assistencia" element={<ConfiguracoesAssistencia />} />
-                  <Route path="configuracoes/perfil-empresa" element={<PerfilEmpresa />} />
+                  <Route path="configuracoes/perfil" element={<PerfilEmpresa />} />
                 </Route>
 
                 {/* Admin routes */}
