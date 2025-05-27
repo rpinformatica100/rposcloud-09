@@ -136,6 +136,8 @@ const PlanoAssinatura = () => {
     }
   ]);
 
+  const [mostrarPlanos, setMostrarPlanos] = useState(false);
+
   useEffect(() => {
     // Verificar se o usuário tem plano ativo
     if (userPlan) {
@@ -165,7 +167,7 @@ const PlanoAssinatura = () => {
   }
 
   const planNames = {
-    free_trial: 'Trial Gratuito',
+    trial_plan: 'Trial Gratuito',
     basic: 'Básico',
     professional: 'Profissional',
     enterprise: 'Enterprise'
@@ -282,7 +284,7 @@ const PlanoAssinatura = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{planNames[userPlan.planType]}</div>
-            {userPlan.planType !== 'free_trial' && (
+            {userPlan.planType !== 'trial_plan' && (
               <p className="text-xs text-muted-foreground">
                 {formatarMoeda(89.90)}/mês
               </p>
@@ -478,7 +480,7 @@ const PlanoAssinatura = () => {
 
         <TabsContent value="planos" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {planosDisponiveis.map((plano) => (
+            {mostrarPlanos && planosDisponiveis.map((plano) => (
               <Card key={plano.nome} className={`relative transition-all duration-200 hover:shadow-lg ${plano.recomendado ? 'border-primary ring-2 ring-primary/20' : ''} ${plano.tipo === 'atual' ? 'border-green-500' : ''}`}>
                 {plano.recomendado && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">

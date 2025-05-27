@@ -1,4 +1,5 @@
-import { createContext, useContext, useState } from 'react';
+
+import { createContext, useContext, useState, useEffect } from 'react';
 
 interface Usuario {
   id: string;
@@ -14,22 +15,51 @@ interface Usuario {
   data_vencimento_plano: string;
 }
 
+interface Profile {
+  nome: string;
+  email: string;
+  tipo: 'cliente' | 'assistencia';
+  empresa?: string;
+}
+
+interface Assistencia {
+  id?: string;
+  nome?: string;
+  logo?: string;
+  cadastroCompleto?: boolean;
+  mensagemCadastroExibida?: boolean;
+}
+
 interface AuthContextProps {
   usuario: Usuario | null;
+  user: Usuario | null;
+  profile: Profile | null;
+  assistencia: Assistencia | null;
   loading: boolean;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  isAssistencia: boolean;
   login: (email: string, senha: string) => Promise<boolean>;
   registrar: (nome: string, email: string, senha: string, tipo?: 'cliente' | 'assistencia') => Promise<boolean>;
   logout: () => void;
   atualizarUltimoAcesso: (id: string) => void;
+  atualizarPerfilAssistencia: (dados: Partial<Assistencia>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps>({
   usuario: null,
+  user: null,
+  profile: null,
+  assistencia: null,
   loading: true,
+  isAuthenticated: false,
+  isAdmin: false,
+  isAssistencia: false,
   login: async () => false,
   registrar: async () => false,
   logout: () => {},
-  atualizarUltimoAcesso: async () => {},
+  atualizarUltimoAcesso: () => {},
+  atualizarPerfilAssistencia: async () => {},
 });
 
 interface AuthProviderProps {
@@ -40,7 +70,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useState(() => {
+  useEffect(() => {
     const storedUser = localStorage.getItem('usuario');
     if (storedUser) {
       setUsuario(JSON.parse(storedUser));
@@ -82,7 +112,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         empresa: tipo === 'assistencia' ? nome : undefined,
         data_cadastro: new Date().toISOString(),
         ultimo_acesso: new Date().toISOString(),
-        plano: 'trial_plan', // Corrigido: usar trial_plan ao invés de free_trial
+        plano: 'trial_plan',
         status_plano: 'trial',
         data_vencimento_plano: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
       };
@@ -103,7 +133,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem('usuario');
   };
 
-  const atualizarUltimoAcesso = async (id: string) => {
+  const atualizarUltimoAcesso = (id: string) => {
     try {
       const storedUser = localStorage.getItem('usuario');
       if (storedUser) {
@@ -119,8 +149,50 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const atualizarPerfilAssistencia = async (dados: Partial<Assistencia>): Promise<void> => {
+    try {
+      // Mock implementation - em um ambiente real seria uma API call
+      console.log('Atualizando perfil da assistência:', dados);
+    } catch (error) {
+      console.error('Erro ao atualizar perfil da assistência:', error);
+    }
+  };
+
+  // Derived values
+  const isAuthenticated = !!usuario;
+  const isAdmin = usuario?.email === 'admin@sistema.com';
+  const isAssistencia = usuario?.tipo === 'assistencia';
+
+  const profile: Profile | null = usuario ? {
+    nome: usuario.nome,
+    email: usuario.email,
+    tipo: usuario.tipo,
+    empresa: usuario.empresa
+  } : null;
+
+  const assistencia: Assistencia | null = isAssistencia ? {
+    id: usuario?.id,
+    nome: usuario?.nome,
+    cadastroCompleto: false,
+    mensagemCadastroExibida: false
+  } : null;
+
   return (
-    <AuthContext.Provider value={{ usuario, loading, login, registrar, logout, atualizarUltimoAcesso }}>
+    <AuthContext.Provider value={{ 
+      usuario, 
+      user: usuario,
+      profile,
+      assistencia,
+      loading, 
+      isAuthenticated,
+      isAdmin,
+      isAssistencia,
+      login, 
+      registrar, 
+      logout, 
+      atualizarUltimoAcesso,
+      atualizarPerfilAssistencia
+    }}>
       {children}
     </AuthContext.Provider>
   );
