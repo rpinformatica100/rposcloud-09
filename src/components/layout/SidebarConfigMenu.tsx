@@ -3,6 +3,7 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Settings, ChevronDown, Building, Cog } from "lucide-react";
 import { LucideIcon } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ConfigMenuItem {
   title: string;
@@ -55,32 +56,36 @@ const SidebarConfigMenu = ({ isCollapsed }: SidebarConfigMenuProps) => {
         )}
       </button>
       
-      <div 
-        className={`
-          overflow-hidden transition-all duration-300 ease-in-out
-          ${configExpanded && !isCollapsed ? 'max-h-40 opacity-100 mb-2' : 'max-h-0 opacity-0'}
-        `}
-      >
-        <div className="ml-4 py-1 space-y-1 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
-          {configMenuItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.exact}
-              className={({ isActive }) => `
-                flex items-center px-3 py-2 mx-2 rounded-lg text-xs transition-all duration-200
-                ${isActive 
-                  ? "bg-primary/15 text-white font-medium shadow-sm" 
-                  : "text-gray-300 hover:bg-gray-700/70 hover:text-white"
-                }
-              `}
-            >
-              <item.icon size={14} className="flex-shrink-0" />
-              <span className="ml-3 truncate font-medium">{item.title}</span>
-            </NavLink>
-          ))}
+      {!isCollapsed && (
+        <div 
+          className={`
+            overflow-hidden transition-all duration-300 ease-in-out
+            ${configExpanded ? 'max-h-96 opacity-100 mb-2' : 'max-h-0 opacity-0'}
+          `}
+        >
+          <ScrollArea className="h-full max-h-80">
+            <div className="ml-4 py-1 space-y-1">
+              {configMenuItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  end={item.exact}
+                  className={({ isActive }) => `
+                    flex items-center px-3 py-2 mx-2 rounded-lg text-xs transition-all duration-200
+                    ${isActive 
+                      ? "bg-primary/15 text-white font-medium shadow-sm" 
+                      : "text-gray-300 hover:bg-gray-700/70 hover:text-white"
+                    }
+                  `}
+                >
+                  <item.icon size={14} className="flex-shrink-0" />
+                  <span className="ml-3 truncate font-medium">{item.title}</span>
+                </NavLink>
+              ))}
+            </div>
+          </ScrollArea>
         </div>
-      </div>
+      )}
     </div>
   );
 };
