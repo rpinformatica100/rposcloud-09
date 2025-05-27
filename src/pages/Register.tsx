@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Cloud } from "lucide-react";
 import { toast } from "sonner";
 
 const Register = () => {
@@ -55,8 +55,10 @@ const Register = () => {
       <div className="max-w-md w-full">
         <div className="text-center mb-6">
           <Link to="/" className="inline-flex items-center justify-center mb-2">
-            <div className="bg-primary text-white rounded-md w-10 h-10 flex items-center justify-center mr-2">OS</div>
-            <h1 className="text-3xl font-bold text-primary">Sistema OS</h1>
+            <div className="bg-primary text-white rounded-md w-10 h-10 flex items-center justify-center mr-2">
+              <Cloud size={20} />
+            </div>
+            <h1 className="text-3xl font-bold text-primary">RP OS Cloud</h1>
           </Link>
           <p className="text-gray-600 mt-1">Crie sua conta para acessar o sistema</p>
         </div>
