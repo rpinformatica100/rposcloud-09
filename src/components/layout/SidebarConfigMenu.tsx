@@ -46,7 +46,7 @@ const SidebarConfigMenu = ({ isCollapsed }: SidebarConfigMenuProps) => {
         <Settings size={20} className="flex-shrink-0" />
         {!isCollapsed && (
           <>
-            <span className="ml-3 flex-grow text-left text-sm">Configurações</span>
+            <span className="ml-3 flex-grow text-left text-sm font-medium">Configurações</span>
             <ChevronDown 
               size={16} 
               className={`transition-transform duration-200 ${configExpanded ? 'rotate-180' : 'rotate-0'}`} 
@@ -76,7 +76,7 @@ const SidebarConfigMenu = ({ isCollapsed }: SidebarConfigMenuProps) => {
               `}
             >
               <item.icon size={14} className="flex-shrink-0" />
-              <span className="ml-3 truncate">{item.title}</span>
+              <span className="ml-3 truncate font-medium">{item.title}</span>
             </NavLink>
           ))}
         </div>
