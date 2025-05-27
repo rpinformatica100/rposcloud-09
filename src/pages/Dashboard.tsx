@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -264,7 +263,7 @@ const Dashboard = () => {
                   <div 
                     key={ordem.id} 
                     className="p-4 border-b last:border-b-0 hover:bg-muted/20 cursor-pointer transition-colors"
-                    onClick={() => navigate(`/app/ordens/editar/${ordem.id}`)}
+                    onClick={() => navigate(`/app/ordens/${ordem.id}/editar`)}
                   >
                     {/* Mobile layout */}
                     <div className="sm:hidden space-y-2">

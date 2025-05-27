@@ -69,7 +69,7 @@ const OrdensList = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Ordens de Serviço</h1>
-        <Button onClick={() => navigate('/ordens/nova')}>
+        <Button onClick={() => navigate('/app/ordens/nova')}>
           <Plus className="mr-2 h-4 w-4" />
           Nova Ordem
         </Button>
@@ -157,7 +157,7 @@ const OrdensList = () => {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => navigate(`/ordens/visualizar/${ordem.id}`)}
+                        onClick={() => navigate(`/app/ordens/${ordem.id}`)}
                       >
                         <Eye className="h-4 w-4" />
                         <span className="sr-only">Visualizar</span>
@@ -165,7 +165,7 @@ const OrdensList = () => {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => navigate(`/ordens/editar/${ordem.id}`)}
+                        onClick={() => navigate(`/app/ordens/${ordem.id}/editar`)}
                       >
                         <Edit className="h-4 w-4" />
                         <span className="sr-only">Editar</span>
