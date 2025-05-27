@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect } from 'react';
 import { Assistencia } from '@/types';
 
@@ -65,7 +66,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const storedUser = localStorage.getItem('usuario');
     if (storedUser) {
-      setUsuario(JSON.parse(storedUser));
+      try {
+        setUsuario(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Erro ao carregar usuário do localStorage:', error);
+        localStorage.removeItem('usuario');
+      }
     }
     setLoading(false);
   }, []);
@@ -73,15 +79,39 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const login = async (email: string, senha: string): Promise<boolean> => {
     setLoading(true);
     try {
-      const storedUser = localStorage.getItem('usuario');
-      if (storedUser) {
-        const user = JSON.parse(storedUser) as Usuario;
-        if (user.email === email && user.senha === senha) {
-          setUsuario(user);
-          localStorage.setItem('usuario', JSON.stringify(user));
-          return true;
-        }
+      // Verificar usuário admin
+      if (email === 'admin@sistema.com' && senha === 'admin123') {
+        const adminUser: Usuario = {
+          id: 'admin',
+          nome: 'Administrador',
+          email: 'admin@sistema.com',
+          tipo: 'assistencia',
+          data_cadastro: new Date().toISOString(),
+          ultimo_acesso: new Date().toISOString(),
+          plano: 'enterprise_plan',
+          status_plano: 'ativo',
+          data_vencimento_plano: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+        };
+        setUsuario(adminUser);
+        localStorage.setItem('usuario', JSON.stringify(adminUser));
+        return true;
       }
+
+      // Verificar usuários registrados
+      const allUsers = JSON.parse(localStorage.getItem('all_users') || '[]') as Usuario[];
+      const user = allUsers.find(u => u.email === email && u.senha === senha);
+      
+      if (user) {
+        const updatedUser = { ...user, ultimo_acesso: new Date().toISOString() };
+        setUsuario(updatedUser);
+        localStorage.setItem('usuario', JSON.stringify(updatedUser));
+        
+        // Atualizar na lista de usuários
+        const updatedUsers = allUsers.map(u => u.id === user.id ? updatedUser : u);
+        localStorage.setItem('all_users', JSON.stringify(updatedUsers));
+        return true;
+      }
+
       return false;
     } catch (error) {
       console.error('Erro ao fazer login:', error);
@@ -91,9 +121,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const registrar = async (nome: string, email: string, senha: string, tipo: 'cliente' | 'assistencia' = 'cliente'): Promise<boolean> => {
+  const registrar = async (nome: string, email: string, senha: string, tipo: 'cliente' | 'assistencia' = 'assistencia'): Promise<boolean> => {
     try {
       setLoading(true);
+      
+      // Verificar se já existe usuário com este email
+      const allUsers = JSON.parse(localStorage.getItem('all_users') || '[]') as Usuario[];
+      if (allUsers.some(u => u.email === email)) {
+        console.error('Email já cadastrado');
+        return false;
+      }
       
       const novoUsuario: Usuario = {
         id: `user_${Date.now()}`,
@@ -109,6 +146,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         data_vencimento_plano: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
       };
 
+      // Salvar na lista de todos os usuários
+      const updatedUsers = [...allUsers, novoUsuario];
+      localStorage.setItem('all_users', JSON.stringify(updatedUsers));
+      
+      // Fazer login automático
       setUsuario(novoUsuario);
       localStorage.setItem('usuario', JSON.stringify(novoUsuario));
       return true;
@@ -127,14 +169,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const atualizarUltimoAcesso = (id: string) => {
     try {
-      const storedUser = localStorage.getItem('usuario');
-      if (storedUser) {
-        const user = JSON.parse(storedUser) as Usuario;
-        if (user.id === id) {
-          const updatedUser = { ...user, ultimo_acesso: new Date().toISOString() };
-          setUsuario(updatedUser);
-          localStorage.setItem('usuario', JSON.stringify(updatedUser));
-        }
+      if (usuario && usuario.id === id) {
+        const updatedUser = { ...usuario, ultimo_acesso: new Date().toISOString() };
+        setUsuario(updatedUser);
+        localStorage.setItem('usuario', JSON.stringify(updatedUser));
       }
     } catch (error) {
       console.error('Erro ao atualizar último acesso:', error);
@@ -143,7 +181,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const atualizarPerfilAssistencia = async (dados: Partial<Assistencia>): Promise<boolean> => {
     try {
-      // Mock implementation - em um ambiente real seria uma API call
       console.log('Atualizando perfil da assistência:', dados);
       return true;
     } catch (error) {

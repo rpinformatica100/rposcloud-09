@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -5,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { UserPlus, LogIn, User, Building } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -15,7 +15,7 @@ interface AuthModalProps {
   onClose: () => void;
   onSuccess: () => void;
   defaultTab?: 'login' | 'register';
-  plano?: any; // Quando vem de um plano específico
+  plano?: any;
 }
 
 export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'login', plano }: AuthModalProps) {
@@ -33,8 +33,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerSenha, setRegisterSenha] = useState("");
   const [confirmSenha, setConfirmSenha] = useState("");
-  // Quando vem de um plano, assume que é assistência técnica
-  const [tipoUsuario, setTipoUsuario] = useState<'cliente' | 'assistencia'>(plano ? 'assistencia' : 'cliente');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +45,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
           description: "Redirecionando para seu painel..."
         });
         onSuccess();
-        // Redirecionar para a área correta baseado no tipo de usuário
         if (loginEmail === "admin@sistema.com") {
           navigate("/admin");
         } else {
@@ -88,6 +85,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
     setLoading(true);
     
     try {
+      // Quando vem de um plano, sempre registra como assistência técnica
+      const tipoUsuario = plano ? 'assistencia' : 'assistencia';
       const success = await registrar(registerNome, registerEmail, registerSenha, tipoUsuario);
       if (success) {
         toast.success("Conta criada com sucesso!", {
@@ -97,7 +96,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
         navigate("/app");
       } else {
         toast.error("Erro ao criar conta", {
-          description: "Verifique os dados e tente novamente."
+          description: "Email pode já estar em uso. Tente outro email."
         });
       }
     } catch (error) {
@@ -117,7 +116,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
     setRegisterEmail("");
     setRegisterSenha("");
     setConfirmSenha("");
-    setTipoUsuario('cliente');
   };
 
   const handleClose = () => {
@@ -185,29 +183,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
 
           <TabsContent value="register" className="space-y-4">
             <form onSubmit={handleRegister} className="space-y-4">
-              {/* Mostrar seleção de tipo apenas quando não vem de um plano */}
-              {!plano && (
-                <div className="space-y-3">
-                  <Label>Tipo de conta</Label>
-                  <RadioGroup value={tipoUsuario} onValueChange={(value) => setTipoUsuario(value as 'cliente' | 'assistencia')}>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="cliente" id="cliente" />
-                      <Label htmlFor="cliente" className="flex items-center cursor-pointer">
-                        <User className="w-4 h-4 mr-2" />
-                        Cliente
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="assistencia" id="assistencia" />
-                      <Label htmlFor="assistencia" className="flex items-center cursor-pointer">
-                        <Building className="w-4 h-4 mr-2" />
-                        Assistência Técnica
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              )}
-
               {plano && (
                 <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
                   <p className="text-sm text-blue-700 font-medium">
@@ -217,13 +192,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="register-nome">
-                  {tipoUsuario === 'assistencia' ? 'Nome da Empresa' : 'Nome Completo'}
-                </Label>
+                <Label htmlFor="register-nome">Nome da Empresa</Label>
                 <Input
                   id="register-nome"
                   type="text"
-                  placeholder={tipoUsuario === 'assistencia' ? "Nome da sua assistência técnica" : "Seu nome completo"}
+                  placeholder="Nome da sua assistência técnica"
                   value={registerNome}
                   onChange={(e) => setRegisterNome(e.target.value)}
                   required

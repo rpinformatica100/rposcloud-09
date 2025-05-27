@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { UserPlus, LogIn, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -25,7 +24,6 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'login', plano }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [isLoading, setIsLoading] = useState(false);
-  const [tipoUsuario, setTipoUsuario] = useState<'assistencia' | 'cliente'>('assistencia');
   
   // Login states
   const [loginEmail, setLoginEmail] = useState("");
@@ -75,13 +73,15 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
     setIsLoading(true);
     
     try {
+      // Quando vem de um plano, sempre registra como assistência técnica
+      const tipoUsuario = plano ? 'assistencia' : 'assistencia';
       const success = await registrar(registerNome, registerEmail, registerSenha, tipoUsuario);
       if (success) {
         toast.success("Conta criada com sucesso!");
         onSuccess();
         onClose();
       } else {
-        toast.error("Erro ao criar conta");
+        toast.error("Erro ao criar conta. Email pode já estar em uso.");
       }
     } catch (error) {
       toast.error("Erro ao registrar");
@@ -151,26 +151,20 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
           
           <TabsContent value="register" className="space-y-4">
             <form onSubmit={handleRegister} className="space-y-4">
-              <div className="space-y-3">
-                <Label>Tipo de Conta</Label>
-                <RadioGroup value={tipoUsuario} onValueChange={(value) => setTipoUsuario(value as 'assistencia' | 'cliente')}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="assistencia" id="assistencia" />
-                    <Label htmlFor="assistencia">Assistência Técnica</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="cliente" id="cliente" />
-                    <Label htmlFor="cliente">Cliente</Label>
-                  </div>
-                </RadioGroup>
-              </div>
+              {plano && (
+                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-700 font-medium">
+                    Criando conta como Assistência Técnica para o {plano.nome}
+                  </p>
+                </div>
+              )}
               
               <div className="space-y-2">
-                <Label htmlFor="register-nome">Nome Completo</Label>
+                <Label htmlFor="register-nome">Nome da Empresa</Label>
                 <Input 
                   id="register-nome"
                   type="text" 
-                  placeholder="Seu nome completo"
+                  placeholder="Nome da sua assistência técnica"
                   value={registerNome}
                   onChange={(e) => setRegisterNome(e.target.value)}
                   required
