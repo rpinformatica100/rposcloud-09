@@ -7,6 +7,8 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
   CreditCard, 
   Calendar, 
@@ -21,39 +23,49 @@ import {
   ArrowUp,
   ArrowDown,
   Gift,
-  Zap
+  Zap,
+  Edit,
+  MapPin,
+  Phone,
+  Mail,
+  Save
 } from "lucide-react";
 import { formatarData, formatarMoeda } from "@/lib/utils";
 import { toast } from "sonner";
+import { usePlanStatus } from "@/hooks/usePlanStatus";
+import { PlanType, PaymentMethod, Address } from "@/types/plan";
 
 const PlanoAssinatura = () => {
+  const { userPlan, upgradePlan, cancelPlan, getTrialProgressPercentage } = usePlanStatus();
+  
   // Estados para modais e interações
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [addressModalOpen, setAddressModalOpen] = useState(false);
   const [planoParaUpgrade, setPlanoParaUpgrade] = useState<any>(null);
 
-  // Dados simulados - em um cenário real, viriam de uma API
-  const [planoAtual] = useState({
-    nome: "Plano Profissional",
-    preco: 89.90,
-    periodo: "mensal",
-    status: "ativo",
-    proximoVencimento: "2024-12-25",
-    diasRestantes: 15,
-    caracteristicas: [
-      "Até 1000 ordens de serviço/mês",
-      "5 usuários inclusos",
-      "Backup automático",
-      "Suporte prioritário",
-      "Relatórios avançados"
-    ],
-    uso: {
-      ordens: { usado: 245, limite: 1000 },
-      usuarios: { usado: 3, limite: 5 },
-      armazenamento: { usado: 2.5, limite: 10 } // GB
-    }
+  // Estados para formulários
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>({
+    type: 'credit_card',
+    last4: '1234',
+    brand: 'Visa',
+    expiryMonth: 12,
+    expiryYear: 2025
   });
 
+  const [billingAddress, setBillingAddress] = useState<Address>({
+    street: 'Rua das Flores',
+    number: '123',
+    complement: 'Apto 45',
+    neighborhood: 'Centro',
+    city: 'São Paulo',
+    state: 'SP',
+    zipCode: '01234-567',
+    country: 'Brasil'
+  });
+
+  // Dados simulados de histórico
   const [historicoPagamentos] = useState([
     {
       id: "1",
@@ -70,14 +82,6 @@ const PlanoAssinatura = () => {
       status: "pago",
       metodo: "Cartão de Crédito",
       descricao: "Mensalidade Plano Profissional"
-    },
-    {
-      id: "3",
-      data: "2024-09-25", 
-      valor: 89.90,
-      status: "pago",
-      metodo: "PIX",
-      descricao: "Mensalidade Plano Profissional"
     }
   ]);
 
@@ -85,6 +89,7 @@ const PlanoAssinatura = () => {
     {
       id: 1,
       nome: "Básico",
+      planType: "basic" as PlanType,
       preco: 29.90,
       periodo: "mensal",
       caracteristicas: [
@@ -95,11 +100,12 @@ const PlanoAssinatura = () => {
         "Backup semanal"
       ],
       recomendado: false,
-      tipo: "downgrade"
+      tipo: userPlan?.planType === 'basic' ? 'atual' : 'upgrade'
     },
     {
       id: 2,
       nome: "Profissional", 
+      planType: "professional" as PlanType,
       preco: 89.90,
       periodo: "mensal",
       caracteristicas: [
@@ -109,12 +115,13 @@ const PlanoAssinatura = () => {
         "Suporte prioritário",
         "Relatórios avançados"
       ],
-      recomendado: false,
-      tipo: "atual"
+      recomendado: true,
+      tipo: userPlan?.planType === 'professional' ? 'atual' : 'upgrade'
     },
     {
       id: 3,
       nome: "Enterprise",
+      planType: "enterprise" as PlanType,
       preco: 199.90,
       periodo: "mensal", 
       caracteristicas: [
@@ -125,31 +132,46 @@ const PlanoAssinatura = () => {
         "API personalizada",
         "Relatórios customizados"
       ],
-      recomendado: true,
-      tipo: "upgrade"
+      recomendado: false,
+      tipo: userPlan?.planType === 'enterprise' ? 'atual' : 'upgrade'
     }
   ]);
 
-  // Cálculos de economia
-  const calcularEconomia = (planoOrigem: any, planoDestino: any) => {
-    const economiaAnual = (planoOrigem.preco - planoDestino.preco) * 12;
-    return economiaAnual;
+  if (!userPlan) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Clock className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Carregando informações do plano</h3>
+          <p className="text-gray-500">Aguarde enquanto carregamos seus dados...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const planNames = {
+    free_trial: 'Trial Gratuito',
+    basic: 'Básico',
+    professional: 'Profissional',
+    enterprise: 'Enterprise'
   };
 
   const getStatusColor = (status: string) => {
     switch(status) {
-      case "ativo": return "bg-green-100 text-green-700";
-      case "vencido": return "bg-red-100 text-red-700";
-      case "cancelado": return "bg-gray-100 text-gray-700";
+      case "trial": return "bg-blue-100 text-blue-700";
+      case "active": return "bg-green-100 text-green-700";
+      case "expired": return "bg-red-100 text-red-700";
+      case "cancelled": return "bg-gray-100 text-gray-700";
       default: return "bg-blue-100 text-blue-700";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch(status) {
-      case "ativo": return <CheckCircle className="h-4 w-4" />;
-      case "vencido": return <AlertTriangle className="h-4 w-4" />;
-      case "cancelado": return <Clock className="h-4 w-4" />;
+      case "trial": return <Clock className="h-4 w-4" />;
+      case "active": return <CheckCircle className="h-4 w-4" />;
+      case "expired": return <AlertTriangle className="h-4 w-4" />;
+      case "cancelled": return <Clock className="h-4 w-4" />;
       default: return <Clock className="h-4 w-4" />;
     }
   };
@@ -161,8 +183,9 @@ const PlanoAssinatura = () => {
 
   const confirmarUpgrade = () => {
     if (planoParaUpgrade) {
-      toast.success(`Upgrade para ${planoParaUpgrade.nome} solicitado!`, {
-        description: "Você será redirecionado para o pagamento."
+      upgradePlan(planoParaUpgrade.planType);
+      toast.success(`Upgrade para ${planoParaUpgrade.nome} realizado!`, {
+        description: "Seu plano foi atualizado com sucesso."
       });
       setUpgradeModalOpen(false);
       setPlanoParaUpgrade(null);
@@ -174,16 +197,25 @@ const PlanoAssinatura = () => {
   };
 
   const confirmarCancelamento = () => {
+    cancelPlan();
     toast.success("Renovação automática cancelada", {
       description: "Seu plano permanecerá ativo até o vencimento."
     });
     setCancelModalOpen(false);
   };
 
-  const getProgressColor = (percentage: number) => {
-    if (percentage >= 90) return "bg-red-500";
-    if (percentage >= 70) return "bg-yellow-500";
-    return "bg-green-500";
+  const handleUpdatePaymentMethod = () => {
+    toast.success("Método de pagamento atualizado!", {
+      description: "Suas informações de cobrança foram salvas."
+    });
+    setPaymentModalOpen(false);
+  };
+
+  const handleUpdateAddress = () => {
+    toast.success("Endereço de cobrança atualizado!", {
+      description: "Suas informações de endereço foram salvas."
+    });
+    setAddressModalOpen(false);
   };
 
   return (
@@ -194,9 +226,11 @@ const PlanoAssinatura = () => {
           <p className="text-muted-foreground">Gerencie sua assinatura e histórico de pagamentos</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleCancelarRenovacao}>
-            Cancelar Renovação
-          </Button>
+          {userPlan.status !== 'trial' && (
+            <Button variant="outline" onClick={handleCancelarRenovacao}>
+              Cancelar Renovação
+            </Button>
+          )}
           <Button>
             <Gift className="h-4 w-4 mr-2" />
             Aplicar Cupom
@@ -205,11 +239,21 @@ const PlanoAssinatura = () => {
       </div>
 
       {/* Alertas importantes */}
-      {planoAtual.diasRestantes <= 7 && (
+      {userPlan.status === 'trial' && userPlan.remainingDays <= 3 && (
         <Alert className="border-yellow-200 bg-yellow-50">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Seu plano vence em {planoAtual.diasRestantes} dias. Renove para continuar usando todos os recursos.
+            Seu período gratuito termina em {userPlan.remainingDays} dias. 
+            {userPlan.remainingDays <= 1 ? ' Assine agora para não perder seus dados!' : ' Assine um plano para continuar.'}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {userPlan.status === 'expired' && (
+        <Alert className="border-red-200 bg-red-50">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Seu período gratuito expirou!</strong> Assine um plano para reativar todas as funcionalidades.
           </AlertDescription>
         </Alert>
       )}
@@ -222,14 +266,20 @@ const PlanoAssinatura = () => {
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{planoAtual.nome}</div>
-            <p className="text-xs text-muted-foreground">
-              {formatarMoeda(planoAtual.preco)}/{planoAtual.periodo}
-            </p>
+            <div className="text-2xl font-bold">{planNames[userPlan.planType]}</div>
+            {userPlan.planType !== 'free_trial' && (
+              <p className="text-xs text-muted-foreground">
+                {formatarMoeda(89.90)}/mês
+              </p>
+            )}
             <div className="flex items-center gap-2 mt-2">
-              <Badge className={getStatusColor(planoAtual.status)}>
-                {getStatusIcon(planoAtual.status)}
-                <span className="ml-1 capitalize">{planoAtual.status}</span>
+              <Badge className={getStatusColor(userPlan.status)}>
+                {getStatusIcon(userPlan.status)}
+                <span className="ml-1 capitalize">
+                  {userPlan.status === 'trial' ? 'Trial' : 
+                   userPlan.status === 'active' ? 'Ativo' : 
+                   userPlan.status === 'expired' ? 'Expirado' : 'Cancelado'}
+                </span>
               </Badge>
             </div>
           </CardContent>
@@ -237,34 +287,55 @@ const PlanoAssinatura = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Próximo Vencimento</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {userPlan.status === 'trial' ? 'Trial Termina Em' : 'Próximo Vencimento'}
+            </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatarData(planoAtual.proximoVencimento)}</div>
+            <div className="text-2xl font-bold">{formatarData(userPlan.endDate)}</div>
             <p className="text-xs text-muted-foreground">
-              {planoAtual.diasRestantes} dias restantes
+              {userPlan.remainingDays} dias restantes
             </p>
-            <Progress 
-              value={(planoAtual.diasRestantes / 30) * 100} 
-              className="mt-2"
-            />
+            {userPlan.status === 'trial' && (
+              <Progress 
+                value={getTrialProgressPercentage()} 
+                className="mt-2"
+              />
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Próximo Pagamento</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {userPlan.status === 'trial' ? 'Assine Agora' : 'Próximo Pagamento'}
+            </CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatarMoeda(planoAtual.preco)}</div>
-            <p className="text-xs text-muted-foreground">
-              Será cobrado em {formatarData(planoAtual.proximoVencimento)}
-            </p>
-            <Button size="sm" className="mt-2">
-              Atualizar Pagamento
-            </Button>
+            {userPlan.status === 'trial' ? (
+              <div>
+                <div className="text-2xl font-bold text-green-600">Grátis</div>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Período de avaliação
+                </p>
+                <Button size="sm" onClick={() => handleUpgradePlano(planosDisponiveis[1])}>
+                  <Zap className="h-4 w-4 mr-1" />
+                  Assinar
+                </Button>
+              </div>
+            ) : (
+              <div>
+                <div className="text-2xl font-bold">{formatarMoeda(89.90)}</div>
+                <p className="text-xs text-muted-foreground">
+                  Será cobrado em {formatarData(userPlan.endDate)}
+                </p>
+                <Button size="sm" className="mt-2" onClick={() => setPaymentModalOpen(true)}>
+                  Atualizar Pagamento
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -293,18 +364,13 @@ const PlanoAssinatura = () => {
                     <span className="font-medium">Ordens de Serviço</span>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    {planoAtual.uso.ordens.usado} / {planoAtual.uso.ordens.limite}
+                    25 / {userPlan.features.maxOrders === -1 ? '∞' : userPlan.features.maxOrders}
                   </span>
                 </div>
                 <Progress 
-                  value={(planoAtual.uso.ordens.usado / planoAtual.uso.ordens.limite) * 100}
+                  value={userPlan.features.maxOrders === -1 ? 10 : (25 / userPlan.features.maxOrders) * 100}
                   className="h-2"
                 />
-                {(planoAtual.uso.ordens.usado / planoAtual.uso.ordens.limite) * 100 > 80 && (
-                  <p className="text-xs text-yellow-600">
-                    Você está próximo do limite mensal. Considere fazer upgrade.
-                  </p>
-                )}
               </div>
 
               <div className="space-y-2">
@@ -314,11 +380,11 @@ const PlanoAssinatura = () => {
                     <span className="font-medium">Usuários</span>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    {planoAtual.uso.usuarios.usado} / {planoAtual.uso.usuarios.limite}
+                    1 / {userPlan.features.maxUsers === -1 ? '∞' : userPlan.features.maxUsers}
                   </span>
                 </div>
                 <Progress 
-                  value={(planoAtual.uso.usuarios.usado / planoAtual.uso.usuarios.limite) * 100}
+                  value={userPlan.features.maxUsers === -1 ? 5 : (1 / userPlan.features.maxUsers) * 100}
                   className="h-2"
                 />
               </div>
@@ -330,11 +396,11 @@ const PlanoAssinatura = () => {
                     <span className="font-medium">Armazenamento</span>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    {planoAtual.uso.armazenamento.usado}GB / {planoAtual.uso.armazenamento.limite}GB
+                    0.3GB / {userPlan.features.maxStorage}GB
                   </span>
                 </div>
                 <Progress 
-                  value={(planoAtual.uso.armazenamento.usado / planoAtual.uso.armazenamento.limite) * 100}
+                  value={(0.3 / userPlan.features.maxStorage) * 100}
                   className="h-2"
                 />
               </div>
@@ -347,38 +413,50 @@ const PlanoAssinatura = () => {
             <CardHeader>
               <CardTitle>Histórico de Pagamentos</CardTitle>
               <CardDescription>
-                Veja todos os seus pagamentos anteriores
+                {userPlan.status === 'trial' 
+                  ? 'Você ainda não possui histórico de pagamentos. Assine um plano para começar.' 
+                  : 'Veja todos os seus pagamentos anteriores'
+                }
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {historicoPagamentos.map((pagamento) => (
-                  <div key={pagamento.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-green-100 rounded-full">
-                        <CreditCard className="h-4 w-4 text-green-600" />
+              {userPlan.status === 'trial' ? (
+                <div className="text-center py-8">
+                  <CreditCard className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum pagamento ainda</h3>
+                  <p className="text-gray-500 mb-4">Assine um plano para começar seu histórico de pagamentos.</p>
+                  <Button onClick={() => handleUpgradePlano(planosDisponiveis[1])}>
+                    <Zap className="h-4 w-4 mr-2" />
+                    Ver Planos
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {historicoPagamentos.map((pagamento) => (
+                    <div key={pagamento.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-green-100 rounded-full">
+                          <CreditCard className="h-4 w-4 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{formatarMoeda(pagamento.valor)}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {formatarData(pagamento.data)} - {pagamento.metodo}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {pagamento.descricao}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{formatarMoeda(pagamento.valor)}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {formatarData(pagamento.data)} - {pagamento.metodo}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {pagamento.descricao}
-                        </p>
+                      <div className="text-right">
+                        <Badge className="bg-green-100 text-green-700">
+                          Pago
+                        </Badge>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <Badge className={getStatusColor(pagamento.status)}>
-                        {pagamento.status === "pago" ? "Pago" : "Pendente"}
-                      </Badge>
-                      <Button variant="ghost" size="sm" className="ml-2">
-                        Ver Detalhes
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -395,7 +473,7 @@ const PlanoAssinatura = () => {
                     </Badge>
                   </div>
                 )}
-                {plano.tipo === 'atual' && (
+                {userPlan.planType === plano.planType && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                     <Badge className="bg-green-500 text-white">
                       <CheckCircle className="h-3 w-3 mr-1" />
@@ -407,20 +485,11 @@ const PlanoAssinatura = () => {
                   <CardTitle className="text-xl flex items-center justify-center gap-2">
                     {plano.nome}
                     {plano.tipo === 'upgrade' && <ArrowUp className="h-4 w-4 text-green-500" />}
-                    {plano.tipo === 'downgrade' && <ArrowDown className="h-4 w-4 text-yellow-500" />}
                   </CardTitle>
                   <CardDescription>
                     <span className="text-3xl font-bold">{formatarMoeda(plano.preco)}</span>
                     <span className="text-muted-foreground">/{plano.periodo}</span>
                   </CardDescription>
-                  {plano.tipo === 'upgrade' && (
-                    <div className="mt-2 p-2 bg-green-50 rounded-lg">
-                      <p className="text-xs text-green-700">
-                        <Zap className="h-3 w-3 inline mr-1" />
-                        Recursos premium inclusos
-                      </p>
-                    </div>
-                  )}
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <ul className="space-y-2">
@@ -431,24 +500,14 @@ const PlanoAssinatura = () => {
                       </li>
                     ))}
                   </ul>
-                  
-                  {plano.tipo === 'upgrade' && (
-                    <div className="p-3 bg-blue-50 rounded-lg">
-                      <p className="text-xs text-blue-700 font-medium">
-                        Economia anual: {formatarMoeda(Math.abs(calcularEconomia(planoAtual, plano)))}
-                      </p>
-                    </div>
-                  )}
 
                   <Button 
                     className="w-full" 
-                    variant={plano.tipo === 'atual' ? "outline" : plano.recomendado ? "default" : "outline"}
-                    disabled={plano.tipo === 'atual'}
-                    onClick={() => plano.tipo !== 'atual' && handleUpgradePlano(plano)}
+                    variant={userPlan.planType === plano.planType ? "outline" : plano.recomendado ? "default" : "outline"}
+                    disabled={userPlan.planType === plano.planType}
+                    onClick={() => userPlan.planType !== plano.planType && handleUpgradePlano(plano)}
                   >
-                    {plano.tipo === 'atual' ? "Plano Atual" : 
-                     plano.tipo === 'upgrade' ? "Fazer Upgrade" : 
-                     "Fazer Downgrade"}
+                    {userPlan.planType === plano.planType ? "Plano Atual" : "Assinar Agora"}
                   </Button>
                 </CardContent>
               </Card>
@@ -467,46 +526,72 @@ const PlanoAssinatura = () => {
                 Gerencie suas informações de cobrança e pagamento
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <h4 className="font-medium">Método de Pagamento</h4>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <CreditCard className="h-6 w-6" />
-                    <div>
-                      <p className="font-medium">**** **** **** 1234</p>
-                      <p className="text-sm text-muted-foreground">Visa - Exp. 12/25</p>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">Método de Pagamento</h4>
+                    <Button variant="outline" size="sm" onClick={() => setPaymentModalOpen(true)}>
+                      <Edit className="h-4 w-4 mr-1" />
+                      Alterar
+                    </Button>
+                  </div>
+                  
+                  {userPlan.status === 'trial' ? (
+                    <div className="flex items-center gap-3 p-4 border rounded-lg bg-gray-50">
+                      <CreditCard className="h-6 w-6 text-gray-400" />
+                      <div>
+                        <p className="font-medium text-gray-600">Nenhum método configurado</p>
+                        <p className="text-sm text-gray-500">Configure quando assinar um plano</p>
+                      </div>
                     </div>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Alterar Método
-                  </Button>
+                  ) : (
+                    <div className="flex items-center gap-3 p-4 border rounded-lg">
+                      <CreditCard className="h-6 w-6" />
+                      <div>
+                        <p className="font-medium">**** **** **** {paymentMethod.last4}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {paymentMethod.brand} - Exp. {paymentMethod.expiryMonth}/{paymentMethod.expiryYear}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="space-y-2">
-                  <h4 className="font-medium">Endereço de Cobrança</h4>
-                  <div className="p-3 border rounded-lg text-sm">
-                    <p>Rua das Flores, 123</p>
-                    <p>Centro - São Paulo, SP</p>
-                    <p>01234-567</p>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">Endereço de Cobrança</h4>
+                    <Button variant="outline" size="sm" onClick={() => setAddressModalOpen(true)}>
+                      <MapPin className="h-4 w-4 mr-1" />
+                      Alterar
+                    </Button>
                   </div>
-                  <Button variant="outline" size="sm">
-                    Alterar Endereço
-                  </Button>
+                  
+                  <div className="p-4 border rounded-lg text-sm">
+                    <p>{billingAddress.street}, {billingAddress.number}</p>
+                    {billingAddress.complement && <p>{billingAddress.complement}</p>}
+                    <p>{billingAddress.neighborhood} - {billingAddress.city}, {billingAddress.state}</p>
+                    <p>{billingAddress.zipCode}</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                <div>
-                  <h4 className="font-medium text-blue-800">Renovação Automática</h4>
-                  <p className="text-sm text-blue-600">
-                    Sua assinatura será renovada automaticamente
-                  </p>
+              {userPlan.status !== 'trial' && (
+                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                  <div>
+                    <h4 className="font-medium text-blue-800">Renovação Automática</h4>
+                    <p className="text-sm text-blue-600">
+                      {userPlan.billing?.autoRenewal 
+                        ? 'Sua assinatura será renovada automaticamente'
+                        : 'Renovação automática desabilitada'
+                      }
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={handleCancelarRenovacao}>
+                    {userPlan.billing?.autoRenewal ? 'Cancelar Renovação' : 'Reativar Renovação'}
+                  </Button>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleCancelarRenovacao}>
-                  Cancelar Renovação
-                </Button>
-              </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -525,12 +610,17 @@ const PlanoAssinatura = () => {
                 <p className="text-sm text-muted-foreground">
                   Novo valor: {formatarMoeda(planoParaUpgrade.preco)}/mês
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  Diferença: +{formatarMoeda(planoParaUpgrade.preco - planoAtual.preco)}/mês
-                </p>
+                {userPlan.status !== 'trial' && (
+                  <p className="text-sm text-muted-foreground">
+                    Diferença: +{formatarMoeda(planoParaUpgrade.preco - 89.90)}/mês
+                  </p>
+                )}
               </div>
               <p className="text-sm text-muted-foreground">
-                O upgrade será aplicado imediatamente e você será cobrado proporcionalmente pelo período restante.
+                {userPlan.status === 'trial' 
+                  ? 'Seu período gratuito será convertido em uma assinatura paga.'
+                  : 'O upgrade será aplicado imediatamente e você será cobrado proporcionalmente pelo período restante.'
+                }
               </p>
             </div>
           )}
@@ -555,7 +645,7 @@ const PlanoAssinatura = () => {
             <p>Tem certeza que deseja cancelar a renovação automática?</p>
             <div className="p-4 bg-yellow-50 rounded-lg">
               <p className="text-sm text-yellow-800">
-                ⚠️ Seu plano permanecerá ativo até {formatarData(planoAtual.proximoVencimento)}, 
+                ⚠️ Seu plano permanecerá ativo até {formatarData(userPlan.endDate)}, 
                 mas não será renovado automaticamente.
               </p>
             </div>
@@ -566,6 +656,133 @@ const PlanoAssinatura = () => {
             </Button>
             <Button variant="destructive" onClick={confirmarCancelamento}>
               Cancelar Renovação
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Método de Pagamento */}
+      <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Atualizar Método de Pagamento</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="cardNumber">Número do Cartão</Label>
+              <Input 
+                id="cardNumber" 
+                placeholder="**** **** **** 1234"
+                value={`**** **** **** ${paymentMethod.last4}`}
+                readOnly
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="expiryMonth">Mês</Label>
+                <Input 
+                  id="expiryMonth" 
+                  value={paymentMethod.expiryMonth}
+                  onChange={(e) => setPaymentMethod({...paymentMethod, expiryMonth: parseInt(e.target.value)})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="expiryYear">Ano</Label>
+                <Input 
+                  id="expiryYear" 
+                  value={paymentMethod.expiryYear}
+                  onChange={(e) => setPaymentMethod({...paymentMethod, expiryYear: parseInt(e.target.value)})}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPaymentModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdatePaymentMethod}>
+              <Save className="h-4 w-4 mr-2" />
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Endereço */}
+      <Dialog open={addressModalOpen} onOpenChange={setAddressModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Atualizar Endereço de Cobrança</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-2">
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="street">Rua</Label>
+                <Input 
+                  id="street" 
+                  value={billingAddress.street}
+                  onChange={(e) => setBillingAddress({...billingAddress, street: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="number">Número</Label>
+                <Input 
+                  id="number" 
+                  value={billingAddress.number}
+                  onChange={(e) => setBillingAddress({...billingAddress, number: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="complement">Complemento</Label>
+              <Input 
+                id="complement" 
+                value={billingAddress.complement}
+                onChange={(e) => setBillingAddress({...billingAddress, complement: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="neighborhood">Bairro</Label>
+              <Input 
+                id="neighborhood" 
+                value={billingAddress.neighborhood}
+                onChange={(e) => setBillingAddress({...billingAddress, neighborhood: e.target.value})}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label htmlFor="city">Cidade</Label>
+                <Input 
+                  id="city" 
+                  value={billingAddress.city}
+                  onChange={(e) => setBillingAddress({...billingAddress, city: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="state">Estado</Label>
+                <Input 
+                  id="state" 
+                  value={billingAddress.state}
+                  onChange={(e) => setBillingAddress({...billingAddress, state: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="zipCode">CEP</Label>
+              <Input 
+                id="zipCode" 
+                value={billingAddress.zipCode}
+                onChange={(e) => setBillingAddress({...billingAddress, zipCode: e.target.value})}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddressModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdateAddress}>
+              <Save className="h-4 w-4 mr-2" />
+              Salvar
             </Button>
           </DialogFooter>
         </DialogContent>

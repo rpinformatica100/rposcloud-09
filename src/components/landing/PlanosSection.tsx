@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import AuthModal from '@/components/auth/AuthModal';
 import { PagamentoCheckout } from '@/types';
 import { toast } from "sonner";
 import { useAuth } from '@/contexts/AuthContext';
+import { usePlanStatus } from '@/hooks/usePlanStatus';
 
 type PlanoType = {
   id: number;
@@ -57,6 +57,7 @@ export default function PlanosSection() {
   });
 
   const { isAuthenticated } = useAuth();
+  const { userPlan } = usePlanStatus();
   const [modalPagamentoAberto, setModalPagamentoAberto] = useState(false);
   const [authModalAberto, setAuthModalAberto] = useState(false);
   const [planoSelecionado, setPlanoSelecionado] = useState<PlanoType | null>(null);
@@ -74,18 +75,24 @@ export default function PlanosSection() {
     setPlanoSelecionado(plano);
     
     if (!isAuthenticated) {
-      // Salvar plano selecionado no localStorage temporariamente
       localStorage.setItem('plano-pendente', JSON.stringify(plano));
       setAuthModalAberto(true);
     } else {
+      // Se já está autenticado e tem um plano trial, redirecionar para a página de assinatura
+      if (userPlan?.status === 'trial') {
+        window.location.href = '/assinatura';
+        return;
+      }
       setModalPagamentoAberto(true);
     }
   };
 
   const handleAuthSuccess = () => {
-    // Após autenticação bem-sucedida, abrir modal de pagamento
     setAuthModalAberto(false);
-    setModalPagamentoAberto(true);
+    // Redirecionar para a página de assinatura após autenticação
+    setTimeout(() => {
+      window.location.href = '/assinatura';
+    }, 1000);
   };
 
   const handleCheckout = (checkout: PagamentoCheckout) => {
@@ -174,6 +181,19 @@ export default function PlanosSection() {
                        " /ano"}
                     </span>
                   </div>
+                  
+                  {/* Mostrar informação especial sobre o trial gratuito */}
+                  {!isAuthenticated && (
+                    <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="text-sm text-blue-700 font-medium">
+                        🎉 Teste grátis por 7 dias!
+                      </p>
+                      <p className="text-xs text-blue-600">
+                        Experimente todas as funcionalidades sem compromisso
+                      </p>
+                    </div>
+                  )}
+                  
                   <ul className="space-y-2 text-left">
                     {features.map((feature, index) => (
                       <li key={index} className="flex items-center">
@@ -191,7 +211,7 @@ export default function PlanosSection() {
                     size="lg"
                     onClick={() => handleAssinatura(plano)}
                   >
-                    Assinar Agora
+                    {!isAuthenticated ? 'Começar Teste Grátis' : 'Assinar Agora'}
                   </Button>
                 </CardFooter>
               </Card>

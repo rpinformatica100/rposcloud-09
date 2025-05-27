@@ -1,9 +1,9 @@
-
 import { createContext, useState, useContext, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { Assistencia } from "@/types";
+import { UserPlan, PlanType } from "@/types/plan";
 
 interface AuthContextType {
   user: User | null;
@@ -18,6 +18,8 @@ interface AuthContextType {
   profile: ProfileType | null;
   assistencia: Assistencia | null;
   atualizarPerfilAssistencia: (dados: Partial<Assistencia>) => Promise<boolean>;
+  userPlan: UserPlan | null;
+  updateUserPlan: (plan: UserPlan) => void;
 }
 
 interface ProfileType {
@@ -84,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isAssistencia, setIsAssistencia] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
 
   // Função para buscar o perfil do usuário
   const fetchProfile = async (userId: string) => {
@@ -120,6 +123,82 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   };
 
+  const updateUserPlan = (plan: UserPlan) => {
+    setUserPlan(plan);
+    // Salvar no localStorage para persistir entre sessões
+    if (plan) {
+      localStorage.setItem(`plan_${plan.userId}`, JSON.stringify(plan));
+    }
+  };
+
+  const initializeUserPlan = (userId: string) => {
+    // Verificar se já existe um plano salvo
+    const savedPlan = localStorage.getItem(`plan_${userId}`);
+    
+    if (savedPlan) {
+      try {
+        const parsedPlan = JSON.parse(savedPlan);
+        const now = new Date();
+        const endDate = new Date(parsedPlan.endDate);
+        const remainingDays = Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+        
+        // Atualizar status baseado na data atual
+        let status = parsedPlan.status;
+        if (remainingDays <= 0 && (parsedPlan.planType === 'free_trial' || parsedPlan.status === 'trial')) {
+          status = 'expired';
+        }
+        
+        const updatedPlan = {
+          ...parsedPlan,
+          remainingDays,
+          status
+        };
+        
+        setUserPlan(updatedPlan);
+        return;
+      } catch (error) {
+        console.error('Erro ao carregar plano salvo:', error);
+      }
+    }
+    
+    // Criar plano trial para novos usuários
+    const trialStartDate = new Date().toISOString();
+    const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    
+    const newTrialPlan: UserPlan = {
+      id: `plan_${userId}`,
+      userId,
+      planType: 'free_trial',
+      status: 'trial',
+      startDate: trialStartDate,
+      endDate: trialEndDate,
+      trialStartDate,
+      trialEndDate,
+      isTrialUsed: true,
+      remainingDays: 7,
+      features: {
+        maxOrders: 50,
+        maxUsers: 2,
+        maxStorage: 1,
+        hasAdvancedReports: false,
+        hasPrioritySupport: false,
+        hasAPI: false,
+        hasCustomization: false,
+      },
+      billing: {
+        autoRenewal: false,
+      },
+    };
+    
+    setUserPlan(newTrialPlan);
+    localStorage.setItem(`plan_${userId}`, JSON.stringify(newTrialPlan));
+    
+    // Mostrar mensagem de boas-vindas para o trial
+    toast.success("Bem-vindo ao RP OS Cloud!", {
+      description: "Você tem 7 dias grátis para testar todas as funcionalidades.",
+    });
+  };
+
   useEffect(() => {
     // Configura o listener para mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -148,12 +227,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } else {
               setAssistencia(null);
             }
+            
+            // Inicializar plano do usuário
+            initializeUserPlan(newSession.user.id);
           }, 0);
         } else {
           setProfile(null);
           setIsAdmin(false);
           setIsAssistencia(false);
           setAssistencia(null);
+          setUserPlan(null);
         }
 
         setLoading(false);
@@ -183,6 +266,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setAssistencia(assistenciaData);
             });
           }
+          
+          // Inicializar plano do usuário
+          initializeUserPlan(currentSession.user.id);
         });
       }
 
@@ -227,6 +313,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('assistencia-profile', JSON.stringify(ASSISTENCIA_PROFILE));
         localStorage.setItem('assistencia-data', JSON.stringify(ASSISTENCIA_DATA));
         
+        // Inicializar plano para assistência
+        initializeUserPlan(ASSISTENCIA_PROFILE.id);
+        
         return true;
       }
       
@@ -248,13 +337,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsAdmin(userProfile?.role === 'admin');
         setIsAssistencia(userProfile?.tipo_usuario === 'assistencia');
         
-        // Se for uma assistência técnica, buscar dados adicionais
         if (userProfile?.tipo_usuario === 'assistencia') {
           const assistenciaData = await fetchAssistenciaData(data.user.id);
           setAssistencia(assistenciaData);
         } else {
           setAssistencia(null);
         }
+        
+        // Inicializar plano do usuário
+        initializeUserPlan(data.user.id);
         
         return true;
       }
@@ -295,7 +386,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           nome: nome,
           email: email,
           status: "Ativa",
-          plano: "Básico", // Plano padrão
+          plano: "Trial Gratuito",
           dataRegistro: new Date().toISOString().split('T')[0],
           userId: data.user.id
         };
@@ -303,6 +394,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Salvar em mock local
         MOCK_ASSISTENCIAS[data.user.id] = novaAssistencia;
         console.log("Assistência registrada em mock:", novaAssistencia);
+      }
+
+      // Inicializar plano trial para novos usuários
+      if (data?.user) {
+        initializeUserPlan(data.user.id);
       }
 
       return !!data?.user;
@@ -344,6 +440,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsAdmin(false);
       setIsAssistencia(false);
       setAssistencia(null);
+      setUserPlan(null);
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
       toast.error("Ocorreu um erro ao fazer logout");
@@ -445,7 +542,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       profile,
       assistencia,
-      atualizarPerfilAssistencia
+      atualizarPerfilAssistencia,
+      userPlan,
+      updateUserPlan
     }}>
       {children}
     </AuthContext.Provider>

@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import Sidebar from "./Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
+import PlanNotification from "@/components/plan/PlanNotification";
 
 const Layout = () => {
   const { isAuthenticated, loading } = useAuth();
@@ -59,10 +60,12 @@ const Layout = () => {
                 <h1 className="text-xl font-semibold text-gray-800">RP OS Cloud</h1>
                 <p className="text-sm text-gray-500">Sistema completo de gestão para assistências técnicas</p>
               </div>
+              <PlanNotification showInHeader={true} compact={true} />
             </div>
           </header>
           
           <main className="p-4 sm:p-6 md:p-8">
+            <PlanNotification />
             <Outlet />
           </main>
         </div>

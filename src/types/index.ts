@@ -200,3 +200,6 @@ export interface OrdemItemDB {
   created_at?: string;
   updated_at?: string;
 }
+
+// Exportar novos tipos de plano
+export * from './plan';
