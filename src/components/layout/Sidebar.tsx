@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -26,14 +27,14 @@ const Sidebar = () => {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   
-  // Menu items para assistências técnicas
+  // Menu items para assistências técnicas - FIXED PATHS
   const menuItems = [
-    { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard, exact: true },
-    { title: "Clientes", path: "/clientes", icon: Users },
-    { title: "Ordens de Serviço", path: "/ordens", icon: FileText },
-    { title: "Produtos", path: "/produtos", icon: Package },
-    { title: "Financeiro", path: "/financeiro", icon: CreditCard },
-    { title: "Relatórios", path: "/relatorios", icon: BarChart2 },
+    { title: "Dashboard", path: "/app", icon: LayoutDashboard, exact: true },
+    { title: "Clientes", path: "/app/clientes", icon: Users },
+    { title: "Ordens de Serviço", path: "/app/ordens", icon: FileText },
+    { title: "Produtos", path: "/app/produtos", icon: Package },
+    { title: "Financeiro", path: "/app/financeiro", icon: CreditCard },
+    { title: "Relatórios", path: "/app/relatorios", icon: BarChart2 },
   ];
 
   return (

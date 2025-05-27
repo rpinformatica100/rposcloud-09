@@ -28,7 +28,7 @@ const AdminSidebar = () => {
   
   const isCollapsed = state === "collapsed";
   
-  // Menu items para administradores
+  // Menu items para administradores - PATHS CORRETOS
   const menuItems = [
     { title: "Dashboard", path: "/admin", icon: LayoutDashboard },
     { title: "Assistências", path: "/admin/assistencias", icon: Users },
@@ -100,15 +100,15 @@ const AdminSidebar = () => {
                 to={item.path}
                 end={item.path === "/admin" || item.path === "/admin/relatorios"}
                 className={({ isActive }) => `
-                  flex items-center px-3 py-2.5 mx-2 my-1 rounded-lg
+                  flex items-center px-3 py-2.5 mx-2 my-1 rounded-lg transition-all duration-200
                   ${isActive 
-                    ? "bg-primary/20 text-white font-medium" 
-                    : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                    ? "bg-primary/20 text-white font-medium transform scale-105" 
+                    : "text-gray-300 hover:bg-gray-700 hover:text-white hover:transform hover:scale-102"
                   }
                 `}
               >
                 <item.icon size={20} className="flex-shrink-0" />
-                {!isCollapsed && <span className="ml-3">{item.title}</span>}
+                {!isCollapsed && <span className="ml-3 transition-all duration-200">{item.title}</span>}
               </NavLink>
             ))}
           </div>
@@ -136,7 +136,7 @@ const AdminSidebar = () => {
           
           <button 
             className={`
-              w-full rounded-lg transition-colors flex items-center justify-center
+              w-full rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-105
               ${!isCollapsed ? "px-3 py-2 space-x-2" : "p-2"}
               bg-red-900/30 hover:bg-red-800/50 text-red-300 
             `}
