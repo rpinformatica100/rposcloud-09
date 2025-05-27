@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useOrdemData } from "@/hooks/ordens/useOrdemData";
@@ -72,24 +71,11 @@ const OrdensView = () => {
         openFinalizarModal={() => setFinalizarModalOpen(true)}
       />
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Coluna lateral com informações do cliente - mais compacta */}
-        <div className="xl:col-span-1">
-          <ClienteCard cliente={ordem.cliente} />
-        </div>
-        
-        {/* Coluna principal com conteúdo reorganizado - 2 colunas */}
-        <div className="xl:col-span-2 space-y-6">
-          {/* SEÇÃO DESCRITIVA - Priorizada no topo */}
-          <OrdemDescricoes ordem={ordem} />
-          
-          {/* SEÇÃO FINANCEIRA - Produtos e valores por último */}
-          <OrdemItens itens={ordem.itens || []} valorTotal={ordem.valorTotal} />
-          
-          {/* Detalhes da finalização quando concluída */}
-          <DetalhesFinalizacao ordem={ordem} />
-        </div>
-      </div>
+      {/* Conteúdo reorganizado para layout sequencial */}
+      <ClienteCard cliente={ordem.cliente} />
+      <OrdemDescricoes ordem={ordem} />
+      <OrdemItens itens={ordem.itens || []} valorTotal={ordem.valorTotal} />
+      <DetalhesFinalizacao ordem={ordem} />
 
       {/* Modal de finalização */}
       <FinalizarOrdemModal 
