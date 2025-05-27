@@ -5,7 +5,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Smartphone } from "lucide-react";
+import { CreditCard, Smartphone, User } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ModalPagamentoProps {
   isOpen: boolean;
@@ -21,13 +22,17 @@ interface ModalPagamentoProps {
 export default function ModalPagamento({ isOpen, onClose, plano, onCheckout }: ModalPagamentoProps) {
   const [metodoPagamento, setMetodoPagamento] = useState<'stripe' | 'mercadopago'>('stripe');
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
 
   const handleCheckout = () => {
     const params = new URLSearchParams({
       planoId: plano.id.toString(),
       metodo: metodoPagamento,
       preco: plano.preco.toString(),
-      plano: plano.nome
+      plano: plano.nome,
+      userId: user?.id || '',
+      userEmail: user?.email || '',
+      userName: profile?.nome || ''
     });
     
     navigate(`/checkout?${params.toString()}`);
@@ -38,9 +43,19 @@ export default function ModalPagamento({ isOpen, onClose, plano, onCheckout }: M
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Escolha o método de pagamento</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <User className="w-5 h-5" />
+            Escolha o método de pagamento
+          </DialogTitle>
           <DialogDescription>
-            Plano selecionado: <strong>{plano.nome}</strong> - R$ {plano.preco.toFixed(2).replace('.', ',')}
+            <div className="space-y-2">
+              <div>Plano selecionado: <strong>{plano.nome}</strong> - R$ {plano.preco.toFixed(2).replace('.', ',')}</div>
+              {user && (
+                <div className="text-sm text-gray-600">
+                  Usuário: {profile?.nome || user.email}
+                </div>
+              )}
+            </div>
           </DialogDescription>
         </DialogHeader>
 
@@ -74,7 +89,7 @@ export default function ModalPagamento({ isOpen, onClose, plano, onCheckout }: M
               Cancelar
             </Button>
             <Button onClick={handleCheckout} className="flex-1">
-              Continuar
+              Continuar para Pagamento
             </Button>
           </div>
         </div>

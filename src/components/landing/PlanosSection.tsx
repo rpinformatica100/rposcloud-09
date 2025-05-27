@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from '@tanstack/react-query';
 import ModalPagamento from './ModalPagamento';
+import AuthModal from '@/components/auth/AuthModal';
 import { PagamentoCheckout } from '@/types';
 import { toast } from "sonner";
+import { useAuth } from '@/contexts/AuthContext';
 
 type PlanoType = {
   id: number;
@@ -54,7 +56,9 @@ export default function PlanosSection() {
     queryFn: fetchPlanos
   });
 
+  const { isAuthenticated } = useAuth();
   const [modalPagamentoAberto, setModalPagamentoAberto] = useState(false);
+  const [authModalAberto, setAuthModalAberto] = useState(false);
   const [planoSelecionado, setPlanoSelecionado] = useState<PlanoType | null>(null);
 
   // Features comuns a todos os planos
@@ -68,6 +72,19 @@ export default function PlanosSection() {
 
   const handleAssinatura = (plano: PlanoType) => {
     setPlanoSelecionado(plano);
+    
+    if (!isAuthenticated) {
+      // Salvar plano selecionado no localStorage temporariamente
+      localStorage.setItem('plano-pendente', JSON.stringify(plano));
+      setAuthModalAberto(true);
+    } else {
+      setModalPagamentoAberto(true);
+    }
+  };
+
+  const handleAuthSuccess = () => {
+    // Após autenticação bem-sucedida, abrir modal de pagamento
+    setAuthModalAberto(false);
     setModalPagamentoAberto(true);
   };
 
@@ -88,10 +105,31 @@ export default function PlanosSection() {
     }
   };
 
+  // Recuperar plano pendente após login/registro
+  useEffect(() => {
+    if (isAuthenticated) {
+      const planoPendente = localStorage.getItem('plano-pendente');
+      if (planoPendente) {
+        try {
+          const plano = JSON.parse(planoPendente);
+          setPlanoSelecionado(plano);
+          localStorage.removeItem('plano-pendente');
+          // Pequeno delay para melhor UX
+          setTimeout(() => {
+            setModalPagamentoAberto(true);
+          }, 500);
+        } catch (error) {
+          console.error('Erro ao recuperar plano pendente:', error);
+          localStorage.removeItem('plano-pendente');
+        }
+      }
+    }
+  }, [isAuthenticated]);
+
   return (
-    <section id="planos" className="py-16 md:py-24 bg-gray-50 dark:bg-gray-900">
+    <section id="planos" className="py-12 md:py-16 bg-gray-50 dark:bg-gray-900">
       <div className="container px-4 md:px-6 mx-auto">
-        <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+        <div className="flex flex-col items-center justify-center space-y-4 text-center mb-10">
           <div className="space-y-2">
             <Badge variant="outline" className="border-primary text-primary animate-fade-in">Planos & Preços</Badge>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl animate-fade-in">Escolha o plano ideal para o seu negócio</h2>
@@ -114,7 +152,7 @@ export default function PlanosSection() {
         )}
 
         {planos && planos.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
             {planos.map((plano) => (
               <Card key={plano.id} 
                 className={`relative overflow-hidden transition-all duration-300 hover:shadow-lg hover-scale ${plano.destacado ? "border-2 border-primary" : ""}`}>
@@ -161,6 +199,16 @@ export default function PlanosSection() {
           </div>
         )}
 
+        {/* Modal de Autenticação */}
+        <AuthModal
+          isOpen={authModalAberto}
+          onClose={() => setAuthModalAberto(false)}
+          onSuccess={handleAuthSuccess}
+          defaultTab="register"
+          plano={planoSelecionado || undefined}
+        />
+
+        {/* Modal de Pagamento */}
         {planoSelecionado && (
           <ModalPagamento
             isOpen={modalPagamentoAberto}
