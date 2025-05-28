@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Table, 
@@ -18,24 +17,26 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { Switch } from "@/components/ui/switch";
 
-type PlanoType = {
+type PlanoAdminType = {
   id: number;
   nome: string;
   periodo: "mensal" | "trimestral" | "anual";
   preco: number;
   destacado: boolean;
   descricao: string;
+  ativo: boolean;
 }
 
 const PlanosList = () => {
-  const [planos, setPlanos] = useState<PlanoType[]>([
+  const [planos, setPlanos] = useState<PlanoAdminType[]>([
     { 
       id: 1, 
       nome: "Plano Mensal", 
       periodo: "mensal",
       preco: 49.90,
       destacado: false,
-      descricao: "Acesso completo por 1 mês"
+      descricao: "Faturamento mensal - flexibilidade máxima",
+      ativo: true
     },
     { 
       id: 2, 
@@ -43,7 +44,8 @@ const PlanosList = () => {
       periodo: "trimestral",
       preco: 129.90,
       destacado: true,
-      descricao: "Acesso completo por 3 meses, economia de 15%"
+      descricao: "Faturamento trimestral - economia de 13%",
+      ativo: true
     },
     { 
       id: 3, 
@@ -51,25 +53,32 @@ const PlanosList = () => {
       periodo: "anual",
       preco: 399.90,
       destacado: false,
-      descricao: "Acesso completo por 12 meses, economia de 35%"
+      descricao: "Faturamento anual - máxima economia de 33%",
+      ativo: true
     }
   ]);
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [currentPlano, setCurrentPlano] = useState<PlanoType | null>(null);
+  const [currentPlano, setCurrentPlano] = useState<PlanoAdminType | null>(null);
 
-  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<PlanoType>();
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<PlanoAdminType>();
 
   // CRUD functions
-  const handleAdd = (data: Omit<PlanoType, 'id'>) => {
+  const handleAdd = (data: Omit<PlanoAdminType, 'id'>) => {
     const newId = Math.max(0, ...planos.map(p => p.id)) + 1;
     
-    const newPlano: PlanoType = {
+    const newPlano: PlanoAdminType = {
       id: newId,
       ...data,
+      ativo: true,
     };
+    
+    // Se o novo plano for destacado, remover destaque dos outros
+    if (newPlano.destacado) {
+      setPlanos(prev => prev.map(p => ({ ...p, destacado: false })));
+    }
     
     setPlanos(prev => [...prev, newPlano]);
     setIsAddDialogOpen(false);
@@ -77,10 +86,13 @@ const PlanosList = () => {
     toast.success("Plano adicionado com sucesso!");
   };
 
-  const handleEdit = (data: PlanoType) => {
-    const updatedPlano = {
-      ...data,
-    };
+  const handleEdit = (data: PlanoAdminType) => {
+    // Se o plano editado for destacado, remover destaque dos outros
+    if (data.destacado) {
+      setPlanos(prev => prev.map(p => ({ ...p, destacado: false })));
+    }
+    
+    const updatedPlano = { ...data };
     
     setPlanos(prev => 
       prev.map(item => item.id === currentPlano?.id ? updatedPlano : item)
@@ -109,7 +121,17 @@ const PlanosList = () => {
     toast.success("Plano destacado atualizado!");
   };
 
-  const openEditDialog = (plano: PlanoType) => {
+  const toggleAtivo = (planoId: number) => {
+    setPlanos(prev => 
+      prev.map(plano => ({
+        ...plano,
+        ativo: plano.id === planoId ? !plano.ativo : plano.ativo
+      }))
+    );
+    toast.success("Status do plano atualizado!");
+  };
+
+  const openEditDialog = (plano: PlanoAdminType) => {
     setCurrentPlano(plano);
     setValue("id", plano.id);
     setValue("nome", plano.nome);
@@ -117,23 +139,29 @@ const PlanosList = () => {
     setValue("preco", plano.preco);
     setValue("destacado", plano.destacado);
     setValue("descricao", plano.descricao);
+    setValue("ativo", plano.ativo);
     setIsEditDialogOpen(true);
   };
 
-  const openDeleteDialog = (plano: PlanoType) => {
+  const openDeleteDialog = (plano: PlanoAdminType) => {
     setCurrentPlano(plano);
     setIsDeleteDialogOpen(true);
   };
 
-  // Watch if the current form value has destacado=true
-  const isDestacado = watch("destacado");
+  const calcularEconomia = (periodo: string, preco: number) => {
+    const precoMensal = 49.90;
+    const meses = periodo === "trimestral" ? 3 : periodo === "anual" ? 12 : 1;
+    const precoSemDesconto = precoMensal * meses;
+    const economia = ((precoSemDesconto - preco) / precoSemDesconto * 100);
+    return economia > 0 ? economia.toFixed(0) : "0";
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Planos</h1>
-          <p className="text-muted-foreground">Gerencie os planos de assinatura disponíveis.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Gestão de Planos</h1>
+          <p className="text-muted-foreground">Configure os planos de assinatura disponíveis para os usuários.</p>
         </div>
         <Button onClick={() => {
           reset();
@@ -143,6 +171,19 @@ const PlanosList = () => {
           Novo Plano
         </Button>
       </div>
+
+      {/* Informações importantes */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardHeader>
+          <CardTitle className="text-blue-700">Informações Importantes</CardTitle>
+        </CardHeader>
+        <CardContent className="text-blue-600 text-sm space-y-2">
+          <p>• Todos os planos têm as mesmas funcionalidades</p>
+          <p>• A diferença entre os planos é apenas o período de faturamento</p>
+          <p>• O trial gratuito dá acesso completo por tempo limitado</p>
+          <p>• Apenas um plano pode ser destacado como "recomendado" por vez</p>
+        </CardContent>
+      </Card>
       
       <Card>
         <CardHeader>
@@ -155,13 +196,15 @@ const PlanosList = () => {
                 <TableHead>Nome</TableHead>
                 <TableHead>Período</TableHead>
                 <TableHead>Preço</TableHead>
+                <TableHead>Economia</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Destacado</TableHead>
                 <TableHead className="w-[100px] text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {planos.map((plano) => (
-                <TableRow key={plano.id}>
+                <TableRow key={plano.id} className={!plano.ativo ? "opacity-50" : ""}>
                   <TableCell className="font-medium">{plano.nome}</TableCell>
                   <TableCell>
                     {plano.periodo === "mensal" ? "Mensal" : 
@@ -169,6 +212,22 @@ const PlanosList = () => {
                      "Anual"}
                   </TableCell>
                   <TableCell>R$ {plano.preco.toFixed(2).replace('.', ',')}</TableCell>
+                  <TableCell>
+                    {plano.periodo !== "mensal" && (
+                      <span className="text-green-600 font-medium">
+                        {calcularEconomia(plano.periodo, plano.preco)}% economia
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant={plano.ativo ? "outline" : "secondary"}
+                      size="sm"
+                      onClick={() => toggleAtivo(plano.id)}
+                    >
+                      {plano.ativo ? "Ativo" : "Inativo"}
+                    </Button>
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center">
                       {plano.destacado ? 
@@ -271,7 +330,7 @@ const PlanosList = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="periodo">Período</Label>
+              <Label htmlFor="periodo">Período de Faturamento</Label>
               <select 
                 id="periodo"
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

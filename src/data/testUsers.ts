@@ -1,4 +1,3 @@
-
 // Usuários de teste predefinidos para o sistema
 export interface TestUser {
   id: string;
@@ -27,40 +26,40 @@ export const testUsers: TestUser[] = [
     data_vencimento_plano: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
-    id: 'user_basic_001',
-    nome: 'Assistência Básica',
-    email: 'basico@teste.com',
+    id: 'user_monthly_001',
+    nome: 'Assistência Mensal',
+    email: 'mensal@teste.com',
     senha: '123456',
     tipo: 'assistencia',
-    empresa: 'Assistência Básica Ltda',
-    plano: 'basic',
+    empresa: 'Assistência Mensal Ltda',
+    plano: 'monthly',
     status_plano: 'active',
     data_cadastro: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     data_vencimento_plano: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
-    id: 'user_pro_001',
-    nome: 'Assistência Profissional',
-    email: 'profissional@teste.com',
+    id: 'user_quarterly_001',
+    nome: 'Assistência Trimestral',
+    email: 'trimestral@teste.com',
     senha: '123456',
     tipo: 'assistencia',
-    empresa: 'Assistência Pro Ltda',
-    plano: 'professional',
+    empresa: 'Assistência Trimestral Ltda',
+    plano: 'quarterly',
     status_plano: 'active',
     data_cadastro: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-    data_vencimento_plano: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString()
+    data_vencimento_plano: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
-    id: 'user_enterprise_001',
-    nome: 'Assistência Enterprise',
-    email: 'enterprise@teste.com',
+    id: 'user_yearly_001',
+    nome: 'Assistência Anual',
+    email: 'anual@teste.com',
     senha: '123456',
     tipo: 'assistencia',
-    empresa: 'Assistência Enterprise Ltda',
-    plano: 'enterprise',
+    empresa: 'Assistência Anual Ltda',
+    plano: 'yearly',
     status_plano: 'active',
     data_cadastro: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-    data_vencimento_plano: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+    data_vencimento_plano: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: 'user_expired_001',
@@ -81,7 +80,6 @@ export const initializeTestUsers = () => {
   const existingUsers = JSON.parse(localStorage.getItem('all_users') || '[]');
   const allUserEmails = existingUsers.map((user: any) => user.email);
   
-  // Adicionar apenas usuários que não existem
   const newUsers = testUsers.filter(testUser => !allUserEmails.includes(testUser.email));
   
   if (newUsers.length > 0) {
@@ -97,7 +95,6 @@ export const initializeTestUsers = () => {
 export const resetTestData = () => {
   localStorage.removeItem('all_users');
   localStorage.removeItem('usuario');
-  // Remover todos os planos de usuários
   Object.keys(localStorage).forEach(key => {
     if (key.startsWith('plan_')) {
       localStorage.removeItem(key);

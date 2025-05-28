@@ -1,5 +1,6 @@
+
 export type PlanStatus = 'trial' | 'active' | 'expired' | 'cancelled' | 'blocked';
-export type PlanType = 'trial_plan' | 'basic' | 'professional' | 'enterprise';
+export type PlanType = 'trial_plan' | 'monthly' | 'quarterly' | 'yearly';
 
 export interface UserPlan {
   id: string;
@@ -14,17 +15,14 @@ export interface UserPlan {
   remainingDays: number;
   features: PlanFeatures;
   billing?: BillingInfo;
-  isPaid: boolean; // Nova propriedade para distinguir planos pagos
+  isPaid: boolean;
 }
 
 export interface PlanFeatures {
-  maxOrders: number;
-  maxUsers: number;
-  maxStorage: number; // in GB
-  hasAdvancedReports: boolean;
-  hasPrioritySupport: boolean;
-  hasAPI: boolean;
-  hasCustomization: boolean;
+  // Trial tem limitação de tempo, mas funcionalidades completas
+  // Planos pagos têm funcionalidades completas sem limitação de tempo
+  hasFullAccess: boolean;
+  maxTrialDays?: number;
 }
 
 export interface BillingInfo {
@@ -61,64 +59,52 @@ export interface PlanLimitation {
   upgradeRequired: boolean;
 }
 
+// Configurações simplificadas - apenas Trial vs Pago
 export const PLAN_CONFIGS: Record<PlanType, PlanFeatures> = {
   trial_plan: {
-    maxOrders: 50,
-    maxUsers: 2,
-    maxStorage: 1,
-    hasAdvancedReports: false,
-    hasPrioritySupport: false,
-    hasAPI: false,
-    hasCustomization: false,
+    hasFullAccess: true,
+    maxTrialDays: 7,
   },
-  basic: {
-    maxOrders: 100,
-    maxUsers: 2,
-    maxStorage: 5,
-    hasAdvancedReports: false,
-    hasPrioritySupport: false,
-    hasAPI: false,
-    hasCustomization: false,
+  monthly: {
+    hasFullAccess: true,
   },
-  professional: {
-    maxOrders: 1000,
-    maxUsers: 5,
-    maxStorage: 10,
-    hasAdvancedReports: true,
-    hasPrioritySupport: true,
-    hasAPI: false,
-    hasCustomization: false,
+  quarterly: {
+    hasFullAccess: true,
   },
-  enterprise: {
-    maxOrders: -1, // unlimited
-    maxUsers: -1, // unlimited
-    maxStorage: 100,
-    hasAdvancedReports: true,
-    hasPrioritySupport: true,
-    hasAPI: true,
-    hasCustomization: true,
+  yearly: {
+    hasFullAccess: true,
   },
 };
 
+// Metadados com preços por período
 export const PLAN_METADATA = {
   trial_plan: {
     name: 'Trial Gratuito',
     isPaid: false,
     trialDays: 7,
+    description: 'Acesso completo por 7 dias',
   },
-  basic: {
-    name: 'Básico',
+  monthly: {
+    name: 'Plano Mensal',
     isPaid: true,
     price: 49.90,
+    description: 'Faturamento mensal',
+    period: 'mensal',
   },
-  professional: {
-    name: 'Profissional',
+  quarterly: {
+    name: 'Plano Trimestral',
     isPaid: true,
     price: 129.90,
+    description: 'Faturamento trimestral - economia de 13%',
+    period: 'trimestral',
+    savings: 13,
   },
-  enterprise: {
-    name: 'Enterprise',
+  yearly: {
+    name: 'Plano Anual',
     isPaid: true,
     price: 399.90,
+    description: 'Faturamento anual - economia de 33%',
+    period: 'anual',
+    savings: 33,
   },
 } as const;

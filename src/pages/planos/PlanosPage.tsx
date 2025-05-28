@@ -9,17 +9,17 @@ import {
   Star,
   Zap,
   ArrowUp,
-  Users,
-  Database,
   Shield,
   HeadphonesIcon,
   BarChart3,
-  Code
+  Users,
+  Database,
+  Clock
 } from "lucide-react";
 import { formatarMoeda } from "@/lib/utils";
 import { toast } from "sonner";
 import { usePlanStatus } from "@/hooks/usePlanStatus";
-import { PlanType } from "@/types/plan";
+import { PlanType, PLAN_METADATA } from "@/types/plan";
 
 const PlanosPage = () => {
   const { userPlan, upgradePlan } = usePlanStatus();
@@ -29,54 +29,53 @@ const PlanosPage = () => {
   const planosDisponiveis = [
     {
       id: 1,
-      nome: "Básico",
-      planType: "basic" as PlanType,
-      preco: 29.90,
-      periodo: "mensal",
-      descricao: "Ideal para assistências pequenas",
+      nome: "Mensal",
+      planType: "monthly" as PlanType,
+      preco: 49.90,
+      periodo: "mês",
+      descricao: "Faturamento mensal",
       caracteristicas: [
-        { icon: Database, text: "Até 100 ordens/mês" },
-        { icon: Users, text: "2 usuários" },
-        { icon: Shield, text: "5GB de armazenamento" },
-        { icon: HeadphonesIcon, text: "Suporte por email" },
-        { icon: BarChart3, text: "Relatórios básicos" }
+        { icon: Database, text: "Funcionalidades completas" },
+        { icon: Users, text: "Usuários ilimitados" },
+        { icon: Shield, text: "Backup automático" },
+        { icon: HeadphonesIcon, text: "Suporte técnico" },
+        { icon: BarChart3, text: "Relatórios avançados" }
       ],
       recomendado: false,
       cor: "blue"
     },
     {
       id: 2,
-      nome: "Profissional", 
-      planType: "professional" as PlanType,
-      preco: 89.90,
-      periodo: "mensal",
-      descricao: "Para assistências em crescimento",
+      nome: "Trimestral", 
+      planType: "quarterly" as PlanType,
+      preco: 129.90,
+      periodo: "trimestre",
+      descricao: "Faturamento trimestral - economia de 13%",
       caracteristicas: [
-        { icon: Database, text: "Até 1000 ordens/mês" },
-        { icon: Users, text: "5 usuários" },
-        { icon: Shield, text: "10GB de armazenamento" },
-        { icon: HeadphonesIcon, text: "Suporte prioritário" },
+        { icon: Database, text: "Funcionalidades completas" },
+        { icon: Users, text: "Usuários ilimitados" },
+        { icon: Shield, text: "Backup automático" },
+        { icon: HeadphonesIcon, text: "Suporte técnico" },
         { icon: BarChart3, text: "Relatórios avançados" },
-        { icon: Zap, text: "Backup automático" }
+        { icon: Zap, text: "Economia de 13%" }
       ],
       recomendado: true,
       cor: "primary"
     },
     {
       id: 3,
-      nome: "Enterprise",
-      planType: "enterprise" as PlanType,
-      preco: 199.90,
-      periodo: "mensal",
-      descricao: "Para grandes assistências técnicas",
+      nome: "Anual",
+      planType: "yearly" as PlanType,
+      preco: 399.90,
+      periodo: "ano",
+      descricao: "Faturamento anual - economia de 33%",
       caracteristicas: [
-        { icon: Database, text: "Ordens ilimitadas" },
+        { icon: Database, text: "Funcionalidades completas" },
         { icon: Users, text: "Usuários ilimitados" },
-        { icon: Shield, text: "100GB de armazenamento" },
-        { icon: HeadphonesIcon, text: "Suporte 24/7" },
-        { icon: Code, text: "API personalizada" },
-        { icon: BarChart3, text: "Relatórios customizados" },
-        { icon: Zap, text: "Backup em tempo real" }
+        { icon: Shield, text: "Backup automático" },
+        { icon: HeadphonesIcon, text: "Suporte técnico" },
+        { icon: BarChart3, text: "Relatórios avançados" },
+        { icon: Zap, text: "Máxima economia - 33%" }
       ],
       recomendado: false,
       cor: "purple"
@@ -85,9 +84,9 @@ const PlanosPage = () => {
 
   const planNames = {
     trial_plan: 'Trial Gratuito',
-    basic: 'Básico',
-    professional: 'Profissional',
-    enterprise: 'Enterprise'
+    monthly: 'Plano Mensal',
+    quarterly: 'Plano Trimestral',
+    yearly: 'Plano Anual'
   };
 
   const handleEscolherPlano = (plano: any) => {
@@ -123,15 +122,36 @@ const PlanosPage = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Escolha seu Plano</h1>
-          <p className="text-muted-foreground">Selecione o plano ideal para sua assistência técnica</p>
+          <p className="text-muted-foreground">Selecione o período de faturamento ideal para sua assistência técnica</p>
         </div>
         {userPlan && (
           <div className="text-right">
             <p className="text-sm text-muted-foreground">Plano atual:</p>
             <p className="font-semibold">{planNames[userPlan.planType]}</p>
+            {userPlan.planType === 'trial_plan' && (
+              <div className="flex items-center gap-1 text-yellow-600">
+                <Clock className="h-4 w-4" />
+                <span className="text-sm">{userPlan.remainingDays} dias restantes</span>
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      {/* Trial Info */}
+      {userPlan?.planType === 'trial_plan' && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-yellow-700">
+              <Clock className="h-5 w-5" />
+              Período Gratuito Ativo
+            </CardTitle>
+            <CardDescription>
+              Você tem acesso completo a todas as funcionalidades por {userPlan.remainingDays} dias restantes.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {planosDisponiveis.map((plano) => (
@@ -162,9 +182,6 @@ const PlanosPage = () => {
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-xl flex items-center justify-center gap-2">
                 {plano.nome}
-                {userPlan?.planType !== plano.planType && userPlan?.planType !== 'trial_plan' && (
-                  <ArrowUp className="h-4 w-4 text-green-500" />
-                )}
               </CardTitle>
               <CardDescription className="text-sm">
                 {plano.descricao}
@@ -201,7 +218,7 @@ const PlanosPage = () => {
                 ) : (
                   <>
                     <ArrowUp className="h-4 w-4 mr-2" />
-                    Fazer Upgrade
+                    Alterar Plano
                   </>
                 )}
               </Button>
@@ -210,30 +227,33 @@ const PlanosPage = () => {
         ))}
       </div>
 
-      {/* Seção de benefícios */}
+      {/* Funcionalidades Incluídas */}
       <Card className="mt-8">
         <CardHeader>
-          <CardTitle className="text-center">Todos os planos incluem</CardTitle>
+          <CardTitle className="text-center">Todas as funcionalidades incluídas em qualquer plano</CardTitle>
+          <CardDescription className="text-center">
+            A diferença entre os planos é apenas o período de faturamento e a economia
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
             <div className="space-y-2">
-              <Shield className="h-8 w-8 mx-auto text-green-500" />
-              <h3 className="font-semibold">Segurança Garantida</h3>
+              <Database className="h-8 w-8 mx-auto text-green-500" />
+              <h3 className="font-semibold">Sistema Completo</h3>
               <p className="text-sm text-muted-foreground">
-                Seus dados protegidos com criptografia de ponta
+                Ordens de serviço, clientes, produtos e relatórios
               </p>
             </div>
             <div className="space-y-2">
-              <Zap className="h-8 w-8 mx-auto text-blue-500" />
-              <h3 className="font-semibold">Atualizações Automáticas</h3>
+              <Shield className="h-8 w-8 mx-auto text-blue-500" />
+              <h3 className="font-semibold">Backup Automático</h3>
               <p className="text-sm text-muted-foreground">
-                Sempre na versão mais recente do sistema
+                Seus dados sempre protegidos e seguros
               </p>
             </div>
             <div className="space-y-2">
               <HeadphonesIcon className="h-8 w-8 mx-auto text-purple-500" />
-              <h3 className="font-semibold">Suporte Especializado</h3>
+              <h3 className="font-semibold">Suporte Técnico</h3>
               <p className="text-sm text-muted-foreground">
                 Nossa equipe está aqui para ajudar você
               </p>
@@ -247,28 +267,23 @@ const PlanosPage = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {userPlan?.planType === 'trial_plan' ? 'Assinar Plano' : 'Confirmar Upgrade'}
+              {userPlan?.planType === 'trial_plan' ? 'Assinar Plano' : 'Alterar Plano'}
             </DialogTitle>
           </DialogHeader>
           {planoParaUpgrade && (
             <div className="space-y-4">
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="font-medium">
-                  {userPlan?.planType === 'trial_plan' ? 'Assinar:' : 'Upgrade para:'} {planoParaUpgrade.nome}
+                  {userPlan?.planType === 'trial_plan' ? 'Assinar:' : 'Alterar para:'} {planoParaUpgrade.nome}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Valor: {formatarMoeda(planoParaUpgrade.preco)}/mês
+                  Valor: {formatarMoeda(planoParaUpgrade.preco)}/{planoParaUpgrade.periodo}
                 </p>
-                {userPlan?.planType !== 'trial_plan' && (
-                  <p className="text-sm text-muted-foreground">
-                    Diferença: +{formatarMoeda(planoParaUpgrade.preco - (userPlan?.planType === 'basic' ? 29.90 : 89.90))}/mês
-                  </p>
-                )}
               </div>
               <p className="text-sm text-muted-foreground">
                 {userPlan?.planType === 'trial_plan' 
                   ? 'Seu período gratuito será convertido em uma assinatura paga.'
-                  : 'O upgrade será aplicado imediatamente e você será cobrado proporcionalmente pelo período restante.'
+                  : 'A alteração será aplicada imediatamente no próximo ciclo de faturamento.'
                 }
               </p>
             </div>
@@ -278,7 +293,7 @@ const PlanosPage = () => {
               Cancelar
             </Button>
             <Button onClick={confirmarUpgrade}>
-              {userPlan?.planType === 'trial_plan' ? 'Assinar' : 'Confirmar Upgrade'}
+              {userPlan?.planType === 'trial_plan' ? 'Assinar' : 'Confirmar Alteração'}
             </Button>
           </DialogFooter>
         </DialogContent>

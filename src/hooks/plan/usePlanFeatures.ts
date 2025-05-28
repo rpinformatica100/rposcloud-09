@@ -1,21 +1,32 @@
 
-import { UserPlan, PlanFeatures } from '@/types/plan';
+import { UserPlan } from '@/types/plan';
 
 export function usePlanFeatures(userPlan: UserPlan | null) {
-  const isFeatureAllowed = (feature: keyof PlanFeatures): boolean => {
-    if (!userPlan || userPlan.status === 'expired' || userPlan.status === 'blocked') {
+  // Funcionalidades simplificadas - apenas verifica se tem acesso completo
+  const hasFullAccess = (): boolean => {
+    if (!userPlan) return false;
+    
+    // Se o plano expirou ou está bloqueado, não tem acesso
+    if (userPlan.status === 'expired' || userPlan.status === 'blocked') {
       return false;
     }
-    return !!userPlan.features[feature]; 
+    
+    // Trial e planos pagos têm acesso completo às funcionalidades
+    return userPlan.features.hasFullAccess;
   };
 
-  const getUsageLimit = (feature: keyof PlanFeatures): number => {
-    if (!userPlan || typeof userPlan.features[feature] !== 'number') return 0;
-    return userPlan.features[feature] as number;
+  const isTrialExpired = (): boolean => {
+    if (!userPlan || userPlan.planType !== 'trial_plan') return false;
+    return userPlan.status === 'expired';
+  };
+
+  const canUseFeature = (featureName?: string): boolean => {
+    return hasFullAccess();
   };
 
   return {
-    isFeatureAllowed,
-    getUsageLimit,
+    hasFullAccess,
+    isTrialExpired,
+    canUseFeature,
   };
 }
