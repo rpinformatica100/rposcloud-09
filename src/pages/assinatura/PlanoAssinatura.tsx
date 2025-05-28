@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -141,6 +142,19 @@ const PlanoAssinatura = () => {
       description: "Suas informações de endereço foram salvas."
     });
     setAddressModalOpen(false);
+  };
+
+  // Função para obter limites de uso
+  const getMaxOrders = () => {
+    return userPlan.planType === 'trial_plan' ? 50 : 999;
+  };
+
+  const getMaxUsers = () => {
+    return userPlan.planType === 'trial_plan' ? 1 : 5;
+  };
+
+  const getMaxStorage = () => {
+    return userPlan.planType === 'trial_plan' ? 1 : 10;
   };
 
   return (
@@ -291,11 +305,11 @@ const PlanoAssinatura = () => {
                     <span className="font-medium">Ordens de Serviço</span>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    25 / {userPlan.features.maxOrders === -1 ? '∞' : userPlan.features.maxOrders}
+                    25 / {getMaxOrders() === 999 ? '∞' : getMaxOrders()}
                   </span>
                 </div>
                 <Progress 
-                  value={userPlan.features.maxOrders === -1 ? 10 : (25 / userPlan.features.maxOrders) * 100}
+                  value={getMaxOrders() === 999 ? 10 : (25 / getMaxOrders()) * 100}
                   className="h-2"
                 />
               </div>
@@ -307,11 +321,11 @@ const PlanoAssinatura = () => {
                     <span className="font-medium">Usuários</span>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    1 / {userPlan.features.maxUsers === -1 ? '∞' : userPlan.features.maxUsers}
+                    1 / {getMaxUsers() === -1 ? '∞' : getMaxUsers()}
                   </span>
                 </div>
                 <Progress 
-                  value={userPlan.features.maxUsers === -1 ? 5 : (1 / userPlan.features.maxUsers) * 100}
+                  value={getMaxUsers() === -1 ? 5 : (1 / getMaxUsers()) * 100}
                   className="h-2"
                 />
               </div>
@@ -323,11 +337,11 @@ const PlanoAssinatura = () => {
                     <span className="font-medium">Armazenamento</span>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    0.3GB / {userPlan.features.maxStorage}GB
+                    0.3GB / {getMaxStorage()}GB
                   </span>
                 </div>
                 <Progress 
-                  value={(0.3 / userPlan.features.maxStorage) * 100}
+                  value={(0.3 / getMaxStorage()) * 100}
                   className="h-2"
                 />
               </div>

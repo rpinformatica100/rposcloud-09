@@ -88,6 +88,7 @@ export interface AssinanteCompleto {
   dataUltimaAtualizacao: string;
   cadastroCompleto: boolean;
   mensagemCadastroExibida: boolean;
+  etapaAtual: number; // Adicionado para controle do wizard
   
   // Logo/imagem
   logo?: string;

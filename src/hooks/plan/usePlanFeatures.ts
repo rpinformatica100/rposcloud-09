@@ -24,9 +24,31 @@ export function usePlanFeatures(userPlan: UserPlan | null) {
     return hasFullAccess();
   };
 
+  const isFeatureAllowed = (feature: string): boolean => {
+    return hasFullAccess();
+  };
+
+  const getUsageLimit = (feature: string): number => {
+    if (!userPlan) return 0;
+    
+    // Retornar limites baseados no tipo de plano
+    switch (feature) {
+      case 'orders':
+        return userPlan.planType === 'trial_plan' ? 50 : -1; // -1 = ilimitado
+      case 'users':
+        return userPlan.planType === 'trial_plan' ? 1 : 5;
+      case 'storage':
+        return userPlan.planType === 'trial_plan' ? 1 : 10; // GB
+      default:
+        return 0;
+    }
+  };
+
   return {
     hasFullAccess,
     isTrialExpired,
     canUseFeature,
+    isFeatureAllowed,
+    getUsageLimit,
   };
 }
