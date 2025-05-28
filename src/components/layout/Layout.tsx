@@ -1,5 +1,5 @@
 
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useCallback } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Sidebar from "./Sidebar";
@@ -15,26 +15,25 @@ const Layout = React.memo(() => {
   // Monitor performance
   usePerformance();
 
-  // Memoize auth check to prevent unnecessary re-renders
-  const authStatus = useMemo(() => ({ isAuthenticated, loading }), [isAuthenticated, loading]);
+  // Memoize auth status to prevent unnecessary re-renders
+  const authStatus = useMemo(() => ({ 
+    isAuthenticated, 
+    loading 
+  }), [isAuthenticated, loading]);
 
-  useEffect(() => {
-    // Reduced auth check frequency for better performance
-    const interval = setInterval(() => {
-      if (!authStatus.isAuthenticated && !authStatus.loading) {
-        navigate("/login");
-      }
-    }, 10 * 60 * 1000); // Check every 10 minutes instead of 5
-    
-    return () => clearInterval(interval);
-  }, [authStatus.isAuthenticated, authStatus.loading, navigate]);
+  // Memoize navigation callback
+  const handleUnauthenticated = useCallback(() => {
+    navigate("/login");
+  }, [navigate]);
 
+  // Single effect for auth handling
   useEffect(() => {
     if (!authStatus.loading && !authStatus.isAuthenticated) {
-      navigate("/login");
+      handleUnauthenticated();
     }
-  }, [authStatus.isAuthenticated, authStatus.loading, navigate]);
+  }, [authStatus.isAuthenticated, authStatus.loading, handleUnauthenticated]);
 
+  // Show loading state
   if (authStatus.loading) {
     return (
       <div className="h-screen w-full flex items-center justify-center">
@@ -46,6 +45,7 @@ const Layout = React.memo(() => {
     );
   }
 
+  // Don't render anything if not authenticated
   if (!authStatus.isAuthenticated) {
     return null;
   }

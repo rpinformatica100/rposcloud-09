@@ -1,7 +1,7 @@
 
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Toaster } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from './contexts/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Loader2 } from 'lucide-react';
@@ -53,15 +53,17 @@ const TermosServicoPage = lazy(() => import('./pages/landing_extra/TermosServico
 const IntegracoesPage = lazy(() => import('./pages/landing_extra/IntegracoesPage'));
 const DocumentacaoTecnicaPage = lazy(() => import('./pages/landing_extra/DocumentacaoTecnicaPage'));
 
-// Loading component
-const PageLoader = () => (
+// Optimized loading component
+const PageLoader = React.memo(() => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="flex flex-col items-center space-y-4">
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
       <p className="text-gray-500">Carregando...</p>
     </div>
   </div>
-);
+));
+
+PageLoader.displayName = 'PageLoader';
 
 function App() {
   // Register service worker
@@ -167,6 +169,9 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
+          
+          {/* Centralized Toast System */}
+          <Toaster />
         </BrowserRouter>
       </AuthProvider>
     </ErrorBoundary>
