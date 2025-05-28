@@ -22,7 +22,6 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      console.log('Tentando fazer login com:', { email, senha });
       const success = await login(email, senha);
       if (success) {
         toast.success("Login realizado com sucesso", {
@@ -40,7 +39,6 @@ const Login = () => {
         });
       }
     } catch (error) {
-      console.error("Erro ao fazer login:", error);
       toast.error("Erro ao fazer login", {
         description: "Ocorreu um erro ao processar sua solicitação",
       });
@@ -57,8 +55,7 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-blue-200 p-4">
       <div className="max-w-4xl w-full space-y-6">
-        {/* Painel de Debug */}
-        <DebugPanel />
+        {process.env.NODE_ENV === 'development' && <DebugPanel />}
         
         <div className="max-w-md mx-auto">
           <div className="text-center mb-6">
@@ -102,44 +99,45 @@ const Login = () => {
                   />
                 </div>
                 
-                {/* Botões de Teste Rápido */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Testes Rápidos:</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleTestLogin('teste@teste.com', '123456')}
-                    >
-                      Trial
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleTestLogin('basico@teste.com', '123456')}
-                    >
-                      Básico
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleTestLogin('profissional@teste.com', '123456')}
-                    >
-                      Pro
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleTestLogin('admin@sistema.com', 'admin123')}
-                    >
-                      Admin
-                    </Button>
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Testes Rápidos:</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleTestLogin('teste@teste.com', '123456')}
+                      >
+                        Trial
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleTestLogin('basico@teste.com', '123456')}
+                      >
+                        Básico
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleTestLogin('profissional@teste.com', '123456')}
+                      >
+                        Pro
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleTestLogin('admin@sistema.com', 'admin123')}
+                      >
+                        Admin
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                )}
                 
                 <div className="text-sm text-right">
                   <a href="#" className="text-primary hover:underline">Esqueceu sua senha?</a>

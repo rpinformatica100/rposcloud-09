@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -24,11 +25,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
   const navigate = useNavigate();
   const { login, registrar } = useAuth();
 
-  // Login form
   const [loginEmail, setLoginEmail] = useState("");
   const [loginSenha, setLoginSenha] = useState("");
-
-  // Register form
   const [registerNome, setRegisterNome] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerSenha, setRegisterSenha] = useState("");
@@ -60,7 +58,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
         });
       }
     } catch (error) {
-      console.error("Erro ao fazer login:", error);
       toast.error("Erro ao fazer login", {
         description: "Ocorreu um erro inesperado. Tente novamente."
       });
@@ -109,7 +106,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
         });
       }
     } catch (error) {
-      console.error("Erro ao registrar:", error);
       toast.error("Erro ao criar conta", {
         description: "Ocorreu um erro inesperado. Tente novamente."
       });

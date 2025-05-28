@@ -67,30 +67,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const stateManager = StateManager.getInstance();
 
   useEffect(() => {
-    // Inicializar usuários de teste na primeira carga
     initializeTestUsers();
     
-    // Validar integridade dos dados
     const validation = stateManager.validateDataIntegrity();
-    if (!validation.isValid) {
+    if (!validation.isValid && process.env.NODE_ENV === 'development') {
       console.warn('Problemas de integridade detectados:', validation.errors);
     }
 
-    // Tentar carregar usuário do localStorage
     const storedUser = localStorage.getItem('usuario');
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-        console.log('Usuário carregado do localStorage:', parsedUser);
         setUsuario(parsedUser);
         
-        // Salvar estado do usuário
         stateManager.saveUserState(parsedUser.id, {
           login_time: new Date().toISOString(),
           user_data: parsedUser
         });
       } catch (error) {
-        console.error('Erro ao carregar usuário do localStorage:', error);
         localStorage.removeItem('usuario');
       }
     }
@@ -99,10 +93,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = async (email: string, senha: string): Promise<boolean> => {
     setLoading(true);
-    console.log('Tentativa de login:', { email, senha });
     
     try {
-      // Verificar usuário admin
+      // Admin login
       if (email === 'admin@sistema.com' && senha === 'admin123') {
         const adminUser: Usuario = {
           id: 'admin',
@@ -123,16 +116,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           user_data: adminUser
         });
         
-        console.log('Login admin realizado com sucesso');
         return true;
       }
 
-      // Verificar usuários registrados
+      // Regular user login
       const allUsers = JSON.parse(localStorage.getItem('all_users') || '[]') as Usuario[];
-      console.log('Usuários disponíveis:', allUsers.map(u => ({ email: u.email, senha: u.senha })));
-      
       const user = allUsers.find(u => u.email === email && u.senha === senha);
-      console.log('Usuário encontrado:', user);
       
       if (user) {
         const updatedUser = { 
@@ -143,24 +132,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUsuario(updatedUser);
         localStorage.setItem('usuario', JSON.stringify(updatedUser));
         
-        // Atualizar na lista de usuários
         const updatedUsers = allUsers.map(u => u.id === user.id ? updatedUser : u);
         localStorage.setItem('all_users', JSON.stringify(updatedUsers));
         
-        // Salvar estado do usuário
         stateManager.saveUserState(updatedUser.id, {
           login_time: new Date().toISOString(),
           user_data: updatedUser
         });
         
-        console.log('Login realizado com sucesso para:', email);
         return true;
       }
 
-      console.log('Credenciais inválidas para:', email);
       return false;
     } catch (error) {
-      console.error('Erro ao fazer login:', error);
       return false;
     } finally {
       setLoading(false);
@@ -170,12 +154,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const registrar = async (nome: string, email: string, senha: string, tipo: 'cliente' | 'assistencia' = 'assistencia'): Promise<boolean> => {
     try {
       setLoading(true);
-      console.log('Tentativa de registro:', { nome, email, tipo });
       
-      // Verificar se já existe usuário com este email
       const allUsers = JSON.parse(localStorage.getItem('all_users') || '[]') as Usuario[];
       if (allUsers.some(u => u.email === email)) {
-        console.error('Email já cadastrado:', email);
         return false;
       }
       
@@ -193,24 +174,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         data_vencimento_plano: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
       };
 
-      // Salvar na lista de todos os usuários
       const updatedUsers = [...allUsers, novoUsuario];
       localStorage.setItem('all_users', JSON.stringify(updatedUsers));
       
-      // Fazer login automático
       setUsuario(novoUsuario);
       localStorage.setItem('usuario', JSON.stringify(novoUsuario));
       
-      // Salvar estado do usuário
       stateManager.saveUserState(novoUsuario.id, {
         registration_time: new Date().toISOString(),
         user_data: novoUsuario
       });
       
-      console.log('Registro realizado com sucesso:', novoUsuario);
       return true;
     } catch (error) {
-      console.error('Erro ao registrar usuário:', error);
       return false;
     } finally {
       setLoading(false);
@@ -219,7 +195,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const logout = () => {
     if (usuario) {
-      console.log('Logout realizado para:', usuario.email);
       stateManager.saveUserState(usuario.id, {
         logout_time: new Date().toISOString(),
         user_data: usuario
@@ -242,13 +217,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         });
       }
     } catch (error) {
-      console.error('Erro ao atualizar último acesso:', error);
+      // Silently handle error in production
     }
   };
 
   const atualizarPerfilAssistencia = async (dados: Partial<Assistencia>): Promise<boolean> => {
     try {
-      console.log('Atualizando perfil da assistência:', dados);
       if (usuario) {
         stateManager.saveUserState(usuario.id, {
           profile_update: new Date().toISOString(),
@@ -257,12 +231,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
       return true;
     } catch (error) {
-      console.error('Erro ao atualizar perfil da assistência:', error);
       return false;
     }
   };
 
-  // Derived values
   const isAuthenticated = !!usuario;
   const isAdmin = usuario?.email === 'admin@sistema.com';
   const isAssistencia = usuario?.tipo === 'assistencia';
