@@ -104,34 +104,71 @@ export interface PagamentoCheckout {
   planoNome: string;
 }
 
-// Tipo para Assistências Técnicas
+// Tipo para Assistências Técnicas - Versão Completa
 export interface Assistencia {
   id: string;
+  
+  // Dados básicos (mantendo compatibilidade)
   nome: string;
   email: string;
-  plano: string;
-  status: 'Ativa' | 'Inativa';
-  dataRegistro: string;
   telefone?: string;
   celular?: string;
+  
+  // Tipo de pessoa
+  tipoPessoa?: 'pessoa_fisica' | 'pessoa_juridica' | 'mei';
+  
+  // Dados fiscais
+  cpf?: string;
   cnpj?: string;
+  rg?: string;
+  inscricaoEstadual?: string;
+  inscricaoMunicipal?: string;
+  razaoSocial?: string;
+  nomeFantasia?: string;
+  
+  // Endereço completo
   endereco?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
   cidade?: string;
   estado?: string;
   cep?: string;
+  
+  // Responsável (para PJ/MEI)
   responsavel?: string;
+  responsavelCpf?: string;
+  responsavelCargo?: string;
+  responsavelTelefone?: string;
+  responsavelEmail?: string;
+  
+  // Dados profissionais
   especialidades?: string[];
   descricao?: string;
-  logo?: string;
+  horarioFuncionamento?: string;
   website?: string;
-  // Campos adicionais para autenticação
+  logo?: string;
+  
+  // Campos do sistema (mantendo compatibilidade)
+  plano: string;
+  status: 'Ativa' | 'Inativa' | 'Pendente' | 'Bloqueada';
+  dataRegistro: string;
   userId?: string;
   senha?: string;
   ultimoLogin?: string;
-  // Campo para controle de cadastro completo
+  
+  // Controle de cadastro
   cadastroCompleto?: boolean;
-  // Campo que controla se a mensagem de cadastro já foi mostrada
   mensagemCadastroExibida?: boolean;
+  statusCadastro?: 'incompleto' | 'pendente_validacao' | 'completo' | 'bloqueado';
+  etapaAtual?: number;
+  
+  // Configurações
+  configuracoes?: {
+    emitirNFe?: boolean;
+    usarAssinaturaDigital?: boolean;
+    mostrarLogoNaOS?: boolean;
+  };
 }
 
 // Updated interface for Plano to match the changes in PlanosList.tsx
@@ -203,3 +240,6 @@ export interface OrdemItemDB {
 
 // Exportar novos tipos de plano
 export * from './plan';
+
+// Exportar novos tipos de assinante
+export * from './assinante';

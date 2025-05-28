@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, X } from "lucide-react";
+import { AlertCircle, X, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -37,25 +37,81 @@ const CadastroIncompleto = () => {
     }
   };
 
+  const calcularProgresso = (): number => {
+    if (!assistencia) return 0;
+    
+    let camposPreenchidos = 0;
+    let totalCampos = 0;
+    
+    // Etapa 1: Dados básicos (4 campos)
+    totalCampos += 4;
+    if (assistencia.tipoPessoa) camposPreenchidos++;
+    if (assistencia.nome) camposPreenchidos++;
+    if (assistencia.email) camposPreenchidos++;
+    if (assistencia.telefone) camposPreenchidos++;
+    
+    // Etapa 2: Dados fiscais (varia por tipo)
+    if (assistencia.tipoPessoa === 'pessoa_fisica') {
+      totalCampos += 2; // CPF + endereço básico
+      if (assistencia.cpf) camposPreenchidos++;
+      if (assistencia.endereco) camposPreenchidos++;
+    } else {
+      totalCampos += 2; // CNPJ + endereço básico
+      if (assistencia.cnpj) camposPreenchidos++;
+      if (assistencia.endereco) camposPreenchidos++;
+    }
+    
+    // Etapa 3: Perfil profissional (2 campos mínimos)
+    totalCampos += 2;
+    if (assistencia.especialidades && assistencia.especialidades.length > 0) camposPreenchidos++;
+    if (assistencia.responsavel) camposPreenchidos++;
+    
+    return Math.round((camposPreenchidos / totalCampos) * 100);
+  };
+
   if (!mostrarAlerta) return null;
 
+  const progresso = calcularProgresso();
+
   return (
-    <Alert className="bg-amber-50 border-amber-300 mb-4 relative">
-      <AlertCircle className="h-4 w-4 text-amber-600" />
-      <AlertDescription className="text-amber-800 pr-8">
-        <span className="font-semibold">Complete seu cadastro</span> para aproveitar todos os recursos.
-        <div className="mt-2">
-          <Button asChild variant="outline" size="sm" className="bg-amber-100 hover:bg-amber-200 border-amber-300 text-amber-800">
-            <Link to="/app/configuracoes">
-              Completar agora
-            </Link>
-          </Button>
+    <Alert className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-300 mb-4 relative">
+      <AlertCircle className="h-5 w-5 text-blue-600" />
+      <AlertDescription className="text-blue-900 pr-8">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <span className="font-semibold text-lg">Complete seu cadastro</span>
+            <p className="text-sm text-blue-700 mt-1">
+              Finalize seu perfil para usar todas as funcionalidades do sistema
+            </p>
+            <div className="mt-2 mb-3">
+              <div className="flex items-center gap-2 text-sm text-blue-700">
+                <span>Progresso:</span>
+                <div className="flex-1 bg-blue-200 rounded-full h-2 max-w-32">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                    style={{ width: `${progresso}%` }}
+                  />
+                </div>
+                <span className="font-medium">{progresso}%</span>
+              </div>
+            </div>
+            <Button 
+              asChild 
+              size="sm" 
+              className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+            >
+              <Link to="/completar-cadastro" className="flex items-center gap-2">
+                Completar agora
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </AlertDescription>
       <Button
         variant="ghost"
         size="icon"
-        className="absolute right-1 top-1 h-6 w-6 text-amber-800 hover:bg-amber-200 hover:text-amber-900"
+        className="absolute right-2 top-2 h-6 w-6 text-blue-800 hover:bg-blue-200 hover:text-blue-900"
         onClick={fecharAlerta}
       >
         <X className="h-4 w-4" />
