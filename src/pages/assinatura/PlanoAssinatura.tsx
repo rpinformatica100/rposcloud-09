@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -321,11 +320,11 @@ const PlanoAssinatura = () => {
                     <span className="font-medium">Usuários</span>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    1 / {getMaxUsers() === -1 ? '∞' : getMaxUsers()}
+                    1 / {getMaxUsers()}
                   </span>
                 </div>
                 <Progress 
-                  value={getMaxUsers() === -1 ? 5 : (1 / getMaxUsers()) * 100}
+                  value={(1 / getMaxUsers()) * 100}
                   className="h-2"
                 />
               </div>
