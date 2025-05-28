@@ -58,20 +58,20 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <section id="features" className="w-full py-12 md:py-24 bg-white dark:bg-gray-950">
+    <section id="features" className="w-full py-8 md:py-16 bg-white dark:bg-gray-950">
       <div className="container px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="space-y-2 animate-fade-in">
+          <div className="space-y-2">
             <div className="inline-block rounded-lg bg-gray-100 px-3 py-1 text-sm dark:bg-gray-800">Recursos</div>
-            <h2 className="text-2xl md:text-3xl lg:text-5xl font-bold tracking-tighter">Tudo que você precisa em um só lugar</h2>
-            <p className="max-w-[600px] md:max-w-[900px] text-gray-500 text-base md:text-xl/relaxed lg:text-base/relaxed dark:text-gray-400 px-4">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter">Tudo que você precisa em um só lugar</h2>
+            <p className="max-w-[600px] md:max-w-[900px] text-gray-500 text-base md:text-lg dark:text-gray-400 px-4">
               Nossa plataforma foi projetada para atender às necessidades específicas de assistências técnicas.
             </p>
           </div>
         </div>
-        <div className="mx-auto grid max-w-5xl grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 py-8 md:py-12 px-4">
+        <div className="mx-auto grid max-w-5xl grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 py-6 md:py-8 px-4">
           {features.map((feature, index) => (
-            <div key={index} className="rounded-lg border bg-background p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:translate-y-[-4px] animate-fade-in">
+            <div key={index} className="rounded-lg border bg-background p-4 md:p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:translate-y-[-4px]">
               <div className="flex flex-col items-center justify-center space-y-3 md:space-y-4 text-center">
                 {feature.icon}
                 <h3 className="text-lg md:text-xl font-bold">{feature.title}</h3>
