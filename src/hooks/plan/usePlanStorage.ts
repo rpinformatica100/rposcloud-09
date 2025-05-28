@@ -1,15 +1,19 @@
 
 import { UserPlan, PlanType, PLAN_CONFIGS, PLAN_METADATA } from '@/types/plan';
 import { usePlanCalculations } from './usePlanCalculations';
+import { StateManager } from '@/utils/stateManager';
 
 export function usePlanStorage() {
   const { calculateRemainingDays, determineStatus } = usePlanCalculations();
+  const stateManager = StateManager.getInstance();
 
   const loadUserPlan = (user: any): UserPlan | null => {
     if (!user) return null;
 
     const planKey = `plan_${user.id}`;
     const savedPlanJson = localStorage.getItem(planKey);
+    
+    console.log(`Carregando plano para usuário ${user.email}:`, savedPlanJson);
     
     if (savedPlanJson) {
       try {
@@ -26,9 +30,17 @@ export function usePlanStorage() {
           features: PLAN_CONFIGS[parsedPlan.planType as PlanType] || PLAN_CONFIGS.trial_plan,
         };
         
+        console.log(`Plano carregado e atualizado:`, updatedPlan);
+        
+        // Salvar estado atualizado
+        stateManager.saveUserState(user.id, {
+          plan_loaded: new Date().toISOString(),
+          plan_data: updatedPlan
+        });
+        
         return updatedPlan;
       } catch (error) {
-        console.error("Error parsing saved plan from localStorage:", error);
+        console.error("Erro ao analisar plano salvo do localStorage:", error);
         localStorage.removeItem(planKey);
         return null;
       }
@@ -44,6 +56,12 @@ export function usePlanStorage() {
     const userPlanType = user.plano as PlanType;
     const userPlanEndDate = user.data_vencimento_plano;
     const userPlanStartDate = user.data_cadastro;
+
+    console.log(`Criando plano padrão para usuário ${user.email}:`, {
+      planType: userPlanType,
+      endDate: userPlanEndDate,
+      startDate: userPlanStartDate
+    });
 
     if (userPlanType && PLAN_CONFIGS[userPlanType]) {
       const remainingDays = calculateRemainingDays(userPlanEndDate);
@@ -68,16 +86,40 @@ export function usePlanStorage() {
       };
 
       localStorage.setItem(planKey, JSON.stringify(defaultPlan));
-      console.log('Default plan created and saved for user:', user.id, defaultPlan);
+      console.log('Plano padrão criado e salvo para usuário:', user.id, defaultPlan);
+      
+      // Salvar estado
+      stateManager.saveUserState(user.id, {
+        plan_created: new Date().toISOString(),
+        plan_data: defaultPlan
+      });
+      
       return defaultPlan;
     }
 
-    console.warn(`User ${user.id} has no valid plan type ('${user.plano}') in their user object. Cannot create default plan.`);
+    console.warn(`Usuário ${user.id} tem tipo de plano inválido ('${user.plano}') no objeto do usuário. Não é possível criar plano padrão.`);
     return null;
+  };
+
+  const savePlan = (plan: UserPlan): void => {
+    try {
+      const planKey = `plan_${plan.userId}`;
+      localStorage.setItem(planKey, JSON.stringify(plan));
+      console.log('Plano salvo com sucesso:', plan);
+      
+      // Salvar estado
+      stateManager.saveUserState(plan.userId, {
+        plan_saved: new Date().toISOString(),
+        plan_data: plan
+      });
+    } catch (error) {
+      console.error('Erro ao salvar plano:', error);
+    }
   };
 
   return {
     loadUserPlan,
     createDefaultPlan,
+    savePlan,
   };
 }
