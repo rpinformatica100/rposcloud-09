@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { TypingEffect } from '@/components/ui/typing-effect';
 import { ArrowRight } from 'lucide-react';
+import PlanChoiceModal from './PlanChoiceModal';
+
 const HeroSection = () => {
   const [typingComplete, setTypingComplete] = useState(false);
-  return <section className="w-full py-12 md:py-20 lg:py-28 xl:py-32 bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 relative overflow-hidden">
+  const [planChoiceModalOpen, setPlanChoiceModalOpen] = useState(false);
+
+  return (
+    <section className="w-full py-12 md:py-20 lg:py-28 xl:py-32 bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 relative overflow-hidden">
       {/* Enhanced animated background elements */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-primary to-blue-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
@@ -46,12 +50,14 @@ const HeroSection = () => {
         </div>
         
         <div className={`flex justify-center items-center w-full max-w-md mx-auto transition-all duration-1000 ${typingComplete ? 'animate-fade-in animation-delay-3000' : 'opacity-0 translate-y-8'}`}>
-          <a href="#trial" className="w-full">
-            <Button size="lg" className="group w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
-              Teste Grátis por 7 Dias
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Button>
-          </a>
+          <Button 
+            size="lg" 
+            className="group w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+            onClick={() => setPlanChoiceModalOpen(true)}
+          >
+            Começar Agora - Teste ou Assine
+            <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Button>
         </div>
 
         {/* Trust indicators */}
@@ -77,6 +83,13 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-    </section>;
+
+      <PlanChoiceModal
+        isOpen={planChoiceModalOpen}
+        onClose={() => setPlanChoiceModalOpen(false)}
+      />
+    </section>
+  );
 };
+
 export default HeroSection;

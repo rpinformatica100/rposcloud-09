@@ -1,27 +1,66 @@
 
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Sparkles } from 'lucide-react';
+import PlanChoiceModal from './PlanChoiceModal';
 
-const CTASection = () => {
+export default function CTASection() {
+  const [planChoiceModalOpen, setPlanChoiceModalOpen] = useState(false);
+
   return (
-    <section className="w-full py-12 md:py-24 bg-primary text-white">
-      <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="space-y-2 animate-scale-in">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tighter">Pronto para transformar sua assistência técnica?</h2>
-            <p className="max-w-[600px] md:max-w-[700px] text-base md:text-xl/relaxed px-4">
-              Comece agora mesmo e descubra como o RP OS Cloud pode melhorar a eficiência do seu negócio.
+    <section className="py-16 md:py-24 bg-gradient-to-r from-primary to-blue-600 dark:from-gray-900 dark:to-gray-800">
+      <div className="container px-4 md:px-6 mx-auto">
+        <div className="flex flex-col items-center justify-center space-y-6 text-center">
+          <div className="space-y-4 max-w-3xl">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 text-white font-medium text-sm mb-4">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Junte-se a milhares de assistências técnicas
+            </div>
+            
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white">
+              Pronto para transformar
+              <br />
+              sua assistência técnica?
+            </h2>
+            
+            <p className="text-xl text-blue-100 max-w-2xl mx-auto leading-relaxed">
+              Comece hoje mesmo com nosso trial gratuito ou escolha um plano que se adapte ao seu negócio.
             </p>
           </div>
-          <Link to="/register" className="animate-fade-in">
-            <Button variant="outline" size="lg" className="bg-white text-primary hover:bg-gray-100 hover-scale">
-              Criar Minha Conta
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md">
+            <Button 
+              size="lg" 
+              variant="secondary"
+              className="group w-full sm:w-auto bg-white text-primary hover:bg-gray-100 font-semibold"
+              onClick={() => setPlanChoiceModalOpen(true)}
+            >
+              Começar Agora
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Button>
-          </Link>
+          </div>
+          
+          <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-blue-100 pt-4">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span>Trial gratuito de 7 dias</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+              <span>Sem cartão de crédito</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+              <span>Cancele quando quiser</span>
+            </div>
+          </div>
         </div>
       </div>
+
+      <PlanChoiceModal
+        isOpen={planChoiceModalOpen}
+        onClose={() => setPlanChoiceModalOpen(false)}
+      />
     </section>
   );
-};
-
-export default CTASection;
+}

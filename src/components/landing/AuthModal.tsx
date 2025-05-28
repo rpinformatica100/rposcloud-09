@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserPlus, LogIn, User, Building } from "lucide-react";
+import { UserPlus, LogIn, User, Gift } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -16,9 +15,10 @@ interface AuthModalProps {
   onSuccess: () => void;
   defaultTab?: 'login' | 'register';
   plano?: any;
+  trialContext?: boolean;
 }
 
-export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'login', plano }: AuthModalProps) {
+export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'login', plano, trialContext = false }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -41,7 +41,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
     try {
       const success = await login(loginEmail, loginSenha);
       if (success) {
-        toast.success("Login realizado com sucesso!", {
+        const message = trialContext 
+          ? "Login realizado! Ativando seu trial gratuito..."
+          : "Login realizado com sucesso!";
+        
+        toast.success(message, {
           description: "Redirecionando para seu painel..."
         });
         onSuccess();
@@ -85,12 +89,17 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
     setLoading(true);
     
     try {
-      // Quando vem de um plano, sempre registra como assistência técnica
-      const tipoUsuario = plano ? 'assistencia' : 'assistencia';
+      const tipoUsuario = 'assistencia';
       const success = await registrar(registerNome, registerEmail, registerSenha, tipoUsuario);
       if (success) {
-        toast.success("Conta criada com sucesso!", {
-          description: "Bem-vindo ao RP OS Cloud! Redirecionando..."
+        const message = trialContext 
+          ? "Conta criada! Ativando seu trial gratuito de 7 dias..."
+          : plano 
+            ? "Conta criada! Redirecionando para pagamento..."
+            : "Conta criada com sucesso!";
+        
+        toast.success(message, {
+          description: "Bem-vindo ao RP OS Cloud!"
         });
         onSuccess();
         navigate("/app");
@@ -123,19 +132,28 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
     onClose();
   };
 
+  const getTitle = () => {
+    if (trialContext) return 'Criar conta para trial gratuito';
+    if (plano) return 'Criar conta para assinar';
+    return 'Acesse sua conta';
+  };
+
+  const getDescription = () => {
+    if (trialContext) return 'Crie uma conta para ativar seu trial gratuito de 7 dias';
+    if (plano) return `Crie uma conta para assinar o ${plano.nome}`;
+    return 'Faça login ou crie uma conta para continuar';
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <User className="w-5 h-5" />
-            {plano ? 'Criar conta para assinar' : 'Acesse sua conta'}
+            {trialContext ? <Gift className="w-5 h-5 text-blue-500" /> : <User className="w-5 h-5" />}
+            {getTitle()}
           </DialogTitle>
           <DialogDescription>
-            {plano 
-              ? `Crie uma conta para assinar o ${plano.nome}` 
-              : 'Faça login ou crie uma conta para continuar'
-            }
+            {getDescription()}
           </DialogDescription>
         </DialogHeader>
 
@@ -183,10 +201,13 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
 
           <TabsContent value="register" className="space-y-4">
             <form onSubmit={handleRegister} className="space-y-4">
-              {plano && (
-                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                  <p className="text-sm text-blue-700 font-medium">
-                    Criando conta como Assistência Técnica para o {plano.nome}
+              {(plano || trialContext) && (
+                <div className={`p-3 rounded-lg border ${trialContext ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200'}`}>
+                  <p className={`text-sm font-medium ${trialContext ? 'text-blue-700' : 'text-green-700'}`}>
+                    {trialContext 
+                      ? 'Criando conta para Trial Gratuito de 7 dias'
+                      : `Criando conta como Assistência Técnica para o ${plano.nome}`
+                    }
                   </p>
                 </div>
               )}
@@ -246,7 +267,12 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
                 ) : (
                   <>
                     <UserPlus className="mr-2 h-4 w-4" />
-                    {plano ? `Criar Conta e Assinar ${plano.nome}` : 'Criar Conta'}
+                    {trialContext 
+                      ? 'Criar Conta e Ativar Trial'
+                      : plano 
+                        ? `Criar Conta e Assinar ${plano.nome}` 
+                        : 'Criar Conta'
+                    }
                   </>
                 )}
               </Button>

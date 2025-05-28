@@ -1,4 +1,4 @@
-
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import PlanosSection from '@/components/landing/PlanosSection';
@@ -11,9 +11,12 @@ import TestimonialsSection from '@/components/landing/TestimonialsSection';
 import FAQSection from '@/components/landing/FAQSection';
 import CTASection from '@/components/landing/CTASection';
 import LandingFooter from '@/components/landing/LandingFooter';
+import PlanChoiceModal from '@/components/landing/PlanChoiceModal';
 import { Cloud } from 'lucide-react';
 
 export default function Landing() {
+  const [planChoiceModalOpen, setPlanChoiceModalOpen] = useState(false);
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Navigation - Otimizada para Mobile */}
@@ -41,6 +44,12 @@ export default function Landing() {
             <Link to="/login">
               <Button variant="outline" size="sm">Entrar</Button>
             </Link>
+            <Button 
+              size="sm"
+              onClick={() => setPlanChoiceModalOpen(true)}
+            >
+              Começar
+            </Button>
           </div>
 
           {/* Mobile Navigation */}
@@ -78,6 +87,11 @@ export default function Landing() {
       
       {/* Footer */}
       <LandingFooter />
+      
+      <PlanChoiceModal
+        isOpen={planChoiceModalOpen}
+        onClose={() => setPlanChoiceModalOpen(false)}
+      />
     </div>
   );
 }
