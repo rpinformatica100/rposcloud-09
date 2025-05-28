@@ -3,16 +3,15 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, X } from 'lucide-react';
+import { Menu } from 'lucide-react';
 
 const MobileNav = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
     { href: "#features", label: "Recursos" },
+    { href: "#trial", label: "Teste Grátis" },
     { href: "#planos", label: "Planos" },
-    { href: "#testimonials", label: "Depoimentos" },
-    { href: "#faq", label: "Perguntas" },
   ];
 
   const handleLinkClick = () => {
@@ -37,7 +36,7 @@ const MobileNav = () => {
               </svg>
             </div>
             <Link to="/" className="text-lg font-semibold text-foreground" onClick={handleLinkClick}>
-              TechOS
+              RP OS Cloud
             </Link>
           </div>
 
@@ -55,16 +54,11 @@ const MobileNav = () => {
             ))}
           </nav>
 
-          {/* Action Buttons */}
+          {/* Action Button - Apenas Login */}
           <div className="mt-auto space-y-4">
             <Link to="/login" onClick={handleLinkClick}>
               <Button variant="outline" size="lg" className="w-full">
-                Entrar
-              </Button>
-            </Link>
-            <Link to="/register" onClick={handleLinkClick}>
-              <Button size="lg" className="w-full">
-                Registrar
+                Acessar Sistema
               </Button>
             </Link>
           </div>

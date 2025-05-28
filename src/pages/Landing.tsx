@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ export default function Landing() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Navigation - Otimizada para Mobile */}
+      {/* Navigation - Simplificada */}
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 md:h-16 items-center justify-between px-4">
           <div className="flex items-center">
@@ -29,27 +30,18 @@ export default function Landing() {
             <Link to="/" className="text-base md:text-lg font-semibold text-foreground">RP OS Cloud</Link>
           </div>
           
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - Simplificado */}
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <a href="#features" className="font-medium transition-colors hover:text-primary">Recursos</a>
-            <a href="#stats" className="font-medium transition-colors hover:text-primary">Números</a>
             <a href="#trial" className="font-medium transition-colors hover:text-primary">Teste Grátis</a>
             <a href="#planos" className="font-medium transition-colors hover:text-primary">Planos</a>
-            <a href="#testimonials" className="font-medium transition-colors hover:text-primary">Depoimentos</a>
-            <a href="#faq" className="font-medium transition-colors hover:text-primary">Perguntas</a>
           </nav>
           
-          {/* Desktop Action Buttons */}
-          <div className="hidden md:flex items-center gap-2">
+          {/* Desktop Action Button - Apenas Login */}
+          <div className="hidden md:flex items-center">
             <Link to="/login">
-              <Button variant="outline" size="sm">Entrar</Button>
+              <Button variant="outline" size="sm">Acessar Sistema</Button>
             </Link>
-            <Button 
-              size="sm"
-              onClick={() => setPlanChoiceModalOpen(true)}
-            >
-              Começar
-            </Button>
           </div>
 
           {/* Mobile Navigation */}
