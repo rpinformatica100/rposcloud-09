@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { UserPlan, PlanStatus, PlanType, PLAN_CONFIGS, PLAN_METADATA } from '@/types/plan';
+import { UserPlan, PlanStatus, PlanType, PlanFeatures, PLAN_CONFIGS, PLAN_METADATA } from '@/types/plan';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function usePlanStatus() {
