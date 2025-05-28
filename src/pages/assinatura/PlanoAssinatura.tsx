@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Link } from "react-router-dom";
 import { 
   CreditCard, 
   Calendar, 
@@ -19,15 +20,10 @@ import {
   Database,
   Shield,
   TrendingUp,
-  ArrowUp,
-  ArrowDown,
-  Gift,
-  Zap,
   Edit,
   MapPin,
-  Phone,
-  Mail,
-  Save
+  Save,
+  ExternalLink
 } from "lucide-react";
 import { formatarData, formatarMoeda } from "@/lib/utils";
 import { toast } from "sonner";
@@ -35,14 +31,12 @@ import { usePlanStatus } from "@/hooks/usePlanStatus";
 import { PlanType, PaymentMethod, Address } from "@/types/plan";
 
 const PlanoAssinatura = () => {
-  const { userPlan, upgradePlan, cancelPlan, getTrialProgressPercentage } = usePlanStatus();
+  const { userPlan, cancelPlan, getTrialProgressPercentage } = usePlanStatus();
   
   // Estados para modais e interações
-  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [addressModalOpen, setAddressModalOpen] = useState(false);
-  const [planoParaUpgrade, setPlanoParaUpgrade] = useState<any>(null);
 
   // Estados para formulários
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>({
@@ -84,76 +78,6 @@ const PlanoAssinatura = () => {
     }
   ]);
 
-  const [planosDisponiveis] = useState([
-    {
-      id: 1,
-      nome: "Básico",
-      planType: "basic" as PlanType,
-      preco: 29.90,
-      periodo: "mensal",
-      caracteristicas: [
-        "Até 100 ordens/mês",
-        "2 usuários",
-        "Suporte por email",
-        "Relatórios básicos",
-        "Backup semanal"
-      ],
-      recomendado: false,
-      tipo: userPlan?.planType === 'basic' ? 'atual' : 'upgrade'
-    },
-    {
-      id: 2,
-      nome: "Profissional", 
-      planType: "professional" as PlanType,
-      preco: 89.90,
-      periodo: "mensal",
-      caracteristicas: [
-        "Até 1000 ordens/mês",
-        "5 usuários",
-        "Backup automático",
-        "Suporte prioritário",
-        "Relatórios avançados"
-      ],
-      recomendado: true,
-      tipo: userPlan?.planType === 'professional' ? 'atual' : 'upgrade'
-    },
-    {
-      id: 3,
-      nome: "Enterprise",
-      planType: "enterprise" as PlanType,
-      preco: 199.90,
-      periodo: "mensal", 
-      caracteristicas: [
-        "Ordens ilimitadas",
-        "Usuários ilimitados",
-        "Backup em tempo real",
-        "Suporte 24/7",
-        "API personalizada",
-        "Relatórios customizados"
-      ],
-      recomendado: false,
-      tipo: userPlan?.planType === 'enterprise' ? 'atual' : 'upgrade'
-    }
-  ]);
-
-  const [mostrarPlanos, setMostrarPlanos] = useState(false);
-
-  useEffect(() => {
-    // Verificar se o usuário tem plano ativo
-    if (userPlan) {
-      // Se o plano expirou ou é trial, permitir upgrade
-      if (userPlan.status === 'expired' || userPlan.planType === 'trial_plan') { // Corrigido: usar trial_plan
-        setMostrarPlanos(true);
-      } else if (userPlan.status === 'active') {
-        // Usuário já tem plano ativo
-        setMostrarPlanos(false);
-      }
-    } else {
-      // Sem plano, mostrar opções
-      setMostrarPlanos(true);
-    }
-  }, [userPlan]);
-
   if (!userPlan) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -190,22 +114,6 @@ const PlanoAssinatura = () => {
       case "expired": return <AlertTriangle className="h-4 w-4" />;
       case "cancelled": return <Clock className="h-4 w-4" />;
       default: return <Clock className="h-4 w-4" />;
-    }
-  };
-
-  const handleUpgradePlano = (plano: any) => {
-    setPlanoParaUpgrade(plano);
-    setUpgradeModalOpen(true);
-  };
-
-  const confirmarUpgrade = () => {
-    if (planoParaUpgrade) {
-      upgradePlan(planoParaUpgrade.planType);
-      toast.success(`Upgrade para ${planoParaUpgrade.nome} realizado!`, {
-        description: "Seu plano foi atualizado com sucesso."
-      });
-      setUpgradeModalOpen(false);
-      setPlanoParaUpgrade(null);
     }
   };
 
@@ -248,10 +156,12 @@ const PlanoAssinatura = () => {
               Cancelar Renovação
             </Button>
           )}
-          <Button>
-            <Gift className="h-4 w-4 mr-2" />
-            Aplicar Cupom
-          </Button>
+          <Link to="/app/planos">
+            <Button>
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Ver Outros Planos
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -337,10 +247,11 @@ const PlanoAssinatura = () => {
                 <p className="text-xs text-muted-foreground mb-2">
                   Período de avaliação
                 </p>
-                <Button size="sm" onClick={() => handleUpgradePlano(planosDisponiveis[1])}>
-                  <Zap className="h-4 w-4 mr-1" />
-                  Assinar
-                </Button>
+                <Link to="/app/planos">
+                  <Button size="sm">
+                    Escolher Plano
+                  </Button>
+                </Link>
               </div>
             ) : (
               <div>
@@ -358,10 +269,9 @@ const PlanoAssinatura = () => {
       </div>
 
       <Tabs defaultValue="uso" className="w-full">
-        <TabsList className="grid grid-cols-4 mb-6">
+        <TabsList className="grid grid-cols-3 mb-6">
           <TabsTrigger value="uso">Uso Atual</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
-          <TabsTrigger value="planos">Outros Planos</TabsTrigger>
           <TabsTrigger value="faturamento">Faturamento</TabsTrigger>
         </TabsList>
 
@@ -442,10 +352,11 @@ const PlanoAssinatura = () => {
                   <CreditCard className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum pagamento ainda</h3>
                   <p className="text-gray-500 mb-4">Assine um plano para começar seu histórico de pagamentos.</p>
-                  <Button onClick={() => handleUpgradePlano(planosDisponiveis[1])}>
-                    <Zap className="h-4 w-4 mr-2" />
-                    Ver Planos
-                  </Button>
+                  <Link to="/app/planos">
+                    <Button>
+                      Ver Planos
+                    </Button>
+                  </Link>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -476,60 +387,6 @@ const PlanoAssinatura = () => {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="planos" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {mostrarPlanos && planosDisponiveis.map((plano) => (
-              <Card key={plano.nome} className={`relative transition-all duration-200 hover:shadow-lg ${plano.recomendado ? 'border-primary ring-2 ring-primary/20' : ''} ${plano.tipo === 'atual' ? 'border-green-500' : ''}`}>
-                {plano.recomendado && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-primary text-primary-foreground">
-                      <Star className="h-3 w-3 mr-1" />
-                      Recomendado
-                    </Badge>
-                  </div>
-                )}
-                {userPlan.planType === plano.planType && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-green-500 text-white">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Plano Atual
-                    </Badge>
-                  </div>
-                )}
-                <CardHeader className="text-center">
-                  <CardTitle className="text-xl flex items-center justify-center gap-2">
-                    {plano.nome}
-                    {plano.tipo === 'upgrade' && <ArrowUp className="h-4 w-4 text-green-500" />}
-                  </CardTitle>
-                  <CardDescription>
-                    <span className="text-3xl font-bold">{formatarMoeda(plano.preco)}</span>
-                    <span className="text-muted-foreground">/{plano.periodo}</span>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-2">
-                    {plano.caracteristicas.map((caracteristica, index) => (
-                      <li key={index} className="flex items-center gap-2 text-sm">
-                        <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                        {caracteristica}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Button 
-                    className="w-full" 
-                    variant={userPlan.planType === plano.planType ? "outline" : plano.recomendado ? "default" : "outline"}
-                    disabled={userPlan.planType === plano.planType}
-                    onClick={() => userPlan.planType !== plano.planType && handleUpgradePlano(plano)}
-                  >
-                    {userPlan.planType === plano.planType ? "Plano Atual" : "Assinar Agora"}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         </TabsContent>
 
         <TabsContent value="faturamento" className="space-y-6">
@@ -613,44 +470,6 @@ const PlanoAssinatura = () => {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Modal de Upgrade */}
-      <Dialog open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar Upgrade de Plano</DialogTitle>
-          </DialogHeader>
-          {planoParaUpgrade && (
-            <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="font-medium">Upgrade para: {planoParaUpgrade.nome}</p>
-                <p className="text-sm text-muted-foreground">
-                  Novo valor: {formatarMoeda(planoParaUpgrade.preco)}/mês
-                </p>
-                {userPlan.status !== 'trial' && (
-                  <p className="text-sm text-muted-foreground">
-                    Diferença: +{formatarMoeda(planoParaUpgrade.preco - 89.90)}/mês
-                  </p>
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {userPlan.status === 'trial' 
-                  ? 'Seu período gratuito será convertido em uma assinatura paga.'
-                  : 'O upgrade será aplicado imediatamente e você será cobrado proporcionalmente pelo período restante.'
-                }
-              </p>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setUpgradeModalOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={confirmarUpgrade}>
-              Confirmar Upgrade
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Modal de Cancelamento */}
       <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>

@@ -125,7 +125,8 @@ function App() {
                   <Route path="configuracoes/perfil" element={<PerfilEmpresa />} />
                   <Route path="configuracoes/sistema" element={<ConfiguracoesSistema />} />
                   
-                  {/* Subscription */}
+                  {/* Plans */}
+                  <Route path="planos" element={<PlanosPage />} />
                   <Route path="assinatura" element={<PlanoAssinatura />} />
                 </Route>
 
