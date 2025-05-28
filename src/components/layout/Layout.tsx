@@ -1,38 +1,41 @@
 
-import { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Sidebar from "./Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
 import PlanNotification from "@/components/plan/PlanNotification";
+import { usePerformance } from "@/hooks/usePerformance";
 
-const Layout = () => {
+const Layout = React.memo(() => {
   const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
+  
+  // Monitor performance
+  usePerformance();
+
+  // Memoize auth check to prevent unnecessary re-renders
+  const authStatus = useMemo(() => ({ isAuthenticated, loading }), [isAuthenticated, loading]);
 
   useEffect(() => {
-    // Verificar autenticação a cada 5 minutos para garantir persistência
+    // Reduced auth check frequency for better performance
     const interval = setInterval(() => {
-      // Verificamos apenas se o usuário está autenticado usando o estado já existente
-      if (!isAuthenticated) {
+      if (!authStatus.isAuthenticated && !authStatus.loading) {
         navigate("/login");
       }
-    }, 5 * 60 * 1000);
+    }, 10 * 60 * 1000); // Check every 10 minutes instead of 5
     
     return () => clearInterval(interval);
-  }, [isAuthenticated, navigate]);
+  }, [authStatus.isAuthenticated, authStatus.loading, navigate]);
 
   useEffect(() => {
-    // Redireciona para login apenas quando terminamos de verificar a autenticação
-    // e confirmamos que o usuário não está autenticado
-    if (!loading && !isAuthenticated) {
+    if (!authStatus.loading && !authStatus.isAuthenticated) {
       navigate("/login");
     }
-  }, [isAuthenticated, loading, navigate]);
+  }, [authStatus.isAuthenticated, authStatus.loading, navigate]);
 
-  // Mostra um loader enquanto verifica a autenticação
-  if (loading) {
+  if (authStatus.loading) {
     return (
       <div className="h-screen w-full flex items-center justify-center">
         <div className="flex flex-col items-center">
@@ -43,8 +46,7 @@ const Layout = () => {
     );
   }
 
-  // Não renderiza nada enquanto redireciona
-  if (!isAuthenticated) {
+  if (!authStatus.isAuthenticated) {
     return null;
   }
 
@@ -72,6 +74,8 @@ const Layout = () => {
       </div>
     </SidebarProvider>
   );
-};
+});
+
+Layout.displayName = 'Layout';
 
 export default Layout;

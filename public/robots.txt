@@ -1,14 +1,17 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
 
 User-agent: *
 Allow: /
+Allow: /sobre-nos
+Allow: /contato
+Allow: /centro-ajuda
+Allow: /politica-privacidade
+Allow: /termos-servico
+Allow: /integracoes
+Allow: /documentacao-tecnica
+
+Disallow: /app/
+Disallow: /admin/
+Disallow: /checkout/
+Disallow: /completar-cadastro
+
+Sitemap: https://lovable.dev/sitemap.xml

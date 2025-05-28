@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import PlanosSection from '@/components/landing/PlanosSection';
@@ -14,9 +14,46 @@ import CTASection from '@/components/landing/CTASection';
 import LandingFooter from '@/components/landing/LandingFooter';
 import PlanChoiceModal from '@/components/landing/PlanChoiceModal';
 import { Cloud } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
 
 export default function Landing() {
   const [planChoiceModalOpen, setPlanChoiceModalOpen] = useState(false);
+
+  // SEO optimization
+  useSEO({
+    title: 'Sistema de Gestão para Assistências Técnicas',
+    description: 'Sistema completo na nuvem para gerenciamento de assistências técnicas. Gerencie ordens de serviço, clientes, produtos e financeiro em um só lugar. Teste grátis por 7 dias.',
+    keywords: 'sistema assistência técnica, gestão ordens serviço, software assistência, sistema os, crm assistência técnica',
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "RP OS Cloud",
+      "description": "Sistema completo na nuvem para gerenciamento de assistências técnicas",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "BRL",
+        "description": "Trial gratuito de 7 dias"
+      },
+      "provider": {
+        "@type": "Organization",
+        "name": "RP OS Cloud"
+      }
+    }
+  });
+
+  // Preload critical pages
+  useEffect(() => {
+    const preloadPages = ['/login', '/app'];
+    preloadPages.forEach(page => {
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = page;
+      document.head.appendChild(link);
+    });
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -53,7 +90,9 @@ export default function Landing() {
       <HeroSection />
       
       {/* Features Section */}
-      <FeaturesSection />
+      <div id="features">
+        <FeaturesSection />
+      </div>
       
       {/* Stats Section */}
       <div id="stats">
@@ -66,7 +105,9 @@ export default function Landing() {
       </div>
       
       {/* Planos Section */}
-      <PlanosSection />
+      <div id="planos">
+        <PlanosSection />
+      </div>
       
       {/* Testimonials Section */}
       <TestimonialsSection />
