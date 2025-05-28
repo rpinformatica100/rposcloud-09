@@ -44,6 +44,9 @@ import ConfiguracoesAssistencia from "@/pages/configuracoes/ConfiguracoesAssiste
 import PerfilEmpresa from "@/pages/configuracoes/PerfilEmpresa"
 import ConfiguracoesSistema from "@/pages/configuracoes/ConfiguracoesSistema"
 
+// Plans pages
+import PlanosPage from "@/pages/planos/PlanosPage"
+
 // Subscription pages
 import PlanoAssinatura from "@/pages/assinatura/PlanoAssinatura"
 
