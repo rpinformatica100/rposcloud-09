@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useOrdemData } from "@/hooks/ordens/useOrdemData";
+import { useOrdemOperations } from "@/hooks/ordens/useOrdemOperations";
 import { OrdemServico } from "@/types";
 import { OrdemHeader } from "@/components/ordens/view/OrdemHeader";
 import { OrdemItens } from "@/components/ordens/view/OrdemItens";
@@ -10,13 +11,10 @@ import { ClienteCard } from "@/components/ordens/view/ClienteCard";
 import { DetalhesFinalizacao } from "@/components/ordens/view/DetalhesFinalizacao";
 import { OrdemViewLoader } from "@/components/ordens/view/OrdemViewLoader";
 import FinalizarOrdemModal from "@/components/ordens/FinalizarOrdemModal";
-import { useToast } from "@/hooks/use-toast";
-import { ordensData } from "@/data/dados";
 
 const OrdensView = () => {
   const { id } = useParams<{ id: string }>();
   const [finalizarModalOpen, setFinalizarModalOpen] = useState(false);
-  const { toast } = useToast();
   
   // Fetch ordem data using the custom hook
   const {
@@ -26,6 +24,9 @@ const OrdensView = () => {
     error,
     refetchOrdem
   } = useOrdemData(id);
+
+  // Use ordem operations hook
+  const { finalizarOrdem, reabrirOrdem, isProcessing } = useOrdemOperations();
 
   // Show loading or error state
   if (isLoading || error || !ordem) {
@@ -38,30 +39,28 @@ const OrdensView = () => {
   }
 
   // Handler for finalizar ordem
-  const handleFinalizarOrdem = (ordemAtualizada: OrdemServico) => {
-    // Atualiza a ordem nos dados mockados
-    if (id) {
-      const ordemIndex = ordensData.findIndex(o => o.id === id);
-      if (ordemIndex !== -1) {
-        ordensData[ordemIndex] = {
-          ...ordensData[ordemIndex],
-          ...ordemAtualizada
-        };
-      }
+  const handleFinalizarOrdem = async (dados: {
+    solucao: string;
+    formaPagamento: string;
+    integrarFinanceiro: boolean;
+  }) => {
+    try {
+      await finalizarOrdem(ordem, dados);
+      refetchOrdem();
+      setFinalizarModalOpen(false);
+    } catch (error) {
+      console.error("Erro ao finalizar ordem:", error);
     }
-    
-    // Mostra toast de confirmação
-    if (ordemAtualizada.status === "concluida") {
-      toast({
-        title: "Ordem finalizada com sucesso",
-        description: ordemAtualizada.integradoFinanceiro 
-          ? "A ordem foi finalizada e integrada ao financeiro." 
-          : "A ordem foi finalizada.",
-      });
+  };
+
+  // Handler for reabrir ordem
+  const handleReabrirOrdem = async () => {
+    try {
+      await reabrirOrdem(ordem);
+      refetchOrdem();
+    } catch (error) {
+      console.error("Erro ao reabrir ordem:", error);
     }
-    
-    // Recarregar dados
-    refetchOrdem();
   };
 
   return (
@@ -70,6 +69,8 @@ const OrdensView = () => {
         ordem={ordem} 
         itens={itens} 
         openFinalizarModal={() => setFinalizarModalOpen(true)}
+        onReabrirOrdem={handleReabrirOrdem}
+        isProcessing={isProcessing}
       />
 
       {/* Conteúdo reorganizado para layout sequencial */}

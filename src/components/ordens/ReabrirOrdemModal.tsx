@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertTriangle, RotateCcw, Loader2, X } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { OrdemServico, MovimentoFinanceiro } from "@/types";
 import { formatarMoeda } from "@/lib/utils";
 import { financeirosData } from "@/data/dados";
@@ -12,11 +11,10 @@ interface ReabrirOrdemModalProps {
   ordem: OrdemServico;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (ordem: OrdemServico) => void;
+  onSave: () => void;
 }
 
 const ReabrirOrdemModal = ({ ordem, isOpen, onClose, onSave }: ReabrirOrdemModalProps) => {
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Verificar se existe movimento financeiro relacionado
@@ -26,38 +24,12 @@ const ReabrirOrdemModal = ({ ordem, isOpen, onClose, onSave }: ReabrirOrdemModal
 
   const handleReabrir = () => {
     setIsSubmitting(true);
-
+    
     // Simulando um atraso para mostrar o spinner
     setTimeout(() => {
-      // Remover movimento financeiro se existir
-      if (movimentoFinanceiro) {
-        const index = financeirosData.findIndex(mov => mov.id === movimentoFinanceiro.id);
-        if (index !== -1) {
-          financeirosData.splice(index, 1);
-        }
-      }
-
-      // Criar ordem atualizada com status reaberto
-      const ordemReaberta: OrdemServico = {
-        ...ordem,
-        status: "andamento", // Voltar para andamento
-        dataConclusao: undefined, // Remover data de conclusão
-        solucao: undefined, // Limpar solução
-        formaPagamento: undefined, // Limpar forma de pagamento
-        integradoFinanceiro: false, // Marcar como não integrado
-        movimentoFinanceiroId: undefined // Remover referência ao movimento
-      };
-
-      onSave(ordemReaberta);
+      onSave();
       setIsSubmitting(false);
       onClose();
-
-      toast({
-        title: "Ordem reaberta com sucesso",
-        description: movimentoFinanceiro 
-          ? "A ordem foi reaberta e o movimento financeiro foi removido."
-          : "A ordem foi reaberta.",
-      });
     }, 800);
   };
 

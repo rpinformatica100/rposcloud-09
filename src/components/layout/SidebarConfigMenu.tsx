@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Settings, ChevronDown, Building, Cog } from "lucide-react";
+import { Settings, ChevronDown, Building } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -21,7 +21,7 @@ const SidebarConfigMenu = ({ isCollapsed }: SidebarConfigMenuProps) => {
 
   const configMenuItems: ConfigMenuItem[] = [
     { title: "Perfil da Empresa", path: "/app/configuracoes/perfil", icon: Building },
-    { title: "Configurações do Sistema", path: "/app/configuracoes/sistema", icon: Cog },
+    { title: "Configurações", path: "/app/configuracoes/sistema", icon: Settings },
   ];
 
   const toggleConfigMenu = () => {

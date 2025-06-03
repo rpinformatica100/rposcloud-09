@@ -15,9 +15,11 @@ interface OrdemHeaderProps {
   ordem: OrdemServico;
   itens: ItemOrdemServico[];
   openFinalizarModal: () => void;
+  onReabrirOrdem: () => void;
+  isProcessing: boolean;
 }
 
-export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderProps) {
+export function OrdemHeader({ ordem, itens, openFinalizarModal, onReabrirOrdem, isProcessing }: OrdemHeaderProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [reabrirModalOpen, setReabrirModalOpen] = useState(false);
@@ -50,13 +52,9 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
     navigate('/app/ordens');
   };
 
-  const handleReabrirOrdem = (ordemAtualizada: OrdemServico) => {
-    // Aqui você pode implementar a lógica para atualizar a ordem no estado global
-    // ou fazer uma chamada para a API
-    
-    // Por enquanto, vamos apenas mostrar um toast de sucesso
-    // Em um cenário real, você precisaria atualizar o estado e recarregar os dados
-    window.location.reload(); // Recarregar a página para mostrar as mudanças
+  const handleReabrirOrdemConfirm = () => {
+    onReabrirOrdem();
+    setReabrirModalOpen(false);
   };
 
   const handleVisualizarOS = () => {
@@ -92,22 +90,17 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
 
   const handleBaixarPDF = () => {
     try {
-      // Criar novo documento PDF
       const pdf = new jsPDF();
-      
-      // Configurações do documento
       const pageWidth = pdf.internal.pageSize.getWidth();
       const margin = 20;
       let yPosition = 30;
       
-      // Cabeçalho
       pdf.setFontSize(20);
       pdf.setFont('helvetica', 'bold');
       pdf.text(`Ordem de Serviço #${ordem.numero}`, margin, yPosition);
       
       yPosition += 20;
       
-      // Informações básicas
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'normal');
       
@@ -132,7 +125,6 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
       
       yPosition += 10;
       
-      // Cliente
       if (ordem.cliente) {
         pdf.setFont('helvetica', 'bold');
         pdf.text('Cliente:', margin, yPosition);
@@ -155,7 +147,6 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
         yPosition += 10;
       }
       
-      // Descrição
       if (ordem.descricao) {
         pdf.setFont('helvetica', 'bold');
         pdf.text('Descrição:', margin, yPosition);
@@ -167,13 +158,11 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
         yPosition += splitDescription.length * 7 + 10;
       }
       
-      // Itens
       if (itens.length > 0) {
         pdf.setFont('helvetica', 'bold');
         pdf.text('Itens:', margin, yPosition);
         yPosition += 15;
         
-        // Cabeçalho da tabela
         pdf.setFont('helvetica', 'bold');
         pdf.text('Item', margin, yPosition);
         pdf.text('Qtd', margin + 100, yPosition);
@@ -181,10 +170,8 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
         pdf.text('Total', margin + 170, yPosition);
         yPosition += 10;
         
-        // Linha separadora
         pdf.line(margin, yPosition - 2, pageWidth - margin, yPosition - 2);
         
-        // Itens
         pdf.setFont('helvetica', 'normal');
         itens.forEach((item) => {
           pdf.text(item.produto?.nome || 'Item', margin, yPosition);
@@ -197,12 +184,10 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
         yPosition += 10;
       }
       
-      // Total
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(14);
       pdf.text(`Valor Total: ${formatarMoeda(ordem.valorTotal)}`, margin, yPosition);
       
-      // Baixar o PDF
       pdf.save(`OS_${ordem.numero}.pdf`);
       
       toast({
@@ -270,14 +255,17 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
           </div>
           
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleEditarOrdem}
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Editar
-            </Button>
+            {/* Mostrar botão Editar apenas se a ordem NÃO estiver concluída */}
+            {ordem.status !== "concluida" && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleEditarOrdem}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
+            )}
             
             {ordem.status !== "concluida" ? (
               <Button 
@@ -292,6 +280,7 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
                 size="sm"
                 variant="outline"
                 className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                disabled={isProcessing}
               >
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Reabrir Ordem
@@ -328,6 +317,7 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
                     <DropdownMenuItem 
                       onClick={() => setReabrirModalOpen(true)}
                       className="text-orange-600 focus:text-orange-600"
+                      disabled={isProcessing}
                     >
                       <RotateCcw className="mr-2 h-4 w-4" />
                       Reabrir Ordem
@@ -374,7 +364,7 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
         ordem={ordem} 
         isOpen={reabrirModalOpen} 
         onClose={() => setReabrirModalOpen(false)}
-        onSave={handleReabrirOrdem}
+        onSave={handleReabrirOrdemConfirm}
       />
     </>
   );

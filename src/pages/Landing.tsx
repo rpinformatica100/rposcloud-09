@@ -57,18 +57,18 @@ export default function Landing() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Navigation */}
+      {/* Navigation - Consistent spacing */}
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 md:h-16 items-center justify-between px-4">
+        <div className="container max-w-7xl flex h-16 items-center justify-between px-4 md:px-6 mx-auto">
           <div className="flex items-center">
-            <div className="bg-primary text-white rounded-md w-6 h-6 md:w-8 md:h-8 flex items-center justify-center mr-2 flex-shrink-0">
-              <Cloud size={14} className="md:w-4 md:h-4" />
+            <div className="bg-primary text-white rounded-md w-8 h-8 flex items-center justify-center mr-3 flex-shrink-0">
+              <Cloud size={16} />
             </div>
-            <Link to="/" className="text-base md:text-lg font-semibold text-foreground">RP OS Cloud</Link>
+            <Link to="/" className="text-xl font-semibold text-foreground">RP OS Cloud</Link>
           </div>
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6 text-sm">
+          <nav className="hidden md:flex items-center gap-8 text-base">
             <a href="#features" className="font-medium transition-colors hover:text-primary">Recursos</a>
             <a href="#trial" className="font-medium transition-colors hover:text-primary">Teste Grátis</a>
             <a href="#planos" className="font-medium transition-colors hover:text-primary">Planos</a>
@@ -86,37 +86,56 @@ export default function Landing() {
         </div>
       </header>
       
-      {/* Hero Section */}
-      <HeroSection />
-      
-      {/* Features Section */}
-      <div id="features">
-        <FeaturesSection />
-      </div>
-      
-      {/* Stats Section */}
-      <div id="stats">
-        <StatsSection />
-      </div>
-      
-      {/* Trial Section */}
-      <div id="trial">
-        <TrialSection />
-      </div>
-      
-      {/* Planos Section */}
-      <div id="planos">
-        <PlanosSection />
-      </div>
-      
-      {/* Testimonials Section */}
-      <TestimonialsSection />
-      
-      {/* FAQ Section */}
-      <FAQSection />
-      
-      {/* CTA Section */}
-      <CTASection />
+      {/* Content sections with consistent spacing */}
+      <main className="flex-1">
+        {/* Hero Section */}
+        <HeroSection />
+        
+        {/* Features Section */}
+        <div id="features" className="py-16 md:py-20 lg:py-24">
+          <div className="container max-w-7xl px-4 md:px-6 mx-auto">
+            <FeaturesSection />
+          </div>
+        </div>
+        
+        {/* Stats Section */}
+        <div id="stats" className="py-16 md:py-20 lg:py-24 bg-gray-50 dark:bg-gray-900">
+          <div className="container max-w-7xl px-4 md:px-6 mx-auto">
+            <StatsSection />
+          </div>
+        </div>
+        
+        {/* Trial Section */}
+        <div id="trial" className="py-16 md:py-20 lg:py-24">
+          <div className="container max-w-7xl px-4 md:px-6 mx-auto">
+            <TrialSection />
+          </div>
+        </div>
+        
+        {/* Planos Section */}
+        <div id="planos" className="py-16 md:py-20 lg:py-24 bg-gray-50 dark:bg-gray-900">
+          <div className="container max-w-7xl px-4 md:px-6 mx-auto">
+            <PlanosSection />
+          </div>
+        </div>
+        
+        {/* Testimonials Section */}
+        <div className="py-16 md:py-20 lg:py-24">
+          <div className="container max-w-7xl px-4 md:px-6 mx-auto">
+            <TestimonialsSection />
+          </div>
+        </div>
+        
+        {/* FAQ Section */}
+        <div className="py-16 md:py-20 lg:py-24 bg-gray-50 dark:bg-gray-900">
+          <div className="container max-w-7xl px-4 md:px-6 mx-auto">
+            <FAQSection />
+          </div>
+        </div>
+        
+        {/* CTA Section */}
+        <CTASection />
+      </main>
       
       {/* Footer */}
       <LandingFooter />
