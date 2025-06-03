@@ -7,16 +7,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Check, X, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { OrdemServico, MovimentoFinanceiro } from "@/types";
-import { formatarMoeda, gerarId } from "@/lib/utils";
-import { financeirosData } from "@/data/dados";
+import { OrdemServico } from "@/types";
+import { formatarMoeda } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 
 interface FinalizarOrdemModalProps {
   ordem: OrdemServico;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (ordem: OrdemServico) => void;
+  onSave: (dados: {
+    solucao: string;
+    formaPagamento: string;
+    integrarFinanceiro: boolean;
+  }) => Promise<void>;
 }
 
 const FinalizarOrdemModal = ({ ordem, isOpen, onClose, onSave }: FinalizarOrdemModalProps) => {
@@ -26,7 +29,7 @@ const FinalizarOrdemModal = ({ ordem, isOpen, onClose, onSave }: FinalizarOrdemM
   const [integrarFinanceiro, setIntegrarFinanceiro] = useState(!ordem.integradoFinanceiro);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!solucao.trim()) {
       toast({
         title: "Campo obrigatório",
@@ -38,44 +41,18 @@ const FinalizarOrdemModal = ({ ordem, isOpen, onClose, onSave }: FinalizarOrdemM
 
     setIsSubmitting(true);
 
-    // Simulando um atraso para mostrar o spinner (em um cenário real, isso seria o tempo da chamada à API)
-    setTimeout(() => {
-      const ordemAtualizada: OrdemServico = {
-        ...ordem,
-        status: "concluida", // Garantir que o status seja definido como concluída
-        dataConclusao: new Date().toISOString(),
+    try {
+      await onSave({
         solucao,
         formaPagamento,
-        integradoFinanceiro: integrarFinanceiro
-      };
-
-      // Se integrar ao financeiro, criar movimento financeiro
-      if (integrarFinanceiro) {
-        const novoMovimento: MovimentoFinanceiro = {
-          id: gerarId(),
-          tipo: "receita",
-          descricao: `Pagamento OS #${ordem.numero} - ${ordem.cliente?.nome || "Cliente"}`,
-          valor: Number(ordem.valorTotal) || 0,
-          data: new Date().toISOString().split('T')[0],
-          pago: true,
-          dataPagamento: new Date().toISOString().split('T')[0],
-          categoria: "Serviços",
-          metodoPagamento: formaPagamento,
-          ordemId: ordem.id,
-          observacoes: `Pagamento referente à Ordem de Serviço #${ordem.numero}`
-        };
-
-        // Adicionar ao financeiro
-        financeirosData.unshift(novoMovimento);
-        
-        // Adicionar referência ao movimento financeiro na ordem
-        ordemAtualizada.movimentoFinanceiroId = novoMovimento.id;
-      }
-
-      onSave(ordemAtualizada);
-      setIsSubmitting(false);
+        integrarFinanceiro
+      });
       onClose();
-    }, 800);
+    } catch (error) {
+      console.error("Erro ao finalizar ordem:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
