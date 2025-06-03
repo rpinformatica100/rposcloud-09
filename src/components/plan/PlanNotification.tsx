@@ -62,7 +62,7 @@ export function PlanNotification({ showInHeader = false, compact = false }: Plan
           <Button 
             size="sm" 
             variant="outline"
-            onClick={() => navigate('/assinatura')}
+            onClick={() => navigate('/app/assinatura')}
             className="text-xs"
           >
             <Zap className="h-3 w-3 mr-1" />
@@ -133,7 +133,7 @@ export function PlanNotification({ showInHeader = false, compact = false }: Plan
             {userPlan.planType === 'trial_plan' && userPlan.status === 'trial' && (
               <Button 
                 size="sm" 
-                onClick={() => navigate('/assinatura')}
+                onClick={() => navigate('/app/assinatura')}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
               >
                 <Gift className="h-4 w-4 mr-1" />
@@ -144,7 +144,7 @@ export function PlanNotification({ showInHeader = false, compact = false }: Plan
             {(userPlan.status === 'expired' || userPlan.status === 'cancelled') && (
               <Button 
                 size="sm" 
-                onClick={() => navigate('/assinatura')}
+                onClick={() => navigate('/app/assinatura')}
               >
                 <Zap className="h-4 w-4 mr-1" />
                 Reativar

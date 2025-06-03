@@ -68,7 +68,7 @@ const Dashboard = () => {
     .slice(0, 5);
 
   const handleOrdemClick = (ordemId: string) => {
-    navigate(`/ordens/${ordemId}`);
+    navigate(`/app/ordens/${ordemId}`);
   };
 
   return (
@@ -246,7 +246,7 @@ const Dashboard = () => {
             variant="outline" 
             size="sm"
             className="flex items-center gap-2 w-full sm:w-auto" 
-            onClick={() => navigate('/ordens')}
+            onClick={() => navigate('/app/ordens')}
           >
             Ver todas
             <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />

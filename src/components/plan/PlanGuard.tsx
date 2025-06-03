@@ -51,7 +51,7 @@ export function PlanGuard({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={() => navigate('/assinatura')} className="w-full">
+          <Button onClick={() => navigate('/app/assinatura')} className="w-full">
             Ver Planos Disponíveis
           </Button>
         </CardContent>
@@ -80,7 +80,7 @@ export function PlanGuard({
               Entre em contato com o suporte para resolver esta situação.
             </AlertDescription>
           </Alert>
-          <Button onClick={() => navigate('/assinatura')} className="w-full">
+          <Button onClick={() => navigate('/app/assinatura')} className="w-full">
             Entrar em Contato
           </Button>
         </CardContent>
@@ -101,7 +101,7 @@ export function PlanGuard({
             </div>
             <Button 
               size="sm" 
-              onClick={() => navigate('/assinatura')}
+              onClick={() => navigate('/app/assinatura')}
               className="ml-4"
             >
               Renovar Agora
@@ -144,7 +144,7 @@ export function PlanGuard({
               <span className="text-sm">Plano Necessário:</span>
               <Badge>{planNames[requiredPlan]}</Badge>
             </div>
-            <Button onClick={() => navigate('/assinatura')} className="w-full">
+            <Button onClick={() => navigate('/app/assinatura')} className="w-full">
               <Zap className="h-4 w-4 mr-2" />
               Fazer Upgrade
             </Button>
@@ -172,7 +172,7 @@ export function PlanGuard({
             </div>
             <Button 
               size="sm" 
-              onClick={() => navigate('/assinatura')}
+              onClick={() => navigate('/app/assinatura')}
               className="ml-4"
             >
               Assinar Agora
