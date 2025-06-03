@@ -1,10 +1,9 @@
 
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { OrdemServico, Cliente } from "@/types";
 import { formatarData, formatarMoeda } from "@/lib/utils";
-import { MoreHorizontal, Eye, Edit, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { ActionDropdownMenu, Edit, Trash, Eye } from "@/components/ui/action-dropdown-menu";
 
 interface OrdensTableProps {
   ordens: OrdemServico[];
@@ -42,6 +41,26 @@ export function OrdensTable({ ordens, clientes, onExcluir }: OrdensTableProps) {
   const handleRowClick = (ordemId: string) => {
     navigate(`/app/ordens/${ordemId}`);
   };
+
+  const getActions = (ordem: OrdemServico) => [
+    {
+      label: "Visualizar",
+      icon: Eye,
+      onClick: () => navigate(`/app/ordens/${ordem.id}`)
+    },
+    {
+      label: "Editar", 
+      icon: Edit,
+      onClick: () => navigate(`/app/ordens/editar/${ordem.id}`)
+    },
+    {
+      label: "Excluir",
+      icon: Trash,
+      onClick: () => onExcluir(ordem.id),
+      variant: "destructive" as const,
+      separator: true
+    }
+  ];
 
   return (
     <div className="rounded-md border">
@@ -93,31 +112,7 @@ export function OrdensTable({ ordens, clientes, onExcluir }: OrdensTableProps) {
             </div>
             
             <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="h-4 w-4" />
-                    <span className="sr-only">Abrir menu</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-background">
-                  <DropdownMenuItem onClick={() => navigate(`/app/ordens/${ordem.id}`)}>
-                    <Eye className="mr-2 h-4 w-4" />
-                    Visualizar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate(`/app/ordens/editar/${ordem.id}`)}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Editar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="text-red-600"
-                    onClick={() => onExcluir(ordem.id)}
-                  >
-                    <Trash className="mr-2 h-4 w-4" />
-                    Excluir
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <ActionDropdownMenu actions={getActions(ordem)} />
             </div>
           </div>
         );

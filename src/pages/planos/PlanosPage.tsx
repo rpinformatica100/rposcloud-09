@@ -127,8 +127,8 @@ const PlanosPage = () => {
         {userPlan && (
           <div className="text-right">
             <p className="text-sm text-muted-foreground">Plano atual:</p>
-            <p className="font-semibold">{planNames[userPlan.planType]}</p>
-            {userPlan.planType === 'trial_plan' && (
+            <p className="font-semibold">{planNames[userPlan.planType] || planNames.trial_plan}</p>
+            {userPlan.planType === 'trial_plan' && userPlan.remainingDays !== undefined && (
               <div className="flex items-center gap-1 text-yellow-600">
                 <Clock className="h-4 w-4" />
                 <span className="text-sm">{userPlan.remainingDays} dias restantes</span>
@@ -147,7 +147,7 @@ const PlanosPage = () => {
               Período Gratuito Ativo
             </CardTitle>
             <CardDescription>
-              Você tem acesso completo a todas as funcionalidades por {userPlan.remainingDays} dias restantes.
+              Você tem acesso completo a todas as funcionalidades por {userPlan.remainingDays || 7} dias restantes.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -210,7 +210,7 @@ const PlanosPage = () => {
               >
                 {userPlan?.planType === plano.planType ? (
                   "Plano Atual"
-                ) : userPlan?.planType === 'trial_plan' ? (
+                ) : (userPlan?.planType === 'trial_plan' || !userPlan) ? (
                   <>
                     <Zap className="h-4 w-4 mr-2" />
                     Assinar Agora
@@ -267,21 +267,21 @@ const PlanosPage = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {userPlan?.planType === 'trial_plan' ? 'Assinar Plano' : 'Alterar Plano'}
+              {(userPlan?.planType === 'trial_plan' || !userPlan) ? 'Assinar Plano' : 'Alterar Plano'}
             </DialogTitle>
           </DialogHeader>
           {planoParaUpgrade && (
             <div className="space-y-4">
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="font-medium">
-                  {userPlan?.planType === 'trial_plan' ? 'Assinar:' : 'Alterar para:'} {planoParaUpgrade.nome}
+                  {(userPlan?.planType === 'trial_plan' || !userPlan) ? 'Assinar:' : 'Alterar para:'} {planoParaUpgrade.nome}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Valor: {formatarMoeda(planoParaUpgrade.preco)}/{planoParaUpgrade.periodo}
                 </p>
               </div>
               <p className="text-sm text-muted-foreground">
-                {userPlan?.planType === 'trial_plan' 
+                {(userPlan?.planType === 'trial_plan' || !userPlan)
                   ? 'Seu período gratuito será convertido em uma assinatura paga.'
                   : 'A alteração será aplicada imediatamente no próximo ciclo de faturamento.'
                 }
@@ -293,7 +293,7 @@ const PlanosPage = () => {
               Cancelar
             </Button>
             <Button onClick={confirmarUpgrade}>
-              {userPlan?.planType === 'trial_plan' ? 'Assinar' : 'Confirmar Alteração'}
+              {(userPlan?.planType === 'trial_plan' || !userPlan) ? 'Assinar' : 'Confirmar Alteração'}
             </Button>
           </DialogFooter>
         </DialogContent>

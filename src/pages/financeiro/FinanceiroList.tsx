@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { financeirosData } from "@/data/dados";
 import { MovimentoFinanceiro } from "@/types";
-import { CreditCard, Plus, Search, Check, X, DollarSign, Edit } from "lucide-react";
+import { CreditCard, Plus, Search, Check, X, DollarSign } from "lucide-react";
 import { formatarMoeda } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { ActionDropdownMenu, Edit, Trash } from "@/components/ui/action-dropdown-menu";
 
 const FinanceiroList = () => {
   const [movimentos, setMovimentos] = useState<MovimentoFinanceiro[]>(financeirosData);
@@ -49,6 +50,21 @@ const FinanceiroList = () => {
         : "O movimento foi marcado como pendente",
     });
   };
+
+  const getActions = (movimento: MovimentoFinanceiro) => [
+    {
+      label: "Editar",
+      icon: Edit,
+      onClick: () => navigate(`/app/financeiro/${movimento.id}/editar`)
+    },
+    {
+      label: "Excluir",
+      icon: Trash,
+      onClick: () => handleExcluir(movimento.id),
+      variant: "destructive" as const,
+      separator: true
+    }
+  ];
 
   // Filtrar movimentos conforme busca e filtros
   const movimentosFiltrados = movimentos.filter(movimento => {
@@ -182,7 +198,6 @@ const FinanceiroList = () => {
                 className="w-full md:w-[300px]"
                 value={filtro}
                 onChange={(e) => setFiltro(e.target.value)}
-                startContent={<Search className="h-4 w-4 text-muted-foreground" />}
               />
             </div>
           </div>
@@ -258,23 +273,8 @@ const FinanceiroList = () => {
                           </Button>
                         )}
                       </div>
-                      <div className="flex justify-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-blue-500 hover:text-blue-600"
-                          onClick={() => navigate(`/app/financeiro/${movimento.id}`)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-red-500 hover:text-red-600"
-                          onClick={() => handleExcluir(movimento.id)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
+                      <div className="flex justify-center">
+                        <ActionDropdownMenu actions={getActions(movimento)} />
                       </div>
                     </div>
                   ))}

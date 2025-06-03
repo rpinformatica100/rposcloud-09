@@ -7,9 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { TabsContent, Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClienteRow, fetchClientes, deleteCliente } from "@/integrations/supabase/helpers";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { UserPlus, Search, Edit, Trash, User, Building, Mail, Phone } from "lucide-react";
+import { UserPlus, Search, User, Building, Mail, Phone } from "lucide-react";
 import { formatarData } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { ActionDropdownMenu, Edit, Trash } from "@/components/ui/action-dropdown-menu";
 
 const ClientesList = () => {
   const [filtro, setFiltro] = useState("");
@@ -49,6 +50,21 @@ const ClientesList = () => {
       deleteMutation.mutate(id);
     }
   };
+
+  const getActions = (cliente: ClienteRow) => [
+    {
+      label: "Editar",
+      icon: Edit,
+      onClick: () => navigate(`/app/clientes/${cliente.id}/editar`)
+    },
+    {
+      label: "Excluir",
+      icon: Trash,
+      onClick: () => handleExcluir(cliente.id),
+      variant: "destructive" as const,
+      separator: true
+    }
+  ];
 
   // Filtrar clientes conforme busca e tab selecionada
   const clientesFiltrados = clientes.filter((cliente: ClienteRow) => {
@@ -183,24 +199,8 @@ const ClientesList = () => {
                       <div className="hidden lg:block text-muted-foreground">
                         {cliente.data_cadastro ? formatarData(cliente.data_cadastro) : '-'}
                       </div>
-                      <div className="flex justify-end gap-2 mt-2 md:mt-0">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => navigate(`/app/clientes/editar/${cliente.id}`)}
-                        >
-                          <Edit className="h-4 w-4" />
-                          <span className="sr-only">Editar</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="text-red-500 hover:text-red-600"
-                          onClick={() => handleExcluir(cliente.id)}
-                        >
-                          <Trash className="h-4 w-4" />
-                          <span className="sr-only">Excluir</span>
-                        </Button>
+                      <div className="flex justify-end">
+                        <ActionDropdownMenu actions={getActions(cliente)} />
                       </div>
                     </div>
                   ))}
