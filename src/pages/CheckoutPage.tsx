@@ -159,13 +159,19 @@ export default function CheckoutPage() {
               <CheckCircle className="w-5 h-5 text-green-500" />
             </div>
             <p className="text-sm text-gray-600 mb-2">{planData.description}</p>
-            <p className="text-2xl font-bold text-primary">
-              R$ {planData.price.toFixed(2).replace('.', ',')}
-            </p>
-            {planData.savings && (
-              <p className="text-sm text-green-600 font-medium">
-                Economia de {planData.savings}%
-              </p>
+            
+            {/* Verificar se o plano tem price antes de renderizar */}
+            {'price' in planData && (
+              <>
+                <p className="text-2xl font-bold text-primary">
+                  R$ {planData.price.toFixed(2).replace('.', ',')}
+                </p>
+                {'savings' in planData && planData.savings && (
+                  <p className="text-sm text-green-600 font-medium">
+                    Economia de {planData.savings}%
+                  </p>
+                )}
+              </>
             )}
           </div>
 

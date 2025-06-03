@@ -214,6 +214,13 @@ export function PlanProvider({ children }: PlanProviderProps) {
       }));
 
       const planData = PLAN_METADATA[planType];
+      
+      // Verificar se o plano tem price (type guard)
+      if (!('price' in planData)) {
+        console.error('Plano não tem price definido:', planType);
+        return null;
+      }
+
       const params = new URLSearchParams({
         planoId: planType,
         metodo: 'stripe',
@@ -286,8 +293,8 @@ export function PlanProvider({ children }: PlanProviderProps) {
           toast.info('Checkout interrompido detectado. Deseja continuar?', {
             action: {
               label: 'Continuar',
-              onClick: () => {
-                const url = startCheckout(parsed.planType);
+              onClick: async () => {
+                const url = await startCheckout(parsed.planType);
                 if (url) window.location.href = url;
               }
             }
