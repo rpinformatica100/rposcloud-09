@@ -4,14 +4,25 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import { CheckCircle, ArrowLeft, ArrowRight, X } from 'lucide-react';
 import { useAssinanteCadastro } from '@/hooks/useAssinanteCadastro';
+import { useAuth } from '@/contexts/AuthContext';
 import EtapaDadosBasicos from '@/components/assinante/EtapaDadosBasicos';
 import EtapaDadosFiscais from '@/components/assinante/EtapaDadosFiscais';
 import EtapaPerfilProfissional from '@/components/assinante/EtapaPerfilProfissional';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const CompletarCadastro = () => {
   const navigate = useNavigate();
+  const { atualizarPerfilAssistencia } = useAuth();
+  const [showExitDialog, setShowExitDialog] = useState(false);
+  
   const {
     etapaAtual,
     dadosAssinante,
@@ -34,6 +45,22 @@ const CompletarCadastro = () => {
     } else {
       await proximaEtapa();
     }
+  };
+
+  const handleSairCadastro = async () => {
+    // Marcar que o usuário escolheu sair do cadastro
+    await atualizarPerfilAssistencia({
+      mensagemCadastroExibida: true,
+      // Salvar progresso atual para não perder dados
+      progressoCadastro: {
+        etapaAtual,
+        dados: dadosAssinante,
+        dataUltimaTentativa: new Date().toISOString()
+      }
+    });
+    
+    setShowExitDialog(false);
+    navigate('/app');
   };
 
   const renderEtapaAtual = () => {
@@ -70,7 +97,17 @@ const CompletarCadastro = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 p-4">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8 text-center">
+        <div className="mb-8 text-center relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute left-0 top-0 text-gray-600 hover:text-gray-800"
+            onClick={() => setShowExitDialog(true)}
+          >
+            <X className="h-4 w-4 mr-2" />
+            Sair
+          </Button>
+          
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Complete seu Cadastro
           </h1>
@@ -167,6 +204,29 @@ const CompletarCadastro = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Dialog de confirmação para sair */}
+        <Dialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Sair do cadastro?</DialogTitle>
+              <DialogDescription className="space-y-2">
+                <p>Você pode completar seu cadastro mais tarde, mas algumas funcionalidades podem estar limitadas.</p>
+                <p className="text-sm text-gray-600">
+                  Seu progresso atual ({Math.round(progresso)}%) será salvo e você poderá continuar quando quiser.
+                </p>
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowExitDialog(false)}>
+                Continuar Cadastro
+              </Button>
+              <Button variant="secondary" onClick={handleSairCadastro}>
+                Sair por Agora
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

@@ -10,18 +10,20 @@ import { ordensData, clientesData, produtosData } from "@/data/dados";
 import { OrdemServico, Cliente, Produto, ItemOrdemServico } from "@/types";
 import { gerarId, formatarMoeda } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, Plus, Trash, Tag, Calendar, Clock, User, FileText, AlertTriangle } from "lucide-react";
+import { ChevronLeft, Save, Plus, Trash, Tag, Calendar, Clock, User, FileText, AlertTriangle, UserPlus } from "lucide-react";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import ClienteFormModal from "@/components/ordens/ClienteFormModal";
 
 const OrdensForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { saveOrdemTemp, loadOrdemTemp, clearOrdemTemp, hasOrdemTemp } = useOrdemTempStorage();
   const isEdicao = !!id;
   
   const ordemVazia: OrdemServico = {
@@ -44,6 +46,8 @@ const OrdensForm = () => {
   const [clientes, setClientes] = useState<Cliente[]>(clientesData);
   const [produtos, setProdutos] = useState<Produto[]>(produtosData);
   const [activeTab, setActiveTab] = useState("informacoes");
+  const [showClienteModal, setShowClienteModal] = useState(false);
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
   
   // Estado para controlar novo item sendo adicionado
   const [novoItem, setNovoItem] = useState<{
@@ -57,6 +61,34 @@ const OrdensForm = () => {
     valorUnitario: 0,
     observacao: "",
   });
+
+  // Carregar rascunho ao iniciar (apenas para nova ordem)
+  useEffect(() => {
+    if (!isEdicao && hasOrdemTemp()) {
+      const tempData = loadOrdemTemp();
+      if (tempData) {
+        setOrdem(prev => ({ ...prev, ...tempData.formData }));
+        if (tempData.activeTab) {
+          setActiveTab(tempData.activeTab);
+        }
+        toast({
+          title: "Rascunho restaurado",
+          description: "Seus dados foram restaurados automaticamente",
+        });
+      }
+    }
+  }, [isEdicao, hasOrdemTemp, loadOrdemTemp]);
+
+  // Auto-save a cada mudança significativa
+  useEffect(() => {
+    if (!isEdicao && autoSaveEnabled && (ordem.clienteId || ordem.descricao || ordem.itens.length > 0)) {
+      const timeoutId = setTimeout(() => {
+        saveOrdemTemp(ordem, activeTab);
+      }, 2000); // Salvar após 2 segundos de inatividade
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [ordem, activeTab, isEdicao, autoSaveEnabled, saveOrdemTemp]);
 
   useEffect(() => {
     if (isEdicao) {
@@ -113,6 +145,19 @@ const OrdensForm = () => {
         }));
       }
     }
+  };
+
+  const handleClienteAdicionado = (novoCliente: Cliente) => {
+    // Atualizar lista local de clientes
+    setClientes(prev => [...prev, novoCliente]);
+    
+    // Selecionar automaticamente o cliente recém-criado
+    setOrdem(prev => ({ ...prev, clienteId: novoCliente.id }));
+    
+    toast({
+      title: "Cliente adicionado e selecionado",
+      description: `${novoCliente.nome} foi adicionado e selecionado para esta ordem`,
+    });
   };
 
   const handleNovoItemChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -245,6 +290,9 @@ const OrdensForm = () => {
       
       ordensData.push(novaOrdem);
       
+      // Limpar rascunho após salvar
+      clearOrdemTemp();
+      
       toast({
         title: "Ordem criada",
         description: "A ordem de serviço foi criada com sucesso",
@@ -292,6 +340,11 @@ const OrdensForm = () => {
             {isEdicao ? "Editar Ordem de Serviço" : "Nova Ordem de Serviço"}
           </h1>
         </div>
+        {!isEdicao && hasOrdemTemp() && (
+          <div className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded-md">
+            💾 Salvando automaticamente...
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -332,21 +385,32 @@ const OrdensForm = () => {
                         <User className="h-4 w-4 mr-2 text-gray-500" />
                         Cliente <span className="text-red-500 ml-1">*</span>
                       </Label>
-                      <Select 
-                        value={ordem.clienteId} 
-                        onValueChange={(value) => handleSelectChange("clienteId", value)}
-                      >
-                        <SelectTrigger id="clienteId">
-                          <SelectValue placeholder="Selecione um cliente" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {clientes.filter(c => c.tipo === "cliente").map((cliente) => (
-                            <SelectItem key={cliente.id} value={cliente.id}>
-                              {cliente.nome}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex gap-2">
+                        <Select 
+                          value={ordem.clienteId} 
+                          onValueChange={(value) => handleSelectChange("clienteId", value)}
+                        >
+                          <SelectTrigger id="clienteId">
+                            <SelectValue placeholder="Selecione um cliente" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {clientes.filter(c => c.tipo === "cliente").map((cliente) => (
+                              <SelectItem key={cliente.id} value={cliente.id}>
+                                {cliente.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button 
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setShowClienteModal(true)}
+                          title="Adicionar novo cliente"
+                        >
+                          <UserPlus className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
 
                     <div className="space-y-2">
@@ -493,7 +557,6 @@ const OrdensForm = () => {
                             <SelectValue placeholder="Selecione um produto/serviço" />
                           </SelectTrigger>
                           <SelectContent>
-                            {/* Fix: Remove SelectItem with empty value */}
                             <SelectItem value="header-1" disabled>Selecione um item</SelectItem>
                             <SelectItem value="header-2" disabled>-- Produtos --</SelectItem>
                             {produtos.filter(p => p.ativo && p.tipo === "produto").map((produto) => (
@@ -778,6 +841,13 @@ const OrdensForm = () => {
           </Card>
         </Tabs>
       </form>
+
+      {/* Modal para adicionar cliente */}
+      <ClienteFormModal 
+        open={showClienteModal}
+        onOpenChange={setShowClienteModal}
+        onClienteAdicionado={handleClienteAdicionado}
+      />
     </div>
   );
 };
