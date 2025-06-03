@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { OrdemServico, ItemOrdemServico } from "@/types";
@@ -8,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { getOrderHtml } from "@/lib/orderPrintUtils";
+import jsPDF from 'jspdf';
 
 interface OrdemHeaderProps {
   ordem: OrdemServico;
@@ -79,29 +79,143 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
   };
 
   const handleBaixarPDF = () => {
-    const printWindow = window.open('', '_blank');
-    
-    if (!printWindow) {
+    try {
+      // Criar novo documento PDF
+      const pdf = new jsPDF();
+      
+      // Configurações do documento
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const margin = 20;
+      let yPosition = 30;
+      
+      // Cabeçalho
+      pdf.setFontSize(20);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`Ordem de Serviço #${ordem.numero}`, margin, yPosition);
+      
+      yPosition += 20;
+      
+      // Informações básicas
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      
+      pdf.text(`Status: ${ordem.status}`, margin, yPosition);
+      yPosition += 10;
+      
+      pdf.text(`Prioridade: ${ordem.prioridade}`, margin, yPosition);
+      yPosition += 10;
+      
+      pdf.text(`Data de Abertura: ${formatarData(ordem.dataAbertura)}`, margin, yPosition);
+      yPosition += 10;
+      
+      if (ordem.dataPrevisao) {
+        pdf.text(`Previsão: ${formatarData(ordem.dataPrevisao)}`, margin, yPosition);
+        yPosition += 10;
+      }
+      
+      if (ordem.responsavel) {
+        pdf.text(`Responsável: ${ordem.responsavel}`, margin, yPosition);
+        yPosition += 10;
+      }
+      
+      yPosition += 10;
+      
+      // Cliente
+      if (ordem.cliente) {
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Cliente:', margin, yPosition);
+        yPosition += 10;
+        
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Nome: ${ordem.cliente.nome}`, margin, yPosition);
+        yPosition += 7;
+        
+        if (ordem.cliente.email) {
+          pdf.text(`Email: ${ordem.cliente.email}`, margin, yPosition);
+          yPosition += 7;
+        }
+        
+        if (ordem.cliente.telefone) {
+          pdf.text(`Telefone: ${ordem.cliente.telefone}`, margin, yPosition);
+          yPosition += 7;
+        }
+        
+        yPosition += 10;
+      }
+      
+      // Descrição
+      if (ordem.descricao) {
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Descrição:', margin, yPosition);
+        yPosition += 10;
+        
+        pdf.setFont('helvetica', 'normal');
+        const splitDescription = pdf.splitTextToSize(ordem.descricao, pageWidth - 2 * margin);
+        pdf.text(splitDescription, margin, yPosition);
+        yPosition += splitDescription.length * 7 + 10;
+      }
+      
+      // Itens
+      if (itens.length > 0) {
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Itens:', margin, yPosition);
+        yPosition += 15;
+        
+        // Cabeçalho da tabela
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Item', margin, yPosition);
+        pdf.text('Qtd', margin + 100, yPosition);
+        pdf.text('Valor Unit.', margin + 130, yPosition);
+        pdf.text('Total', margin + 170, yPosition);
+        yPosition += 10;
+        
+        // Linha separadora
+        pdf.line(margin, yPosition - 2, pageWidth - margin, yPosition - 2);
+        
+        // Itens
+        pdf.setFont('helvetica', 'normal');
+        itens.forEach((item) => {
+          pdf.text(item.produto?.nome || 'Item', margin, yPosition);
+          pdf.text(item.quantidade.toString(), margin + 100, yPosition);
+          pdf.text(formatarMoeda(item.valorUnitario), margin + 130, yPosition);
+          pdf.text(formatarMoeda(item.valorTotal), margin + 170, yPosition);
+          yPosition += 10;
+        });
+        
+        yPosition += 10;
+      }
+      
+      // Total
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(14);
+      pdf.text(`Valor Total: ${formatarMoeda(ordem.valorTotal)}`, margin, yPosition);
+      
+      // Baixar o PDF
+      pdf.save(`OS_${ordem.numero}.pdf`);
+      
       toast({
-        title: "Erro",
-        description: "Não foi possível abrir a janela para download. Verifique se o bloqueador de pop-ups está desativado.",
+        title: "PDF baixado com sucesso!",
+        description: `O arquivo OS_${ordem.numero}.pdf foi baixado.`,
+      });
+      
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      toast({
+        title: "Erro ao gerar PDF",
+        description: "Não foi possível gerar o arquivo PDF. Tente novamente.",
         variant: "destructive",
       });
-      return;
     }
-    
-    printWindow.document.write(getOrderHtml(ordem, itens, ordem.cliente, {}, true, true));
-    printWindow.document.close();
   };
 
   const handleCopiarLink = () => {
     const host = window.location.origin;
-    const shareLink = `${host}/app/ordens/${ordem.id}`;
+    const shareLink = `${host}/share/ordem/${ordem.id}`;
     
     navigator.clipboard.writeText(shareLink).then(() => {
       toast({
         title: "Link copiado!",
-        description: "O link da OS foi copiado para a área de transferência.",
+        description: "O link público da OS foi copiado para a área de transferência.",
       });
     }).catch(err => {
       console.error("Falha ao copiar o link: ", err);
