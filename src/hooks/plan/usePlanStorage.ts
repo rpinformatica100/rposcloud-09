@@ -53,7 +53,7 @@ export function usePlanStorage() {
     if (!user) return null;
 
     const planKey = `plan_${user.id}`;
-    const userPlanType = user.plano as PlanType;
+    const userPlanType = user.plano as string;
     const userPlanEndDate = user.data_vencimento_plano;
     const userPlanStartDate = user.data_cadastro;
 
@@ -63,12 +63,12 @@ export function usePlanStorage() {
       startDate: userPlanStartDate
     });
 
-    // Mapeamento corrigido para usar apenas os tipos válidos de PlanType
+    // Mapeamento melhorado para incluir todos os tipos de plano dos usuários de teste
     const planTypeMapping: Record<string, PlanType> = {
       'trial_plan': 'trial_plan',
-      'basic': 'monthly',        // Mapear basic para monthly
-      'professional': 'yearly',   // Mapear professional para yearly
-      'enterprise': 'yearly',     // Mapear enterprise para yearly
+      'basic': 'monthly',
+      'professional': 'yearly',
+      'enterprise': 'yearly',
       'monthly': 'monthly',
       'quarterly': 'quarterly',
       'yearly': 'yearly',
@@ -80,6 +80,8 @@ export function usePlanStorage() {
     if (userPlanType && PLAN_CONFIGS[mappedPlanType]) {
       const remainingDays = calculateRemainingDays(userPlanEndDate);
       const status = determineStatus(userPlanEndDate, mappedPlanType);
+
+      console.log(`Status calculado para ${user.email}: ${status}, dias restantes: ${remainingDays}`);
 
       const defaultPlan: UserPlan = {
         id: planKey,

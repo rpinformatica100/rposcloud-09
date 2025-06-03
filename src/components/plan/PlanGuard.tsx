@@ -34,8 +34,11 @@ export function PlanGuard({
   const { userPlan, shouldShowUpgradePrompt, getTrialProgressPercentage } = usePlanStatus();
   const navigate = useNavigate();
 
+  console.log('PlanGuard - userPlan:', userPlan);
+
   // Se não há plano, bloquear acesso
   if (!userPlan) {
+    console.log('PlanGuard - Nenhum plano encontrado, bloqueando acesso');
     return (
       <Card className="max-w-md mx-auto mt-8">
         <CardHeader>
@@ -56,46 +59,70 @@ export function PlanGuard({
     );
   }
 
-  // Verificar se o plano expirou
-  if (userPlan.status === 'expired' || userPlan.status === 'blocked') {
+  // Verificar se o plano está bloqueado
+  if (userPlan.status === 'blocked') {
+    console.log('PlanGuard - Plano bloqueado');
     return (
       <Card className="max-w-md mx-auto mt-8">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-red-600">
             <AlertTriangle className="h-5 w-5" />
-            {userPlan.status === 'expired' ? 'Plano Expirado' : 'Acesso Bloqueado'}
+            Acesso Bloqueado
           </CardTitle>
           <CardDescription>
-            {userPlan.status === 'expired' 
-              ? 'Seu período gratuito expirou. Assine um plano para continuar.'
-              : 'Sua conta foi bloqueada. Entre em contato com o suporte.'
-            }
+            Sua conta foi bloqueada. Entre em contato com o suporte.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert className="border-red-200 bg-red-50">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              Você pode visualizar seus dados, mas não pode fazer alterações até renovar seu plano.
+              Entre em contato com o suporte para resolver esta situação.
             </AlertDescription>
           </Alert>
           <Button onClick={() => navigate('/assinatura')} className="w-full">
-            Renovar Plano
+            Entrar em Contato
           </Button>
         </CardContent>
       </Card>
     );
   }
 
+  // Para planos expirados, mostrar tela de renovação mas permitir visualização
+  if (userPlan.status === 'expired') {
+    console.log('PlanGuard - Plano expirado, mostrando opção de renovação');
+    return (
+      <div>
+        <Alert className="mb-6 border-red-200 bg-red-50">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <div>
+              <strong>Plano Expirado:</strong> Renove seu plano para continuar usando todas as funcionalidades.
+            </div>
+            <Button 
+              size="sm" 
+              onClick={() => navigate('/assinatura')}
+              className="ml-4"
+            >
+              Renovar Agora
+            </Button>
+          </AlertDescription>
+        </Alert>
+        {children}
+      </div>
+    );
+  }
+
   // Verificar se precisa de um plano específico
   if (requiredPlan && userPlan.planType !== requiredPlan) {
     const planNames = {
-      free_trial: 'Trial Gratuito',
-      basic: 'Básico',
-      professional: 'Profissional',
-      enterprise: 'Enterprise'
+      trial_plan: 'Trial Gratuito',
+      monthly: 'Mensal',
+      quarterly: 'Trimestral',
+      yearly: 'Anual'
     };
 
+    console.log(`PlanGuard - Plano atual ${userPlan.planType} não atende requisito ${requiredPlan}`);
     return (
       <Card className="max-w-md mx-auto mt-8">
         <CardHeader>
@@ -126,6 +153,8 @@ export function PlanGuard({
       </Card>
     );
   }
+
+  console.log('PlanGuard - Acesso permitido, renderizando conteúdo');
 
   return (
     <div>
