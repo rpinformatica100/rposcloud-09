@@ -13,6 +13,7 @@ export interface Cliente {
   cep: string;
   observacoes?: string;
   dataCadastro: string;
+  ativo: boolean; // Adding missing ativo property
 }
 
 export interface Produto {
@@ -162,6 +163,11 @@ export interface Assistencia {
   mensagemCadastroExibida?: boolean;
   statusCadastro?: 'incompleto' | 'pendente_validacao' | 'completo' | 'bloqueado';
   etapaAtual?: number;
+  progressoCadastro?: { // Adding missing progressoCadastro property
+    etapaAtual: number;
+    dados: any;
+    dataUltimaTentativa: string;
+  };
   
   // Configurações
   configuracoes?: {
