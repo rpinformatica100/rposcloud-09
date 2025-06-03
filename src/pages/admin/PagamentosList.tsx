@@ -9,13 +9,16 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Search, FileText, CheckCircle, XCircle, Edit, Trash } from "lucide-react";
+import { Search, FileText, CheckCircle, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
+import { ActionDropdownMenu, Edit, Trash, Eye } from "@/components/ui/action-dropdown-menu";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableTableHeader } from "@/components/ui/sortable-table-header";
 
 type PagamentoType = {
   id: string;
@@ -90,6 +93,8 @@ const PagamentosList = () => {
       pagamento.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const { sortedData, sortConfig, requestSort } = useTableSort(filteredPagamentos, { key: 'data', direction: 'desc' });
+
   // Total de pagamentos aprovados
   const totalAprovado = pagamentos
     .filter(p => p.status === "Aprovado")
@@ -144,6 +149,26 @@ const PagamentosList = () => {
     setCurrentPagamento(pagamento);
     setIsDeleteDialogOpen(true);
   };
+
+  const getActions = (pagamento: PagamentoType) => [
+    {
+      label: "Ver comprovante",
+      icon: Eye,
+      onClick: () => openViewDialog(pagamento)
+    },
+    {
+      label: "Editar",
+      icon: Edit,
+      onClick: () => openEditDialog(pagamento)
+    },
+    {
+      label: "Excluir",
+      icon: Trash,
+      onClick: () => openDeleteDialog(pagamento),
+      variant: "destructive" as const,
+      separator: true
+    }
+  ];
 
   return (
     <div className="space-y-6">
@@ -203,19 +228,47 @@ const PagamentosList = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Assistência</TableHead>
-                <TableHead>Plano</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead>Método</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>
+                  <SortableTableHeader sortKey="id" sortConfig={sortConfig} onSort={requestSort}>
+                    ID
+                  </SortableTableHeader>
+                </TableHead>
+                <TableHead>
+                  <SortableTableHeader sortKey="assistencia" sortConfig={sortConfig} onSort={requestSort}>
+                    Assistência
+                  </SortableTableHeader>
+                </TableHead>
+                <TableHead>
+                  <SortableTableHeader sortKey="plano" sortConfig={sortConfig} onSort={requestSort}>
+                    Plano
+                  </SortableTableHeader>
+                </TableHead>
+                <TableHead>
+                  <SortableTableHeader sortKey="valor" sortConfig={sortConfig} onSort={requestSort}>
+                    Valor
+                  </SortableTableHeader>
+                </TableHead>
+                <TableHead>
+                  <SortableTableHeader sortKey="data" sortConfig={sortConfig} onSort={requestSort}>
+                    Data
+                  </SortableTableHeader>
+                </TableHead>
+                <TableHead>
+                  <SortableTableHeader sortKey="metodo" sortConfig={sortConfig} onSort={requestSort}>
+                    Método
+                  </SortableTableHeader>
+                </TableHead>
+                <TableHead>
+                  <SortableTableHeader sortKey="status" sortConfig={sortConfig} onSort={requestSort}>
+                    Status
+                  </SortableTableHeader>
+                </TableHead>
                 <TableHead className="w-[120px] text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPagamentos.map((pagamento) => (
-                <TableRow key={pagamento.id}>
+              {sortedData.map((pagamento) => (
+                <TableRow key={pagamento.id} className="cursor-pointer hover:bg-muted/30">
                   <TableCell className="font-medium">{pagamento.id}</TableCell>
                   <TableCell>{pagamento.assistencia}</TableCell>
                   <TableCell>{pagamento.plano}</TableCell>
@@ -235,33 +288,8 @@ const PagamentosList = () => {
                       </span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-1">
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        title="Ver comprovante"
-                        onClick={() => openViewDialog(pagamento)}
-                      >
-                        <FileText className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        title="Editar"
-                        onClick={() => openEditDialog(pagamento)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        title="Remover"
-                        onClick={() => openDeleteDialog(pagamento)}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                    <ActionDropdownMenu actions={getActions(pagamento)} />
                   </TableCell>
                 </TableRow>
               ))}

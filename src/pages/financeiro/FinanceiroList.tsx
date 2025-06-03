@@ -12,6 +12,8 @@ import { CreditCard, Plus, Search, Check, X, DollarSign } from "lucide-react";
 import { formatarMoeda } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { ActionDropdownMenu, Edit, Trash } from "@/components/ui/action-dropdown-menu";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableTableHeader } from "@/components/ui/sortable-table-header";
 
 const FinanceiroList = () => {
   const [movimentos, setMovimentos] = useState<MovimentoFinanceiro[]>(financeirosData);
@@ -20,6 +22,36 @@ const FinanceiroList = () => {
   const [tipoFiltro, setTipoFiltro] = useState("todos");
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Filtrar movimentos conforme busca e filtros
+  const movimentosFiltrados = movimentos.filter(movimento => {
+    const matchesSearch = 
+      movimento.descricao.toLowerCase().includes(filtro.toLowerCase()) || 
+      movimento.categoria.toLowerCase().includes(filtro.toLowerCase()) || 
+      (movimento.metodoPagamento || "").toLowerCase().includes(filtro.toLowerCase());
+    
+    const matchesTipo = tipoFiltro === "todos" || movimento.tipo === tipoFiltro;
+    
+    let matchesPeriodo = true;
+    const hoje = new Date();
+    const dataMovimento = new Date(movimento.data);
+    
+    if (periodoFiltro === "hoje") {
+      matchesPeriodo = dataMovimento.toDateString() === hoje.toDateString();
+    } else if (periodoFiltro === "semana") {
+      const umaSemanaAtras = new Date();
+      umaSemanaAtras.setDate(hoje.getDate() - 7);
+      matchesPeriodo = dataMovimento >= umaSemanaAtras;
+    } else if (periodoFiltro === "mes") {
+      matchesPeriodo = 
+        dataMovimento.getMonth() === hoje.getMonth() && 
+        dataMovimento.getFullYear() === hoje.getFullYear();
+    }
+    
+    return matchesSearch && matchesTipo && matchesPeriodo;
+  });
+
+  const { sortedData, sortConfig, requestSort } = useTableSort(movimentosFiltrados, { key: 'data', direction: 'desc' });
 
   const handleExcluir = (id: string) => {
     if (confirm("Tem certeza que deseja excluir este movimento?")) {
@@ -51,11 +83,15 @@ const FinanceiroList = () => {
     });
   };
 
+  const handleRowClick = (movimentoId: string) => {
+    navigate(`/financeiro/${movimentoId}`);
+  };
+
   const getActions = (movimento: MovimentoFinanceiro) => [
     {
       label: "Editar",
       icon: Edit,
-      onClick: () => navigate(`/app/financeiro/${movimento.id}/editar`)
+      onClick: () => navigate(`/financeiro/editar/${movimento.id}`)
     },
     {
       label: "Excluir",
@@ -66,43 +102,12 @@ const FinanceiroList = () => {
     }
   ];
 
-  // Filtrar movimentos conforme busca e filtros
-  const movimentosFiltrados = movimentos.filter(movimento => {
-    // Filtro por texto
-    const matchesSearch = 
-      movimento.descricao.toLowerCase().includes(filtro.toLowerCase()) || 
-      movimento.categoria.toLowerCase().includes(filtro.toLowerCase()) || 
-      (movimento.metodoPagamento || "").toLowerCase().includes(filtro.toLowerCase());
-    
-    // Filtro por tipo (receita/despesa)
-    const matchesTipo = tipoFiltro === "todos" || movimento.tipo === tipoFiltro;
-    
-    // Filtro por período
-    let matchesPeriodo = true;
-    const hoje = new Date();
-    const dataMovimento = new Date(movimento.data);
-    
-    if (periodoFiltro === "hoje") {
-      matchesPeriodo = dataMovimento.toDateString() === hoje.toDateString();
-    } else if (periodoFiltro === "semana") {
-      const umaSemanaAtras = new Date();
-      umaSemanaAtras.setDate(hoje.getDate() - 7);
-      matchesPeriodo = dataMovimento >= umaSemanaAtras;
-    } else if (periodoFiltro === "mes") {
-      matchesPeriodo = 
-        dataMovimento.getMonth() === hoje.getMonth() && 
-        dataMovimento.getFullYear() === hoje.getFullYear();
-    }
-    
-    return matchesSearch && matchesTipo && matchesPeriodo;
-  });
-
   // Calcular totais
-  const totalReceitas = movimentosFiltrados
+  const totalReceitas = sortedData
     .filter(m => m.tipo === "receita")
     .reduce((sum, m) => sum + m.valor, 0);
     
-  const totalDespesas = movimentosFiltrados
+  const totalDespesas = sortedData
     .filter(m => m.tipo === "despesa")
     .reduce((sum, m) => sum + m.valor, 0);
     
@@ -112,7 +117,7 @@ const FinanceiroList = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Financeiro</h1>
-        <Button onClick={() => navigate("/app/financeiro/novo")}>
+        <Button onClick={() => navigate("/financeiro/novo")}>
           <Plus className="mr-2 h-4 w-4" />
           Novo Movimento
         </Button>
@@ -212,21 +217,42 @@ const FinanceiroList = () => {
             </TabsList>
 
             <TabsContent value={tipoFiltro}>
-              {movimentosFiltrados.length > 0 ? (
+              {sortedData.length > 0 ? (
                 <div className="rounded-md border">
                   <div className="grid grid-cols-1 md:grid-cols-7 p-4 bg-muted/50 font-medium text-sm">
-                    <div className="md:col-span-2">Descrição</div>
-                    <div className="hidden md:block">Data</div>
-                    <div className="hidden md:block">Categoria</div>
-                    <div className="text-right">Valor</div>
-                    <div className="text-center">Status</div>
+                    <div className="md:col-span-2">
+                      <SortableTableHeader sortKey="descricao" sortConfig={sortConfig} onSort={requestSort}>
+                        Descrição
+                      </SortableTableHeader>
+                    </div>
+                    <div className="hidden md:block">
+                      <SortableTableHeader sortKey="data" sortConfig={sortConfig} onSort={requestSort}>
+                        Data
+                      </SortableTableHeader>
+                    </div>
+                    <div className="hidden md:block">
+                      <SortableTableHeader sortKey="categoria" sortConfig={sortConfig} onSort={requestSort}>
+                        Categoria
+                      </SortableTableHeader>
+                    </div>
+                    <div className="text-right">
+                      <SortableTableHeader sortKey="valor" sortConfig={sortConfig} onSort={requestSort} className="flex justify-end">
+                        Valor
+                      </SortableTableHeader>
+                    </div>
+                    <div className="text-center">
+                      <SortableTableHeader sortKey="pago" sortConfig={sortConfig} onSort={requestSort} className="flex justify-center">
+                        Status
+                      </SortableTableHeader>
+                    </div>
                     <div className="text-center">Ações</div>
                   </div>
 
-                  {movimentosFiltrados.map((movimento) => (
+                  {sortedData.map((movimento) => (
                     <div 
                       key={movimento.id} 
-                      className="grid grid-cols-1 md:grid-cols-7 p-4 border-t items-center"
+                      className="grid grid-cols-1 md:grid-cols-7 p-4 border-t items-center hover:bg-muted/30 cursor-pointer"
+                      onClick={() => handleRowClick(movimento.id)}
                     >
                       <div className="md:col-span-2">
                         <div className="flex items-center gap-2">
@@ -250,7 +276,7 @@ const FinanceiroList = () => {
                       }`}>
                         {movimento.tipo === "receita" ? "+" : "-"}{formatarMoeda(movimento.valor)}
                       </div>
-                      <div className="flex justify-center">
+                      <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
                         {movimento.pago ? (
                           <Button
                             variant="ghost"
@@ -273,7 +299,7 @@ const FinanceiroList = () => {
                           </Button>
                         )}
                       </div>
-                      <div className="flex justify-center">
+                      <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
                         <ActionDropdownMenu actions={getActions(movimento)} />
                       </div>
                     </div>

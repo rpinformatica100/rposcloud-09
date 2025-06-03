@@ -8,9 +8,12 @@ import { TabsContent, Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { produtosData } from "@/data/dados";
 import { Produto } from "@/types";
-import { Package, Plus, Search, Edit, Trash, ShoppingCart, Wrench } from "lucide-react";
+import { Package, Plus, Search, ShoppingCart, Wrench } from "lucide-react";
 import { formatarMoeda } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { ActionDropdownMenu, Edit, Trash } from "@/components/ui/action-dropdown-menu";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableTableHeader } from "@/components/ui/sortable-table-header";
 
 const ProdutosList = () => {
   const [produtos, setProdutos] = useState<Produto[]>(produtosData);
@@ -18,6 +21,18 @@ const ProdutosList = () => {
   const [tabAtual, setTabAtual] = useState("todos");
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Filtrar produtos conforme busca e tab selecionada
+  const produtosFiltrados = produtos.filter(produto => {
+    const matchesSearch = produto.nome.toLowerCase().includes(filtro.toLowerCase()) || 
+                         produto.descricao.toLowerCase().includes(filtro.toLowerCase()) || 
+                         (produto.codigo || "").toLowerCase().includes(filtro.toLowerCase());
+    
+    if (tabAtual === "todos") return matchesSearch;
+    return matchesSearch && produto.tipo === tabAtual;
+  });
+
+  const { sortedData, sortConfig, requestSort } = useTableSort(produtosFiltrados, { key: 'nome', direction: 'asc' });
 
   const handleExcluir = (id: string) => {
     if (confirm("Tem certeza que deseja excluir este produto?")) {
@@ -29,23 +44,30 @@ const ProdutosList = () => {
     }
   };
 
-  // Filtrar produtos conforme busca e tab selecionada
-  const produtosFiltrados = produtos.filter(produto => {
-    // Filtro por texto
-    const matchesSearch = produto.nome.toLowerCase().includes(filtro.toLowerCase()) || 
-                         produto.descricao.toLowerCase().includes(filtro.toLowerCase()) || 
-                         (produto.codigo || "").toLowerCase().includes(filtro.toLowerCase());
-    
-    // Filtro por tipo
-    if (tabAtual === "todos") return matchesSearch;
-    return matchesSearch && produto.tipo === tabAtual;
-  });
+  const handleRowClick = (produtoId: string) => {
+    navigate(`/produtos/${produtoId}`);
+  };
+
+  const getActions = (produto: Produto) => [
+    {
+      label: "Editar",
+      icon: Edit,
+      onClick: () => navigate(`/produtos/editar/${produto.id}`)
+    },
+    {
+      label: "Excluir",
+      icon: Trash,
+      onClick: () => handleExcluir(produto.id),
+      variant: "destructive" as const,
+      separator: true
+    }
+  ];
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Produtos e Serviços</h1>
-        <Button onClick={() => navigate('/app/produtos/novo')}>
+        <Button onClick={() => navigate('/produtos/novo')}>
           <Plus className="mr-2 h-4 w-4" />
           Novo Produto
         </Button>
@@ -81,19 +103,32 @@ const ProdutosList = () => {
             </TabsList>
 
             <TabsContent value={tabAtual}>
-              {produtosFiltrados.length > 0 ? (
+              {sortedData.length > 0 ? (
                 <div className="rounded-md border">
                   <div className="grid grid-cols-1 md:grid-cols-5 p-4 bg-muted/50 font-medium text-sm">
-                    <div className="md:col-span-2">Produto</div>
-                    <div className="hidden md:block">Código</div>
-                    <div className="hidden md:block">Preço</div>
+                    <div className="md:col-span-2">
+                      <SortableTableHeader sortKey="nome" sortConfig={sortConfig} onSort={requestSort}>
+                        Produto
+                      </SortableTableHeader>
+                    </div>
+                    <div className="hidden md:block">
+                      <SortableTableHeader sortKey="codigo" sortConfig={sortConfig} onSort={requestSort}>
+                        Código
+                      </SortableTableHeader>
+                    </div>
+                    <div className="hidden md:block">
+                      <SortableTableHeader sortKey="preco" sortConfig={sortConfig} onSort={requestSort}>
+                        Preço
+                      </SortableTableHeader>
+                    </div>
                     <div className="text-right">Ações</div>
                   </div>
 
-                  {produtosFiltrados.map((produto) => (
+                  {sortedData.map((produto) => (
                     <div 
                       key={produto.id} 
-                      className="grid grid-cols-1 md:grid-cols-5 p-4 border-t items-center"
+                      className="grid grid-cols-1 md:grid-cols-5 p-4 border-t items-center hover:bg-muted/30 cursor-pointer"
+                      onClick={() => handleRowClick(produto.id)}
                     >
                       <div className="md:col-span-2">
                         <div className="flex items-center gap-3">
@@ -133,24 +168,8 @@ const ProdutosList = () => {
                       <div className="hidden md:block font-medium">
                         {formatarMoeda(produto.preco)}
                       </div>
-                      <div className="flex justify-end gap-2 mt-2 md:mt-0">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => navigate(`/app/produtos/editar/${produto.id}`)}
-                        >
-                          <Edit className="h-4 w-4" />
-                          <span className="sr-only">Editar</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="text-red-500 hover:text-red-600"
-                          onClick={() => handleExcluir(produto.id)}
-                        >
-                          <Trash className="h-4 w-4" />
-                          <span className="sr-only">Excluir</span>
-                        </Button>
+                      <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+                        <ActionDropdownMenu actions={getActions(produto)} />
                       </div>
                     </div>
                   ))}

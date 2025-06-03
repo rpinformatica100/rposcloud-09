@@ -4,6 +4,8 @@ import { OrdemServico, Cliente } from "@/types";
 import { formatarData, formatarMoeda } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { ActionDropdownMenu, Edit, Trash, Eye } from "@/components/ui/action-dropdown-menu";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableTableHeader } from "@/components/ui/sortable-table-header";
 
 interface OrdensTableProps {
   ordens: OrdemServico[];
@@ -13,6 +15,7 @@ interface OrdensTableProps {
 
 export function OrdensTable({ ordens, clientes, onExcluir }: OrdensTableProps) {
   const navigate = useNavigate();
+  const { sortedData, sortConfig, requestSort } = useTableSort(ordens, { key: 'dataAbertura', direction: 'desc' });
 
   const getCliente = (clienteId: string) => {
     return clientes.find(c => c.id === clienteId);
@@ -39,19 +42,19 @@ export function OrdensTable({ ordens, clientes, onExcluir }: OrdensTableProps) {
   };
 
   const handleRowClick = (ordemId: string) => {
-    navigate(`/app/ordens/${ordemId}`);
+    navigate(`/ordens/${ordemId}`);
   };
 
   const getActions = (ordem: OrdemServico) => [
     {
       label: "Visualizar",
       icon: Eye,
-      onClick: () => navigate(`/app/ordens/${ordem.id}`)
+      onClick: () => navigate(`/ordens/${ordem.id}`)
     },
     {
       label: "Editar", 
       icon: Edit,
-      onClick: () => navigate(`/app/ordens/editar/${ordem.id}`)
+      onClick: () => navigate(`/ordens/editar/${ordem.id}`)
     },
     {
       label: "Excluir",
@@ -65,16 +68,38 @@ export function OrdensTable({ ordens, clientes, onExcluir }: OrdensTableProps) {
   return (
     <div className="rounded-md border">
       <div className="grid grid-cols-1 md:grid-cols-7 p-4 bg-muted/50 font-medium text-sm">
-        <div>Número</div>
-        <div className="hidden md:block">Cliente</div>
-        <div className="hidden md:block">Data</div>
-        <div className="hidden md:block">Valor</div>
-        <div className="text-center">Status</div>
-        <div className="hidden md:block">Responsável</div>
+        <SortableTableHeader sortKey="numero" sortConfig={sortConfig} onSort={requestSort}>
+          Número
+        </SortableTableHeader>
+        <div className="hidden md:block">
+          <SortableTableHeader sortKey="cliente.nome" sortConfig={sortConfig} onSort={requestSort}>
+            Cliente
+          </SortableTableHeader>
+        </div>
+        <div className="hidden md:block">
+          <SortableTableHeader sortKey="dataAbertura" sortConfig={sortConfig} onSort={requestSort}>
+            Data
+          </SortableTableHeader>
+        </div>
+        <div className="hidden md:block">
+          <SortableTableHeader sortKey="valorTotal" sortConfig={sortConfig} onSort={requestSort}>
+            Valor
+          </SortableTableHeader>
+        </div>
+        <div className="text-center">
+          <SortableTableHeader sortKey="status" sortConfig={sortConfig} onSort={requestSort} className="flex justify-center">
+            Status
+          </SortableTableHeader>
+        </div>
+        <div className="hidden md:block">
+          <SortableTableHeader sortKey="responsavel" sortConfig={sortConfig} onSort={requestSort}>
+            Responsável
+          </SortableTableHeader>
+        </div>
         <div className="text-right">Ações</div>
       </div>
 
-      {ordens.map((ordem) => {
+      {sortedData.map((ordem) => {
         const cliente = getCliente(ordem.clienteId);
         return (
           <div 

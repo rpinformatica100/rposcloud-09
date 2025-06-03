@@ -11,6 +11,8 @@ import { UserPlus, Search, User, Building, Mail, Phone } from "lucide-react";
 import { formatarData } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { ActionDropdownMenu, Edit, Trash } from "@/components/ui/action-dropdown-menu";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableTableHeader } from "@/components/ui/sortable-table-header";
 
 const ClientesList = () => {
   const [filtro, setFiltro] = useState("");
@@ -24,6 +26,20 @@ const ClientesList = () => {
     queryKey: ['clientes'],
     queryFn: fetchClientes
   });
+
+  // Filtrar clientes conforme busca e tab selecionada
+  const clientesFiltrados = clientes.filter((cliente: ClienteRow) => {
+    const matchesSearch = 
+      cliente.nome?.toLowerCase().includes(filtro.toLowerCase()) || 
+      cliente.email?.toLowerCase().includes(filtro.toLowerCase()) || 
+      cliente.documento?.toLowerCase().includes(filtro.toLowerCase()) || 
+      false;
+    
+    if (tabAtual === "todos") return matchesSearch;
+    return matchesSearch && cliente.tipo === tabAtual;
+  });
+
+  const { sortedData, sortConfig, requestSort } = useTableSort(clientesFiltrados, { key: 'nome', direction: 'asc' });
 
   // Delete mutation
   const deleteMutation = useMutation({
@@ -51,11 +67,15 @@ const ClientesList = () => {
     }
   };
 
+  const handleRowClick = (clienteId: string) => {
+    navigate(`/clientes/${clienteId}`);
+  };
+
   const getActions = (cliente: ClienteRow) => [
     {
       label: "Editar",
       icon: Edit,
-      onClick: () => navigate(`/app/clientes/${cliente.id}/editar`)
+      onClick: () => navigate(`/clientes/${cliente.id}/editar`)
     },
     {
       label: "Excluir",
@@ -65,20 +85,6 @@ const ClientesList = () => {
       separator: true
     }
   ];
-
-  // Filtrar clientes conforme busca e tab selecionada
-  const clientesFiltrados = clientes.filter((cliente: ClienteRow) => {
-    // Filtro por texto
-    const matchesSearch = 
-      cliente.nome?.toLowerCase().includes(filtro.toLowerCase()) || 
-      cliente.email?.toLowerCase().includes(filtro.toLowerCase()) || 
-      cliente.documento?.toLowerCase().includes(filtro.toLowerCase()) || 
-      false;
-    
-    // Filtro por tipo
-    if (tabAtual === "todos") return matchesSearch;
-    return matchesSearch && cliente.tipo === tabAtual;
-  });
 
   if (error) {
     console.error("Erro ao carregar clientes:", error);
@@ -100,7 +106,7 @@ const ClientesList = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Clientes e Fornecedores</h1>
-        <Button onClick={() => navigate('/app/clientes/novo')}>
+        <Button onClick={() => navigate('/clientes/novo')}>
           <UserPlus className="mr-2 h-4 w-4" />
           Novo Cliente
         </Button>
@@ -139,20 +145,37 @@ const ClientesList = () => {
                 <div className="text-center py-10">
                   <p>Carregando clientes...</p>
                 </div>
-              ) : clientesFiltrados.length > 0 ? (
+              ) : sortedData.length > 0 ? (
                 <div className="rounded-md border">
                   <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-6 p-4 bg-muted/50 font-medium text-sm">
-                    <div className="md:col-span-2">Nome</div>
-                    <div className="hidden md:block">Documento</div>
-                    <div className="hidden md:block">Contato</div>
-                    <div className="hidden lg:block">Data Cadastro</div>
+                    <div className="md:col-span-2">
+                      <SortableTableHeader sortKey="nome" sortConfig={sortConfig} onSort={requestSort}>
+                        Nome
+                      </SortableTableHeader>
+                    </div>
+                    <div className="hidden md:block">
+                      <SortableTableHeader sortKey="documento" sortConfig={sortConfig} onSort={requestSort}>
+                        Documento
+                      </SortableTableHeader>
+                    </div>
+                    <div className="hidden md:block">
+                      <SortableTableHeader sortKey="email" sortConfig={sortConfig} onSort={requestSort}>
+                        Contato
+                      </SortableTableHeader>
+                    </div>
+                    <div className="hidden lg:block">
+                      <SortableTableHeader sortKey="data_cadastro" sortConfig={sortConfig} onSort={requestSort}>
+                        Data Cadastro
+                      </SortableTableHeader>
+                    </div>
                     <div className="text-right">Ações</div>
                   </div>
 
-                  {clientesFiltrados.map((cliente: ClienteRow) => (
+                  {sortedData.map((cliente: ClienteRow) => (
                     <div 
                       key={cliente.id} 
-                      className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-6 p-4 border-t items-center"
+                      className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-6 p-4 border-t items-center hover:bg-muted/30 cursor-pointer"
+                      onClick={() => handleRowClick(cliente.id)}
                     >
                       <div className="md:col-span-2">
                         <div className="flex items-center gap-3">
@@ -199,7 +222,7 @@ const ClientesList = () => {
                       <div className="hidden lg:block text-muted-foreground">
                         {cliente.data_cadastro ? formatarData(cliente.data_cadastro) : '-'}
                       </div>
-                      <div className="flex justify-end">
+                      <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
                         <ActionDropdownMenu actions={getActions(cliente)} />
                       </div>
                     </div>

@@ -67,6 +67,10 @@ const Dashboard = () => {
     .sort((a, b) => new Date(b.dataAbertura).getTime() - new Date(a.dataAbertura).getTime())
     .slice(0, 5);
 
+  const handleOrdemClick = (ordemId: string) => {
+    navigate(`/ordens/${ordemId}`);
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
       <div>
@@ -242,7 +246,7 @@ const Dashboard = () => {
             variant="outline" 
             size="sm"
             className="flex items-center gap-2 w-full sm:w-auto" 
-            onClick={() => navigate('/app/ordens')}
+            onClick={() => navigate('/ordens')}
           >
             Ver todas
             <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -263,7 +267,7 @@ const Dashboard = () => {
                   <div 
                     key={ordem.id} 
                     className="p-4 border-b last:border-b-0 hover:bg-muted/20 cursor-pointer transition-colors"
-                    onClick={() => navigate(`/app/ordens/${ordem.id}/editar`)}
+                    onClick={() => handleOrdemClick(ordem.id)}
                   >
                     {/* Mobile layout */}
                     <div className="sm:hidden space-y-2">
