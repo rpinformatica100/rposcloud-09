@@ -1,280 +1,288 @@
 
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ConfiguracaoRow, fetchConfiguracoes, upsertConfiguracoes } from "@/integrations/supabase/helpers";
-import { Settings, Save, CheckCircle, FileText, CreditCard, Globe } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Save } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import type { ConfiguracaoRow, ConfiguracaoInsert, ConfiguracaoUpdate } from "@/integrations/supabase/helpers";
+
+// Configurações padrão do sistema
+const configuracoesPadrao = [
+  { chave: "empresa_nome", valor: "", descricao: "Nome da empresa", tipo: "text" },
+  { chave: "empresa_email", valor: "", descricao: "Email da empresa", tipo: "email" },
+  { chave: "empresa_telefone", valor: "", descricao: "Telefone da empresa", tipo: "text" },
+  { chave: "empresa_endereco", valor: "", descricao: "Endereço da empresa", tipo: "text" },
+  { chave: "empresa_cnpj", valor: "", descricao: "CNPJ da empresa", tipo: "text" },
+  { chave: "sistema_tema", valor: "claro", descricao: "Tema do sistema", tipo: "text" },
+  { chave: "sistema_notificacoes", valor: "true", descricao: "Ativar notificações", tipo: "boolean" },
+  { chave: "ordem_numeracao_automatica", valor: "true", descricao: "Numeração automática de OS", tipo: "boolean" },
+  { chave: "ordem_numero_inicial", valor: "1", descricao: "Número inicial para OS", tipo: "number" },
+  { chave: "financeiro_moeda", valor: "BRL", descricao: "Moeda padrão", tipo: "text" },
+];
 
 const ConfiguracoesSimplesForm = () => {
-  const [configuracoes, setConfiguracoes] = useState<ConfiguracaoRow[]>([]);
-  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [configuracoesLocais, setConfiguracoesLocais] = useState<{ [key: string]: string }>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch configurações
-  const { data, isLoading, error } = useQuery({
+  const { data: configuracoes, isLoading } = useQuery({
     queryKey: ['configuracoes'],
-    queryFn: fetchConfiguracoes
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('configuracoes')
+        .select('*');
+      
+      if (error) throw error;
+      return data as ConfiguracaoRow[];
+    }
   });
 
-  // React to data changes
-  React.useEffect(() => {
-    if (data) {
-      setConfiguracoes(data);
-    }
-  }, [data]);
-
-  // Update mutation
-  const updateMutation = useMutation({
-    mutationFn: upsertConfiguracoes,
+  // Mutation para salvar configurações
+  const { mutateAsync: salvarConfiguracoes, isPending } = useMutation({
+    mutationFn: async (configs: ConfiguracaoInsert[]) => {
+      const { data, error } = await supabase
+        .from('configuracoes')
+        .upsert(configs, { 
+          onConflict: 'assistencia_id,chave',
+          ignoreDuplicates: false 
+        })
+        .select();
+      
+      if (error) throw error;
+      return data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['configuracoes'] });
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
       toast({
         title: "Configurações salvas",
-        description: "As configurações foram atualizadas com sucesso",
+        description: "As configurações foram atualizadas com sucesso.",
       });
     },
     onError: (error) => {
-      console.error("Erro ao salvar configurações:", error);
+      console.error('Erro ao salvar configurações:', error);
       toast({
         title: "Erro ao salvar",
-        description: "Não foi possível salvar as configurações",
+        description: "Não foi possível salvar as configurações. Tente novamente.",
         variant: "destructive",
       });
     }
   });
 
-  const handleInputChange = (id: string, valor: string) => {
-    setConfiguracoes(configuracoes.map(config => {
-      if (config.id === id) {
-        return { ...config, valor };
-      }
-      return config;
-    }));
-  };
+  // Initialize local state with fetched data
+  useEffect(() => {
+    if (configuracoes) {
+      const configsMap: { [key: string]: string } = {};
+      configuracoes.forEach((config) => {
+        configsMap[config.chave] = config.valor || '';
+      });
+      
+      // Add default values for missing configs
+      configuracoesPadrao.forEach((config) => {
+        if (!(config.chave in configsMap)) {
+          configsMap[config.chave] = config.valor;
+        }
+      });
+      
+      setConfiguracoesLocais(configsMap);
+    }
+  }, [configuracoes]);
 
-  const handleSalvar = () => {
-    updateMutation.mutate(configuracoes);
-  };
-
-  // Agrupar configurações por tipo úteis
-  const configNumeracao = configuracoes.filter(
-    config => config.chave.startsWith('numeracao_') && 
-    (config.chave.includes('os') || config.chave.includes('recibo'))
-  );
-  
-  const configBasicas = configuracoes.filter(
-    config => config.chave === 'prazo_padrao_entrega' || 
-              config.chave === 'financeiro_dias_vencimento' ||
-              config.chave === 'financeiro_taxa_padrao'
-  );
-
-  // Estado para configurações simples
-  const [printConfig, setPrintConfig] = useState({
-    showLogo: true,
-    compactMode: false,
-    includePrices: true,
-  });
-
-  const handlePrintConfigChange = (field: string, value: boolean) => {
-    setPrintConfig(prev => ({
+  const handleInputChange = (chave: string, valor: string | boolean) => {
+    setConfiguracoesLocais(prev => ({
       ...prev,
-      [field]: value
+      [chave]: String(valor)
     }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      // Get current user's assistencia_id
+      const { data: assistencia } = await supabase
+        .from('assistencias')
+        .select('id')
+        .single();
+      
+      if (!assistencia) {
+        throw new Error('Assistência não encontrada');
+      }
+
+      // Prepare configurations for upsert
+      const configsToSave: ConfiguracaoInsert[] = configuracoesPadrao.map((config) => ({
+        assistencia_id: assistencia.id,
+        chave: config.chave,
+        valor: configuracoesLocais[config.chave] || config.valor,
+        descricao: config.descricao,
+        tipo: config.tipo as "text" | "number" | "boolean" | "email" | "url"
+      }));
+
+      await salvarConfiguracoes(configsToSave);
+    } catch (error) {
+      console.error('Erro ao salvar configurações:', error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar as configurações. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold tracking-tight">Carregando configurações...</h1>
-      </div>
-    );
-  }
-
-  if (error) {
-    console.error("Erro ao carregar configurações:", error);
-    return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
-        <Card>
-          <CardContent className="py-10">
-            <div className="text-center text-muted-foreground">
-              <p>Erro ao carregar configurações. Por favor, tente novamente.</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded mb-4"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div>
         <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
-        <Button 
-          onClick={handleSalvar}
-          disabled={updateMutation.isPending}
-          className="relative"
-        >
-          {saveSuccess ? (
-            <>
-              <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-              Salvo!
-            </>
-          ) : (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              Salvar Alterações
-            </>
-          )}
-        </Button>
+        <p className="text-muted-foreground">
+          Configure as principais opções do sistema
+        </p>
       </div>
 
-      <Tabs defaultValue="basicas" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="basicas" className="flex items-center gap-1">
-            <Globe className="h-4 w-4" />
-            <span>Básicas</span>
-          </TabsTrigger>
-          <TabsTrigger value="documentos" className="flex items-center gap-1">
-            <FileText className="h-4 w-4" />
-            <span>Documentos</span>
-          </TabsTrigger>
-          <TabsTrigger value="impressao" className="flex items-center gap-1">
-            <Settings className="h-4 w-4" />
-            <span>Impressão</span>
-          </TabsTrigger>
-        </TabsList>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Configurações da Empresa */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Dados da Empresa</CardTitle>
+            <CardDescription>
+              Informações básicas da sua empresa que aparecerão nos documentos
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="empresa_nome">Nome da Empresa</Label>
+                <Input
+                  id="empresa_nome"
+                  value={configuracoesLocais["empresa_nome"] || ""}
+                  onChange={(e) => handleInputChange("empresa_nome", e.target.value)}
+                  placeholder="Nome da sua empresa"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="empresa_email">Email</Label>
+                <Input
+                  id="empresa_email"
+                  type="email"
+                  value={configuracoesLocais["empresa_email"] || ""}
+                  onChange={(e) => handleInputChange("empresa_email", e.target.value)}
+                  placeholder="contato@empresa.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="empresa_telefone">Telefone</Label>
+                <Input
+                  id="empresa_telefone"
+                  value={configuracoesLocais["empresa_telefone"] || ""}
+                  onChange={(e) => handleInputChange("empresa_telefone", e.target.value)}
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="empresa_cnpj">CNPJ</Label>
+                <Input
+                  id="empresa_cnpj"
+                  value={configuracoesLocais["empresa_cnpj"] || ""}
+                  onChange={(e) => handleInputChange("empresa_cnpj", e.target.value)}
+                  placeholder="00.000.000/0000-00"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="empresa_endereco">Endereço</Label>
+              <Textarea
+                id="empresa_endereco"
+                value={configuracoesLocais["empresa_endereco"] || ""}
+                onChange={(e) => handleInputChange("empresa_endereco", e.target.value)}
+                placeholder="Endereço completo da empresa"
+                rows={3}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Configurações Básicas */}
-        <TabsContent value="basicas">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5" />
-                Configurações Básicas
-              </CardTitle>
-              <CardDescription>
-                Ajuste as configurações operacionais do sistema
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {configBasicas.length > 0 ? (
-                configBasicas.map((config) => (
-                  <div key={config.id} className="space-y-2">
-                    <Label htmlFor={config.chave}>{config.descricao}</Label>
-                    <Input 
-                      id={config.chave} 
-                      value={config.valor || ''} 
-                      onChange={(e) => handleInputChange(config.id, e.target.value)}
-                    />
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>Nenhuma configuração básica encontrada.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        {/* Numeração de Documentos */}
-        <TabsContent value="documentos">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Numeração de Documentos
-              </CardTitle>
-              <CardDescription>
-                Configure formatos de numeração para ordens de serviço
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {configNumeracao.length > 0 ? (
-                configNumeracao.map((config) => (
-                  <div key={config.id} className="space-y-2">
-                    <Label htmlFor={config.chave}>{config.descricao}</Label>
-                    <Input 
-                      id={config.chave} 
-                      value={config.valor || ''} 
-                      onChange={(e) => handleInputChange(config.id, e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Use {"{ANO}"} para ano atual, {"{MES}"} para mês atual e {"{SEQUENCIAL}"} para número sequencial
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>Nenhuma configuração de numeração encontrada.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {/* Configurações do Sistema */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Sistema</CardTitle>
+            <CardDescription>
+              Configurações gerais do funcionamento do sistema
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Notificações</Label>
+                <p className="text-sm text-muted-foreground">
+                  Receber notificações do sistema
+                </p>
+              </div>
+              <Switch
+                checked={configuracoesLocais["sistema_notificacoes"] === "true"}
+                onCheckedChange={(checked) => handleInputChange("sistema_notificacoes", checked)}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Numeração Automática de OS</Label>
+                <p className="text-sm text-muted-foreground">
+                  Gerar números automaticamente para novas ordens
+                </p>
+              </div>
+              <Switch
+                checked={configuracoesLocais["ordem_numeracao_automatica"] === "true"}
+                onCheckedChange={(checked) => handleInputChange("ordem_numeracao_automatica", checked)}
+              />
+            </div>
 
-        {/* Configurações de Impressão */}
-        <TabsContent value="impressao">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Configurações de Impressão
-              </CardTitle>
-              <CardDescription>
-                Configure como os documentos serão impressos
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="showLogo" className="font-medium">Exibir Logo</Label>
-                  <p className="text-sm text-muted-foreground">Mostrar o logotipo nos documentos impressos</p>
-                </div>
-                <Switch
-                  id="showLogo"
-                  checked={printConfig.showLogo}
-                  onCheckedChange={(checked) => handlePrintConfigChange("showLogo", checked)}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="ordem_numero_inicial">Número Inicial para OS</Label>
+                <Input
+                  id="ordem_numero_inicial"
+                  type="number"
+                  value={configuracoesLocais["ordem_numero_inicial"] || "1"}
+                  onChange={(e) => handleInputChange("ordem_numero_inicial", e.target.value)}
+                  min="1"
                 />
               </div>
-              
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="compactMode" className="font-medium">Modo Compacto</Label>
-                  <p className="text-sm text-muted-foreground">Usar layout compacto para economizar papel</p>
-                </div>
-                <Switch
-                  id="compactMode"
-                  checked={printConfig.compactMode}
-                  onCheckedChange={(checked) => handlePrintConfigChange("compactMode", checked)}
+              <div className="space-y-2">
+                <Label htmlFor="financeiro_moeda">Moeda Padrão</Label>
+                <Input
+                  id="financeiro_moeda"
+                  value={configuracoesLocais["financeiro_moeda"] || "BRL"}
+                  onChange={(e) => handleInputChange("financeiro_moeda", e.target.value)}
+                  placeholder="BRL"
                 />
               </div>
-              
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="includePrices" className="font-medium">Incluir Preços</Label>
-                  <p className="text-sm text-muted-foreground">Exibir informações de preços nos documentos</p>
-                </div>
-                <Switch
-                  id="includePrices"
-                  checked={printConfig.includePrices}
-                  onCheckedChange={(checked) => handlePrintConfigChange("includePrices", checked)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isPending}>
+            <Save className="mr-2 h-4 w-4" />
+            {isPending ? "Salvando..." : "Salvar Configurações"}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 };

@@ -7,15 +7,14 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { OrdemServico, ItemOrdemServico, Cliente } from "@/types";
-import { getOrderHtml, EmpresaConfig } from "@/lib/orderPrintUtils"; // Importação atualizada
+import { getOrderHtml, EmpresaConfig } from "@/lib/orderPrintUtils";
+import type { ConfiguracaoRow } from "@/integrations/supabase/helpers";
 
 interface PrintOrderButtonProps {
   ordem: OrdemServico;
   itens: ItemOrdemServico[];
   cliente?: Cliente;
 }
-
-// A interface EmpresaConfig foi movida para orderPrintUtils.ts
 
 const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
   const { toast } = useToast();
@@ -30,10 +29,10 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
       const { data, error } = await supabase
         .from('configuracoes')
         .select('*')
-        .filter('chave', 'like', 'empresa_%');
+        .like('chave', 'empresa_%');
 
       if (error) throw error;
-      return data;
+      return data as ConfiguracaoRow[];
     }
   });
 
@@ -43,7 +42,7 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
       const info: EmpresaConfig = {};
       configData.forEach(config => {
         const key = config.chave.replace('empresa_', '') as keyof EmpresaConfig;
-        info[key] = config.valor;
+        info[key] = config.valor || '';
       });
       setEmpresaInfo(info);
     }
@@ -52,9 +51,7 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
   // Generate a shareable link for the order
   const generateShareableLink = () => {
     const host = window.location.origin;
-    // O endpoint /share/ordem/:id deve ser configurado no seu roteador para exibir a OS de forma pública
-    // Por agora, mantemos a lógica de link, mas a funcionalidade de visualização pública requer implementação de rota
-    const shareLink = `${host}/share/ordem/${ordem.id}`; // Usando o ID real da OS para o link
+    const shareLink = `${host}/share/ordem/${ordem.id}`;
     setShareUrl(shareLink);
     
     navigator.clipboard.writeText(shareLink).then(() => {
@@ -104,8 +101,6 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
     printWindow.document.write(getOrderHtml(ordem, itens, cliente, empresaInfo, true));
     printWindow.document.close();
     
-    // Removido o printWindow.onload com setTimeout para print, pois o script no HTML já cuida disso.
-    
     setIsDialogOpen(false);
   };
 
@@ -124,13 +119,9 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
     
     printWindow.document.write(getOrderHtml(ordem, itens, cliente, empresaInfo, true, true));
     printWindow.document.close();
-        
-    // Removido o printWindow.onload com setTimeout para print, pois o script no HTML já cuida disso.
 
     setIsDialogOpen(false);
   };
-
-  // A função getOrderHtml foi movida para src/lib/orderPrintUtils.ts
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -172,4 +163,3 @@ const PrintOrderButton = ({ ordem, itens, cliente }: PrintOrderButtonProps) => {
 };
 
 export default PrintOrderButton;
-

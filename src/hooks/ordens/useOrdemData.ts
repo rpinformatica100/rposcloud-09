@@ -12,9 +12,8 @@ interface OrdemItemDB {
   ordem_id: string;
   produto_id: string;
   quantidade: number;
-  valor_unitario: number;
-  valor_total: number;
-  observacao?: string;
+  preco_unitario: number;
+  total: number;
   produto?: {
     nome: string;
     tipo: string;
@@ -91,16 +90,16 @@ export function useOrdemData(id?: string) {
         return data.map((item: OrdemItemDB) => ({
           id: item.id,
           produtoId: item.produto_id,
-          quantidade: item.quantidade,
-          valorUnitario: item.valor_unitario,
-          valorTotal: item.valor_total,
-          observacao: item.observacao,
+          quantidade: Number(item.quantidade),
+          valorUnitario: Number(item.preco_unitario),
+          valorTotal: Number(item.total),
+          observacao: '',
           produto: item.produto ? {
             id: item.produto_id,
             nome: item.produto.nome,
             tipo: item.produto.tipo as 'produto' | 'servico',
             descricao: '',
-            preco: item.valor_unitario,
+            preco: Number(item.preco_unitario),
             ativo: true
           } : undefined
         }));

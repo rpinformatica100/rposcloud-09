@@ -1,7 +1,7 @@
 
 import { supabase } from './client';
 import type { Database } from './types';
-import { Assistencia, OrdemServico, ClienteDB, Cliente, ItemOrdemServico } from '@/types';
+import { Assistencia, OrdemServico, Cliente, ItemOrdemServico } from '@/types';
 
 // Type helpers for Supabase tables
 export type TablesInsert<T extends keyof Database['public']['Tables']> = 
@@ -14,6 +14,14 @@ export type TablesUpdate<T extends keyof Database['public']['Tables']> =
   Database['public']['Tables'][T]['Update'];
 
 // Table-specific types
+export type ProfileRow = TablesRow<'profiles'>;
+export type ProfileInsert = TablesInsert<'profiles'>;
+export type ProfileUpdate = TablesUpdate<'profiles'>;
+
+export type AssistenciaRow = TablesRow<'assistencias'>;
+export type AssistenciaInsert = TablesInsert<'assistencias'>;
+export type AssistenciaUpdate = TablesUpdate<'assistencias'>;
+
 export type ClienteRow = TablesRow<'clientes'>;
 export type ClienteInsert = TablesInsert<'clientes'>;
 export type ClienteUpdate = TablesUpdate<'clientes'>;
@@ -52,7 +60,7 @@ export function mapDbOrdemToApp(dbOrdem: any): OrdemServico {
     responsavel: dbOrdem.responsavel || '',
     prioridade: dbOrdem.prioridade as 'baixa' | 'media' | 'alta' | 'urgente',
     itens: [],
-    valorTotal: dbOrdem.valor_total || 0,
+    valorTotal: Number(dbOrdem.valor_total) || 0,
     observacoes: dbOrdem.observacoes,
     assistenciaId: dbOrdem.assistencia_id,
     solucao: dbOrdem.solucao,
@@ -69,7 +77,7 @@ export function mapDbOrdemToApp(dbOrdem: any): OrdemServico {
   return ordem;
 }
 
-export function mapDbClienteToApp(dbCliente: ClienteDB | any): Cliente {
+export function mapDbClienteToApp(dbCliente: ClienteRow | any): Cliente {
   return {
     id: dbCliente.id,
     nome: dbCliente.nome,
@@ -85,42 +93,68 @@ export function mapDbClienteToApp(dbCliente: ClienteDB | any): Cliente {
     cep: dbCliente.cep || '',
     observacoes: dbCliente.observacoes,
     dataCadastro: dbCliente.data_cadastro || '',
-    ativo: true // Adding missing ativo property with default value
+    ativo: dbCliente.ativo !== false
   };
 }
 
-// Mock functions for assistencia until the table is created
+// Current user helpers
+export async function getCurrentUserAssistenciaId(): Promise<string | null> {
+  const { data: assistencia } = await supabase
+    .from('assistencias')
+    .select('id')
+    .single();
+  
+  return assistencia?.id || null;
+}
+
+// Mock functions for assistencia until integrated
 export async function fetchAssistencias(): Promise<Assistencia[]> {
-  // Por enquanto retornando dados mock, no futuro será integrado com o banco
-  return [
-    {
-      id: "assist-1",
-      nome: "Assistência Técnica A",
-      email: "contato@assistenciaA.com",
-      plano: "Premium",
-      status: "Ativa",
-      dataRegistro: "2025-01-15",
-      telefone: "(11) 3333-4444",
-      celular: "(11) 98765-4321",
-      responsavel: "Técnico Responsável"
-    },
-    {
-      id: "assist-id",
-      nome: "Assistência Demo",
-      email: "assistencia@exemplo.com",
-      plano: "Premium",
-      status: "Ativa",
-      dataRegistro: "2025-05-01",
-      telefone: "(11) 5555-5555",
-      celular: "(11) 98888-8888",
-      responsavel: "João Técnico"
-    }
-  ];
+  const { data, error } = await supabase
+    .from('assistencias')
+    .select('*')
+    .order('nome');
+  
+  if (error) {
+    console.error('Error fetching assistencias:', error);
+    return [];
+  }
+
+  return data.map(row => ({
+    id: row.id,
+    nome: row.nome,
+    email: row.email,
+    plano: row.plano || "Premium",
+    status: row.status || "Ativa",
+    dataRegistro: row.data_registro.split('T')[0],
+    telefone: row.telefone || "",
+    celular: row.celular || "",
+    responsavel: row.responsavel || ""
+  }));
 }
 
 export async function fetchAssistencia(id: string): Promise<Assistencia | null> {
-  const assistencias = await fetchAssistencias();
-  return assistencias.find(a => a.id === id) || null;
+  const { data, error } = await supabase
+    .from('assistencias')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching assistencia:', error);
+    return null;
+  }
+
+  return {
+    id: data.id,
+    nome: data.nome,
+    email: data.email,
+    plano: data.plano || "Premium",
+    status: data.status || "Ativa",
+    dataRegistro: data.data_registro.split('T')[0],
+    telefone: data.telefone || "",
+    celular: data.celular || "",
+    responsavel: data.responsavel || ""
+  };
 }
 
 // Data access helpers
@@ -146,65 +180,26 @@ export async function fetchCliente(id: string) {
 }
 
 export async function insertCliente(cliente: ClienteInsert) {
-  // Verificar se o tipo é válido para o banco de dados
-  if (cliente.tipo === 'pessoa_fisica' || cliente.tipo === 'pessoa_juridica') {
-    // Converter para 'cliente' no banco de dados
-    const clienteParaInserir = {
-      ...cliente,
-      tipo: 'cliente'
-    };
-    
-    const { data, error } = await supabase
-      .from('clientes')
-      .insert(clienteParaInserir)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
-  } else {
-    // Se já for 'cliente' ou 'fornecedor', manter como está
-    const { data, error } = await supabase
-      .from('clientes')
-      .insert(cliente)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
-  }
+  const { data, error } = await supabase
+    .from('clientes')
+    .insert(cliente)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
 }
 
 export async function updateCliente(id: string, cliente: ClienteUpdate) {
-  // Verificar se o tipo é válido para o banco de dados
-  if (cliente.tipo === 'pessoa_fisica' || cliente.tipo === 'pessoa_juridica') {
-    // Converter para 'cliente' no banco de dados
-    const clienteParaAtualizar = {
-      ...cliente,
-      tipo: 'cliente'
-    };
-    
-    const { data, error } = await supabase
-      .from('clientes')
-      .update(clienteParaAtualizar)
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
-  } else {
-    // Se já for 'cliente' ou 'fornecedor', manter como está
-    const { data, error } = await supabase
-      .from('clientes')
-      .update(cliente)
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
-  }
+  const { data, error } = await supabase
+    .from('clientes')
+    .update(cliente)
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
 }
 
 export async function deleteCliente(id: string) {
@@ -242,7 +237,7 @@ export async function upsertConfiguracoes(configuracoes: ConfiguracaoInsert[]) {
   const { data, error } = await supabase
     .from('configuracoes')
     .upsert(configuracoes, { 
-      onConflict: 'chave',
+      onConflict: 'assistencia_id,chave',
       ignoreDuplicates: false 
     })
     .select();

@@ -9,13 +9,516 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      assistencias: {
+        Row: {
+          cadastro_completo: boolean | null
+          celular: string | null
+          cep: string | null
+          cidade: string | null
+          cnpj: string | null
+          created_at: string
+          data_registro: string
+          email: string
+          endereco: string | null
+          estado: string | null
+          id: string
+          mensagem_cadastro_exibida: boolean | null
+          nome: string
+          plano: string | null
+          responsavel: string | null
+          status: string | null
+          telefone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cadastro_completo?: boolean | null
+          celular?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          created_at?: string
+          data_registro?: string
+          email: string
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          mensagem_cadastro_exibida?: boolean | null
+          nome: string
+          plano?: string | null
+          responsavel?: string | null
+          status?: string | null
+          telefone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cadastro_completo?: boolean | null
+          celular?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          created_at?: string
+          data_registro?: string
+          email?: string
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          mensagem_cadastro_exibida?: boolean | null
+          nome?: string
+          plano?: string | null
+          responsavel?: string | null
+          status?: string | null
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistencias_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clientes: {
+        Row: {
+          assistencia_id: string
+          ativo: boolean | null
+          cep: string | null
+          cidade: string | null
+          created_at: string
+          data_cadastro: string
+          documento: string | null
+          email: string | null
+          endereco: string | null
+          estado: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          telefone: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          assistencia_id: string
+          ativo?: boolean | null
+          cep?: string | null
+          cidade?: string | null
+          created_at?: string
+          data_cadastro?: string
+          documento?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          telefone?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          assistencia_id?: string
+          ativo?: boolean | null
+          cep?: string | null
+          cidade?: string | null
+          created_at?: string
+          data_cadastro?: string
+          documento?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          telefone?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clientes_assistencia_id_fkey"
+            columns: ["assistencia_id"]
+            isOneToOne: false
+            referencedRelation: "assistencias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      configuracoes: {
+        Row: {
+          assistencia_id: string
+          chave: string
+          created_at: string
+          descricao: string | null
+          id: string
+          tipo: string | null
+          updated_at: string
+          valor: string | null
+        }
+        Insert: {
+          assistencia_id: string
+          chave: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          tipo?: string | null
+          updated_at?: string
+          valor?: string | null
+        }
+        Update: {
+          assistencia_id?: string
+          chave?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          tipo?: string | null
+          updated_at?: string
+          valor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "configuracoes_assistencia_id_fkey"
+            columns: ["assistencia_id"]
+            isOneToOne: false
+            referencedRelation: "assistencias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financeiro: {
+        Row: {
+          assistencia_id: string
+          categoria: string
+          cliente_id: string | null
+          created_at: string
+          data: string
+          data_pagamento: string | null
+          descricao: string
+          id: string
+          metodo_pagamento: string | null
+          observacoes: string | null
+          ordem_id: string | null
+          pago: boolean | null
+          tipo: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          assistencia_id: string
+          categoria: string
+          cliente_id?: string | null
+          created_at?: string
+          data?: string
+          data_pagamento?: string | null
+          descricao: string
+          id?: string
+          metodo_pagamento?: string | null
+          observacoes?: string | null
+          ordem_id?: string | null
+          pago?: boolean | null
+          tipo: string
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          assistencia_id?: string
+          categoria?: string
+          cliente_id?: string | null
+          created_at?: string
+          data?: string
+          data_pagamento?: string | null
+          descricao?: string
+          id?: string
+          metodo_pagamento?: string | null
+          observacoes?: string | null
+          ordem_id?: string | null
+          pago?: boolean | null
+          tipo?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financeiro_assistencia_id_fkey"
+            columns: ["assistencia_id"]
+            isOneToOne: false
+            referencedRelation: "assistencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financeiro_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financeiro_ordem_id_fkey"
+            columns: ["ordem_id"]
+            isOneToOne: false
+            referencedRelation: "ordens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ordem_itens: {
+        Row: {
+          created_at: string
+          desconto: number | null
+          id: string
+          ordem_id: string
+          preco_unitario: number
+          produto_id: string
+          quantidade: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          desconto?: number | null
+          id?: string
+          ordem_id: string
+          preco_unitario?: number
+          produto_id: string
+          quantidade?: number
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          desconto?: number | null
+          id?: string
+          ordem_id?: string
+          preco_unitario?: number
+          produto_id?: string
+          quantidade?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ordem_itens_ordem_id_fkey"
+            columns: ["ordem_id"]
+            isOneToOne: false
+            referencedRelation: "ordens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordem_itens_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ordens: {
+        Row: {
+          assistencia_id: string
+          cliente_id: string
+          created_at: string
+          data_abertura: string
+          data_conclusao: string | null
+          data_previsao: string | null
+          descricao: string
+          forma_pagamento: string | null
+          id: string
+          integrado_financeiro: boolean | null
+          movimento_financeiro_id: string | null
+          numero: string
+          observacoes: string | null
+          prioridade: string
+          responsavel: string | null
+          solucao: string | null
+          status: string
+          updated_at: string
+          valor_total: number | null
+        }
+        Insert: {
+          assistencia_id: string
+          cliente_id: string
+          created_at?: string
+          data_abertura?: string
+          data_conclusao?: string | null
+          data_previsao?: string | null
+          descricao: string
+          forma_pagamento?: string | null
+          id?: string
+          integrado_financeiro?: boolean | null
+          movimento_financeiro_id?: string | null
+          numero: string
+          observacoes?: string | null
+          prioridade?: string
+          responsavel?: string | null
+          solucao?: string | null
+          status?: string
+          updated_at?: string
+          valor_total?: number | null
+        }
+        Update: {
+          assistencia_id?: string
+          cliente_id?: string
+          created_at?: string
+          data_abertura?: string
+          data_conclusao?: string | null
+          data_previsao?: string | null
+          descricao?: string
+          forma_pagamento?: string | null
+          id?: string
+          integrado_financeiro?: boolean | null
+          movimento_financeiro_id?: string | null
+          numero?: string
+          observacoes?: string | null
+          prioridade?: string
+          responsavel?: string | null
+          solucao?: string | null
+          status?: string
+          updated_at?: string
+          valor_total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ordens_assistencia_id_fkey"
+            columns: ["assistencia_id"]
+            isOneToOne: false
+            referencedRelation: "assistencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordens_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produtos: {
+        Row: {
+          assistencia_id: string
+          ativo: boolean | null
+          categoria: string | null
+          codigo: string | null
+          created_at: string
+          custo: number | null
+          descricao: string | null
+          estoque: number | null
+          estoque_minimo: number | null
+          id: string
+          marca: string | null
+          nome: string
+          preco: number
+          tipo: string
+          unidade: string | null
+          updated_at: string
+        }
+        Insert: {
+          assistencia_id: string
+          ativo?: boolean | null
+          categoria?: string | null
+          codigo?: string | null
+          created_at?: string
+          custo?: number | null
+          descricao?: string | null
+          estoque?: number | null
+          estoque_minimo?: number | null
+          id?: string
+          marca?: string | null
+          nome: string
+          preco?: number
+          tipo?: string
+          unidade?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assistencia_id?: string
+          ativo?: boolean | null
+          categoria?: string | null
+          codigo?: string | null
+          created_at?: string
+          custo?: number | null
+          descricao?: string | null
+          estoque?: number | null
+          estoque_minimo?: number | null
+          id?: string
+          marca?: string | null
+          nome?: string
+          preco?: number
+          tipo?: string
+          unidade?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produtos_assistencia_id_fkey"
+            columns: ["assistencia_id"]
+            isOneToOne: false
+            referencedRelation: "assistencias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          data_vencimento_plano: string | null
+          email: string
+          empresa: string | null
+          id: string
+          nome: string
+          plano_id: string | null
+          status_plano: string | null
+          stripe_customer_id: string | null
+          telefone: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          data_vencimento_plano?: string | null
+          email: string
+          empresa?: string | null
+          id: string
+          nome: string
+          plano_id?: string | null
+          status_plano?: string | null
+          stripe_customer_id?: string | null
+          telefone?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          data_vencimento_plano?: string | null
+          email?: string
+          empresa?: string | null
+          id?: string
+          nome?: string
+          plano_id?: string | null
+          status_plano?: string | null
+          stripe_customer_id?: string | null
+          telefone?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_assistencia_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
