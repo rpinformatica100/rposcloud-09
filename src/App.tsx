@@ -1,8 +1,11 @@
-
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Toaster } from '@/components/ui/sonner';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from '@/components/theme-provider';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Loader2 } from 'lucide-react';
 
@@ -10,6 +13,8 @@ import { Loader2 } from 'lucide-react';
 const Landing = lazy(() => import('./pages/Landing'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const SuccessPage = lazy(() => import('./pages/SuccessPage'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const OrdensList = lazy(() => import('./pages/ordens/OrdensList'));
 const OrdensForm = lazy(() => import('./pages/ordens/OrdensForm'));
@@ -21,37 +26,38 @@ const ProdutosForm = lazy(() => import('./pages/produtos/ProdutosForm'));
 const FinanceiroList = lazy(() => import('./pages/financeiro/FinanceiroList'));
 const FinanceiroForm = lazy(() => import('./pages/financeiro/FinanceiroForm'));
 const RelatoriosPage = lazy(() => import('./pages/relatorios/RelatoriosPage'));
+const ConfiguracoesList = lazy(() => import('./pages/configuracoes/ConfiguracoesList'));
+const ConfiguracoesAssistencia = lazy(() => import('./pages/configuracoes/ConfiguracoesAssistencia'));
+const ConfiguracoesSistema = lazy(() => import('./pages/configuracoes/ConfiguracoesSistema'));
+const PerfilEmpresa = lazy(() => import('./pages/configuracoes/PerfilEmpresa'));
 const PlanosPage = lazy(() => import('./pages/planos/PlanosPage'));
 const PlanoAssinatura = lazy(() => import('./pages/assinatura/PlanoAssinatura'));
-const ConfiguracoesList = lazy(() => import('./pages/configuracoes/ConfiguracoesList'));
-const ConfiguracoesSistema = lazy(() => import('./pages/configuracoes/ConfiguracoesSistema'));
-const ConfiguracoesAssistencia = lazy(() => import('./pages/configuracoes/ConfiguracoesAssistencia'));
-const PerfilEmpresa = lazy(() => import('./pages/configuracoes/PerfilEmpresa'));
-const NotFound = lazy(() => import('./pages/NotFound'));
-const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
-const SuccessPage = lazy(() => import('./pages/SuccessPage'));
 const CompletarCadastro = lazy(() => import('./pages/assinante/CompletarCadastro'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
-// Lazy load layouts
-const AssistenciaLayout = lazy(() => import('./components/layout/AssistenciaLayout'));
-const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
-
-// Lazy load admin pages
+// Admin pages
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const AssistenciasList = lazy(() => import('./pages/admin/AssistenciasList'));
 const PlanosList = lazy(() => import('./pages/admin/PlanosList'));
 const PagamentosList = lazy(() => import('./pages/admin/PagamentosList'));
-const ConfigAdmin = lazy(() => import('./pages/admin/ConfigAdmin'));
 const AdminRelatoriosPage = lazy(() => import('./pages/admin/AdminRelatoriosPage'));
+const ConfigAdmin = lazy(() => import('./pages/admin/ConfigAdmin'));
 
-// Lazy load landing extra pages - Padronização com hífens
+// Landing extra pages
 const SobreNosPage = lazy(() => import('./pages/landing_extra/SobreNosPage'));
 const ContatoPage = lazy(() => import('./pages/landing_extra/ContatoPage'));
-const CentroAjudaPage = lazy(() => import('./pages/landing_extra/CentroAjudaPage'));
 const PoliticaPrivacidadePage = lazy(() => import('./pages/landing_extra/PoliticaPrivacidadePage'));
 const TermosServicoPage = lazy(() => import('./pages/landing_extra/TermosServicoPage'));
-const IntegracoesPage = lazy(() => import('./pages/landing_extra/IntegracoesPage'));
+const CentroAjudaPage = lazy(() => import('./pages/landing_extra/CentroAjudaPage'));
 const DocumentacaoTecnicaPage = lazy(() => import('./pages/landing_extra/DocumentacaoTecnicaPage'));
+const IntegracoesPage = lazy(() => import('./pages/landing_extra/IntegracoesPage'));
+
+const Layout = lazy(() => import('./components/layout/Layout'));
+const AssistenciaLayout = lazy(() => import('./components/layout/AssistenciaLayout'));
+const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
+const PlanGuard = lazy(() => import('./components/plan/PlanGuard'));
+
+const queryClient = new QueryClient();
 
 // Optimized loading component
 const PageLoader = React.memo(() => (
@@ -80,101 +86,114 @@ function App() {
   }, []);
 
   return (
-    <ErrorBoundary>
-      <AuthProvider>
-        <BrowserRouter>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              {/* Landing Page */}
-              <Route path="/" element={<Landing />} />
-              
-              {/* Auth Pages */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              
-              {/* Cadastro completo */}
-              <Route path="/completar-cadastro" element={<CompletarCadastro />} />
-              
-              {/* Payment Pages */}
-              <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/success" element={<SuccessPage />} />
-              
-              {/* Landing Extra Pages - Rotas padronizadas com hífens */}
-              <Route path="/sobre-nos" element={<SobreNosPage />} />
-              <Route path="/contato" element={<ContatoPage />} />
-              <Route path="/centro-ajuda" element={<CentroAjudaPage />} />
-              <Route path="/politica-privacidade" element={<PoliticaPrivacidadePage />} />
-              <Route path="/termos-servico" element={<TermosServicoPage />} />
-              <Route path="/integracoes" element={<IntegracoesPage />} />
-              <Route path="/documentacao-tecnica" element={<DocumentacaoTecnicaPage />} />
-
-              {/* Admin Routes */}
-              <Route path="/admin" element={
-                <ErrorBoundary>
-                  <AdminLayout />
-                </ErrorBoundary>
-              }>
-                <Route index element={<AdminDashboard />} />
-                <Route path="assistencias" element={<AssistenciasList />} />
-                <Route path="planos" element={<PlanosList />} />
-                <Route path="pagamentos" element={<PagamentosList />} />
-                <Route path="relatorios" element={<AdminRelatoriosPage />} />
-                <Route path="configuracoes" element={<ConfigAdmin />} />
-              </Route>
-
-              {/* App Routes - Protected */}
-              <Route path="/app" element={
-                <ErrorBoundary>
-                  <AssistenciaLayout />
-                </ErrorBoundary>
-              }>
-                <Route index element={<Dashboard />} />
-                
-                {/* Ordens de Serviço */}
-                <Route path="ordens" element={<OrdensList />} />
-                <Route path="ordens/nova" element={<OrdensForm />} />
-                <Route path="ordens/:id" element={<OrdensView />} />
-                <Route path="ordens/:id/editar" element={<OrdensForm />} />
-                
-                {/* Clientes */}
-                <Route path="clientes" element={<ClientesList />} />
-                <Route path="clientes/novo" element={<ClientesForm />} />
-                <Route path="clientes/:id/editar" element={<ClientesForm />} />
-                
-                {/* Produtos */}
-                <Route path="produtos" element={<ProdutosList />} />
-                <Route path="produtos/novo" element={<ProdutosForm />} />
-                <Route path="produtos/:id/editar" element={<ProdutosForm />} />
-                
-                {/* Financeiro */}
-                <Route path="financeiro" element={<FinanceiroList />} />
-                <Route path="financeiro/novo" element={<FinanceiroForm />} />
-                <Route path="financeiro/:id/editar" element={<FinanceiroForm />} />
-                
-                {/* Relatórios */}
-                <Route path="relatorios" element={<RelatoriosPage />} />
-                
-                {/* Planos */}
-                <Route path="planos" element={<PlanosPage />} />
-                <Route path="assinatura" element={<PlanoAssinatura />} />
-                
-                {/* Configurações */}
-                <Route path="configuracoes" element={<ConfiguracoesList />} />
-                <Route path="configuracoes/sistema" element={<ConfiguracoesSistema />} />
-                <Route path="configuracoes/assistencia" element={<ConfiguracoesAssistencia />} />
-                <Route path="configuracoes/perfil" element={<PerfilEmpresa />} />
-              </Route>
-
-              {/* 404 - Catch all */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-          
-          {/* Centralized Toast System */}
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <TooltipProvider>
           <Toaster />
-        </BrowserRouter>
-      </AuthProvider>
-    </ErrorBoundary>
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <ErrorBoundary>
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    {/* Public routes */}
+                    <Route path="/" element={<Landing />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/checkout" element={<CheckoutPage />} />
+                    <Route path="/success" element={<SuccessPage />} />
+                    <Route path="/sobre" element={<SobreNosPage />} />
+                    <Route path="/contato" element={<ContatoPage />} />
+                    <Route path="/politica-privacidade" element={<PoliticaPrivacidadePage />} />
+                    <Route path="/termos-servico" element={<TermosServicoPage />} />
+                    <Route path="/centro-ajuda" element={<CentroAjudaPage />} />
+                    <Route path="/documentacao" element={<DocumentacaoTecnicaPage />} />
+                    <Route path="/integracoes" element={<IntegracoesPage />} />
+
+                    {/* Assistant/User protected routes */}
+                    <Route path="/app" element={<Layout />}>
+                      <Route path="" element={<Navigate to="/app/dashboard" replace />} />
+                      <Route path="dashboard" element={
+                        <PlanGuard>
+                          <Dashboard />
+                        </PlanGuard>
+                      } />
+                      
+                      {/* Orders routes */}
+                      <Route path="ordens" element={
+                        <PlanGuard>
+                          <OrdensList />
+                        </PlanGuard>
+                      } />
+                      <Route path="ordens/nova" element={
+                        <PlanGuard>
+                          <OrdensForm />
+                        </PlanGuard>
+                      } />
+                      <Route path="ordens/editar/:id" element={
+                        <PlanGuard>
+                          <OrdensForm />
+                        </PlanGuard>
+                      } />
+                      <Route path="ordens/:id" element={
+                        <PlanGuard>
+                          <OrdensView />
+                        </PlanGuard>
+                      } />
+
+                      {/* Clientes */}
+                      <Route path="clientes" element={<ClientesList />} />
+                      <Route path="clientes/novo" element={<ClientesForm />} />
+                      <Route path="clientes/:id/editar" element={<ClientesForm />} />
+                      
+                      {/* Produtos */}
+                      <Route path="produtos" element={<ProdutosList />} />
+                      <Route path="produtos/novo" element={<ProdutosForm />} />
+                      <Route path="produtos/:id/editar" element={<ProdutosForm />} />
+                      
+                      {/* Financeiro */}
+                      <Route path="financeiro" element={<FinanceiroList />} />
+                      <Route path="financeiro/novo" element={<FinanceiroForm />} />
+                      <Route path="financeiro/:id/editar" element={<FinanceiroForm />} />
+                      
+                      {/* Relatórios */}
+                      <Route path="relatorios" element={<RelatoriosPage />} />
+                      
+                      {/* Planos */}
+                      <Route path="planos" element={<PlanosPage />} />
+                      <Route path="assinatura" element={<PlanoAssinatura />} />
+                      
+                      {/* Configurações */}
+                      <Route path="configuracoes" element={<ConfiguracoesList />} />
+                      <Route path="configuracoes/sistema" element={<ConfiguracoesSistema />} />
+                      <Route path="configuracoes/assistencia" element={<ConfiguracoesAssistencia />} />
+                      <Route path="configuracoes/perfil" element={<PerfilEmpresa />} />
+                    </Route>
+
+                    {/* Admin Routes */}
+                    <Route path="/admin" element={
+                      <ErrorBoundary>
+                        <AdminLayout />
+                      </ErrorBoundary>
+                    }>
+                      <Route index element={<AdminDashboard />} />
+                      <Route path="assistencias" element={<AssistenciasList />} />
+                      <Route path="planos" element={<PlanosList />} />
+                      <Route path="pagamentos" element={<PagamentosList />} />
+                      <Route path="relatorios" element={<AdminRelatoriosPage />} />
+                      <Route path="configuracoes" element={<ConfigAdmin />} />
+                    </Route>
+
+                    {/* 404 - Catch all */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </ErrorBoundary>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 

@@ -1,12 +1,10 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OrdemServico, ItemOrdemServico } from "@/types";
-import { ArrowLeft, Check, Edit, Calendar, User } from "lucide-react";
+import { formatarData, formatarMoeda } from "@/lib/utils";
+import { Calendar, User, AlertTriangle, Edit, Printer } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { formatDate } from "@/lib/formatters";
-import PrintOrderButton from "@/components/ordens/PrintOrderButton";
 
 interface OrdemHeaderProps {
   ordem: OrdemServico;
@@ -17,128 +15,98 @@ interface OrdemHeaderProps {
 export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderProps) {
   const navigate = useNavigate();
 
-  const getStatusBadge = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'aberta':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">Aberta</Badge>;
-      case 'andamento':
-      case 'em_andamento':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">Em andamento</Badge>;
-      case 'concluida':
-        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Concluída</Badge>;
-      case 'cancelada':
-        return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">Cancelada</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+      case "aberta": return "bg-blue-100 text-blue-800";
+      case "andamento": return "bg-yellow-100 text-yellow-800";
+      case "concluida": return "bg-green-100 text-green-800";
+      case "cancelada": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
-  const getPrioridadeBadge = (prioridade: string) => {
+  const getPrioridadeColor = (prioridade: string) => {
     switch (prioridade) {
-      case 'baixa':
-        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Baixa</Badge>;
-      case 'media':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">Média</Badge>;
-      case 'alta':
-        return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">Alta</Badge>;
-      default:
-        return <Badge variant="outline">{prioridade}</Badge>;
+      case "baixa": return "bg-green-100 text-green-800";
+      case "media": return "bg-yellow-100 text-yellow-800";
+      case "alta": return "bg-orange-100 text-orange-800";
+      case "urgente": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const handleEditarOrdem = () => {
+    // Corrigir o redirecionamento para edição
+    navigate(`/app/ordens/editar/${ordem.id}`);
   };
 
   return (
-    <>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <Button onClick={() => navigate("/ordens")} variant="outline" size="sm">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Voltar para Ordens
-        </Button>
-        <div className="flex flex-wrap gap-2">
-          <PrintOrderButton ordem={ordem} itens={itens} cliente={ordem.cliente} />
+    <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {ordem.numero}
+          </h1>
+          <div className="flex items-center gap-4">
+            <Badge className={getStatusColor(ordem.status)}>
+              {ordem.status}
+            </Badge>
+            <Badge className={getPrioridadeColor(ordem.prioridade)}>
+              Prioridade: {ordem.prioridade}
+            </Badge>
+          </div>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleEditarOrdem}
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Editar
+          </Button>
           
-          {ordem && ordem.status !== 'concluida' && ordem.status !== 'cancelada' && (
-            <>
-              <Button onClick={() => navigate(`/ordens/editar/${ordem.id}`)} variant="outline" size="sm">
-                <Edit className="mr-2 h-4 w-4" />
-                Editar
-              </Button>
-              
-              <Button 
-                onClick={openFinalizarModal}
-                className="bg-green-600 hover:bg-green-700"
-                size="sm"
-              >
-                <Check className="mr-2 h-4 w-4" />
-                Finalizar OS
-              </Button>
-            </>
-          )}
-          
-          {ordem && (ordem.status === 'concluida' || ordem.status === 'cancelada') && (
-            <Button onClick={() => navigate(`/ordens/editar/${ordem.id}`)} variant="outline" size="sm">
-              <Edit className="mr-2 h-4 w-4" />
-              Visualizar Detalhes
+          {ordem.status !== "concluida" && (
+            <Button 
+              onClick={openFinalizarModal}
+              size="sm"
+            >
+              Finalizar Ordem
             </Button>
           )}
         </div>
       </div>
 
-      <Card className="mb-6">
-        <CardHeader className="pb-4">
-          <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
-            <div>
-              <CardTitle className="text-2xl text-primary">
-                OS #{ordem.numero}
-              </CardTitle>
-              <div className="flex items-center text-muted-foreground mt-2">
-                <Calendar className="h-4 w-4 mr-1" />
-                <span className="text-sm">Abertura: {formatDate(ordem.dataAbertura || '')}</span>
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Status:</span>
-                {getStatusBadge(ordem.status)}
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Prioridade:</span>
-                {getPrioridadeBadge(ordem.prioridade)}
-              </div>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+        <div className="flex items-center text-gray-600">
+          <Calendar className="h-4 w-4 mr-2" />
+          <span>Abertura: {formatarData(ordem.dataAbertura)}</span>
+        </div>
+        
+        {ordem.dataPrevisao && (
+          <div className="flex items-center text-gray-600">
+            <Calendar className="h-4 w-4 mr-2" />
+            <span>Previsão: {formatarData(ordem.dataPrevisao)}</span>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-            {ordem.dataPrevisao && (
-              <div className="flex items-center">
-                <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                <div>
-                  <span className="text-muted-foreground">Previsão:</span>
-                  <p className="font-medium">{formatDate(ordem.dataPrevisao)}</p>
-                </div>
-              </div>
-            )}
-            {ordem.dataConclusao && (
-              <div className="flex items-center">
-                <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                <div>
-                  <span className="text-muted-foreground">Conclusão:</span>
-                  <p className="font-medium">{formatDate(ordem.dataConclusao)}</p>
-                </div>
-              </div>
-            )}
-            {ordem.responsavel && (
-              <div className="flex items-center">
-                <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                <div>
-                  <span className="text-muted-foreground">Responsável:</span>
-                  <p className="font-medium">{ordem.responsavel}</p>
-                </div>
-              </div>
-            )}
+        )}
+        
+        {ordem.responsavel && (
+          <div className="flex items-center text-gray-600">
+            <User className="h-4 w-4 mr-2" />
+            <span>Responsável: {ordem.responsavel}</span>
           </div>
-        </CardContent>
-      </Card>
-    </>
+        )}
+      </div>
+
+      <div className="mt-4 pt-4 border-t">
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-gray-600">Valor Total:</span>
+          <span className="text-lg font-semibold text-gray-900">
+            {formatarMoeda(ordem.valorTotal)}
+          </span>
+        </div>
+      </div>
+    </div>
   );
 }

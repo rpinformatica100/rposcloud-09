@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -81,16 +80,25 @@ const OrdensForm = () => {
     }
   }, [isEdicao, hasOrdemTemp, loadOrdemTemp]);
 
-  // Auto-save a cada mudança significativa
+  // Auto-save melhorado - apenas quando há dados significativos e menos frequente
   useEffect(() => {
-    if (!isEdicao && autoSaveEnabled && (ordem.clienteId || ordem.descricao || ordem.itens.length > 0)) {
-      const timeoutId = setTimeout(() => {
-        saveOrdemTemp(ordem, activeTab);
-      }, 2000); // Salvar após 2 segundos de inatividade
+    if (!isEdicao && autoSaveEnabled) {
+      // Só salvar se houver dados significativos
+      const hasSignificantData = ordem.clienteId || 
+                                 ordem.descricao.length > 10 || 
+                                 ordem.itens.length > 0 ||
+                                 ordem.responsavel ||
+                                 ordem.observacoes;
+      
+      if (hasSignificantData) {
+        const timeoutId = setTimeout(() => {
+          saveOrdemTemp(ordem, activeTab);
+        }, 10000); // Aumentar para 10 segundos para reduzir salvamento frenético
 
-      return () => clearTimeout(timeoutId);
+        return () => clearTimeout(timeoutId);
+      }
     }
-  }, [ordem, activeTab, isEdicao, autoSaveEnabled, saveOrdemTemp]);
+  }, [ordem.clienteId, ordem.descricao, ordem.itens.length, ordem.responsavel, ordem.observacoes, activeTab, isEdicao, autoSaveEnabled, saveOrdemTemp]);
 
   useEffect(() => {
     if (isEdicao) {
@@ -344,7 +352,7 @@ const OrdensForm = () => {
         </div>
         {!isEdicao && hasOrdemTemp() && (
           <div className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded-md">
-            💾 Salvando automaticamente...
+            💾 Rascunho salvo automaticamente
           </div>
         )}
       </div>
