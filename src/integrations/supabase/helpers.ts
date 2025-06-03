@@ -84,7 +84,8 @@ export function mapDbClienteToApp(dbCliente: ClienteDB | any): Cliente {
     estado: dbCliente.estado || '',
     cep: dbCliente.cep || '',
     observacoes: dbCliente.observacoes,
-    dataCadastro: dbCliente.data_cadastro || ''
+    dataCadastro: dbCliente.data_cadastro || '',
+    ativo: true // Adding missing ativo property with default value
   };
 }
 

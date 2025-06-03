@@ -1,4 +1,3 @@
-
 import { Cliente, Produto, OrdemServico, MovimentoFinanceiro, Configuracao } from '../types';
 import { formatarData } from '../lib/utils';
 
@@ -16,7 +15,8 @@ export const clientesData: Cliente[] = [
     estado: "SP",
     cep: "01234-567",
     observacoes: "Cliente prioritário",
-    dataCadastro: "2023-01-15T00:00:00"
+    dataCadastro: "2023-01-15T00:00:00",
+    ativo: true
   },
   {
     id: "2",
@@ -29,7 +29,8 @@ export const clientesData: Cliente[] = [
     cidade: "São Paulo",
     estado: "SP",
     cep: "01310-100",
-    dataCadastro: "2023-02-20T00:00:00"
+    dataCadastro: "2023-02-20T00:00:00",
+    ativo: true
   },
   {
     id: "3",
@@ -43,7 +44,8 @@ export const clientesData: Cliente[] = [
     estado: "SP",
     cep: "04567-890",
     observacoes: "Fornecedor de material de escritório",
-    dataCadastro: "2023-03-10T00:00:00"
+    dataCadastro: "2023-03-10T00:00:00",
+    ativo: true
   }
 ];
 

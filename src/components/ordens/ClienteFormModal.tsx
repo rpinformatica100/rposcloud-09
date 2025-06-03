@@ -32,7 +32,11 @@ const ClienteFormModal = ({ open, onOpenChange, onClienteAdicionado }: ClienteFo
     email: "",
     telefone: "",
     tipo: "cliente",
+    documento: "",
     endereco: "",
+    cidade: "",
+    estado: "",
+    cep: "",
     observacoes: "",
     ativo: true,
     dataCadastro: new Date().toISOString(),
@@ -143,6 +147,50 @@ const ClienteFormModal = ({ open, onOpenChange, onClienteAdicionado }: ClienteFo
                 value={cliente.telefone} 
                 onChange={handleInputChange}
                 placeholder="(11) 99999-9999"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="documento">Documento (CPF/CNPJ)</Label>
+              <Input 
+                id="documento" 
+                name="documento" 
+                value={cliente.documento} 
+                onChange={handleInputChange}
+                placeholder="000.000.000-00"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cidade">Cidade</Label>
+              <Input 
+                id="cidade" 
+                name="cidade" 
+                value={cliente.cidade} 
+                onChange={handleInputChange}
+                placeholder="São Paulo"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="estado">Estado</Label>
+              <Input 
+                id="estado" 
+                name="estado" 
+                value={cliente.estado} 
+                onChange={handleInputChange}
+                placeholder="SP"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cep">CEP</Label>
+              <Input 
+                id="cep" 
+                name="cep" 
+                value={cliente.cep} 
+                onChange={handleInputChange}
+                placeholder="00000-000"
               />
             </div>
 
