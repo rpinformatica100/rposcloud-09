@@ -2,12 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { OrdemServico, ItemOrdemServico } from "@/types";
 import { formatarData, formatarMoeda } from "@/lib/utils";
-import { Calendar, User, Edit, Printer, Download, Link2, Eye, MoreHorizontal, ArrowLeft } from "lucide-react";
+import { Calendar, User, Edit, Printer, Download, Link2, Eye, MoreHorizontal, ArrowLeft, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { getOrderHtml } from "@/lib/orderPrintUtils";
 import jsPDF from 'jspdf';
+import { useState } from "react";
+import ReabrirOrdemModal from "../ReabrirOrdemModal";
 
 interface OrdemHeaderProps {
   ordem: OrdemServico;
@@ -18,6 +20,7 @@ interface OrdemHeaderProps {
 export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [reabrirModalOpen, setReabrirModalOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -45,6 +48,15 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
 
   const handleVoltar = () => {
     navigate('/app/ordens');
+  };
+
+  const handleReabrirOrdem = (ordemAtualizada: OrdemServico) => {
+    // Aqui você pode implementar a lógica para atualizar a ordem no estado global
+    // ou fazer uma chamada para a API
+    
+    // Por enquanto, vamos apenas mostrar um toast de sucesso
+    // Em um cenário real, você precisaria atualizar o estado e recarregar os dados
+    window.location.reload(); // Recarregar a página para mostrar as mudanças
   };
 
   const handleVisualizarOS = () => {
@@ -228,110 +240,142 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
-      <div className="flex items-center justify-between mb-6">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={handleVoltar}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Voltar
-        </Button>
-      </div>
-
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {ordem.numero}
-          </h1>
-          <div className="flex items-center gap-4">
-            <Badge className={getStatusColor(ordem.status)}>
-              {ordem.status}
-            </Badge>
-            <Badge className={getPrioridadeColor(ordem.prioridade)}>
-              Prioridade: {ordem.prioridade}
-            </Badge>
-          </div>
-        </div>
-        
-        <div className="flex gap-2">
+    <>
+      <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="flex items-center justify-between mb-6">
           <Button 
             variant="outline" 
             size="sm"
-            onClick={handleEditarOrdem}
+            onClick={handleVoltar}
+            className="flex items-center gap-2"
           >
-            <Edit className="h-4 w-4 mr-2" />
-            Editar
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
           </Button>
-          
-          {ordem.status !== "concluida" && (
-            <Button 
-              onClick={openFinalizarModal}
-              size="sm"
-            >
-              Finalizar Ordem
-            </Button>
-          )}
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">Mais opções</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-background">
-              <DropdownMenuItem onClick={handleVisualizarOS}>
-                <Eye className="mr-2 h-4 w-4" />
-                Visualizar OS
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleImprimir}>
-                <Printer className="mr-2 h-4 w-4" />
-                Imprimir
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleBaixarPDF}>
-                <Download className="mr-2 h-4 w-4" />
-                Baixar PDF
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleCopiarLink}>
-                <Link2 className="mr-2 h-4 w-4" />
-                Copiar Link
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-4">
-        <div className="flex items-center text-gray-600">
-          <Calendar className="h-4 w-4 mr-2" />
-          <span>Abertura: {formatarData(ordem.dataAbertura)}</span>
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              {ordem.numero}
+            </h1>
+            <div className="flex items-center gap-4">
+              <Badge className={getStatusColor(ordem.status)}>
+                {ordem.status}
+              </Badge>
+              <Badge className={getPrioridadeColor(ordem.prioridade)}>
+                Prioridade: {ordem.prioridade}
+              </Badge>
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleEditarOrdem}
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Editar
+            </Button>
+            
+            {ordem.status !== "concluida" ? (
+              <Button 
+                onClick={openFinalizarModal}
+                size="sm"
+              >
+                Finalizar Ordem
+              </Button>
+            ) : (
+              <Button 
+                onClick={() => setReabrirModalOpen(true)}
+                size="sm"
+                variant="outline"
+                className="text-orange-600 border-orange-200 hover:bg-orange-50"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reabrir Ordem
+              </Button>
+            )}
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <MoreHorizontal className="h-4 w-4" />
+                  <span className="sr-only">Mais opções</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-background">
+                <DropdownMenuItem onClick={handleVisualizarOS}>
+                  <Eye className="mr-2 h-4 w-4" />
+                  Visualizar OS
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleImprimir}>
+                  <Printer className="mr-2 h-4 w-4" />
+                  Imprimir
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleBaixarPDF}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Baixar PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCopiarLink}>
+                  <Link2 className="mr-2 h-4 w-4" />
+                  Copiar Link
+                </DropdownMenuItem>
+                {ordem.status === "concluida" && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => setReabrirModalOpen(true)}
+                      className="text-orange-600 focus:text-orange-600"
+                    >
+                      <RotateCcw className="mr-2 h-4 w-4" />
+                      Reabrir Ordem
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-        
-        {ordem.dataPrevisao && (
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-4">
           <div className="flex items-center text-gray-600">
             <Calendar className="h-4 w-4 mr-2" />
-            <span>Previsão: {formatarData(ordem.dataPrevisao)}</span>
+            <span>Abertura: {formatarData(ordem.dataAbertura)}</span>
           </div>
-        )}
-        
-        {ordem.responsavel && (
-          <div className="flex items-center text-gray-600">
-            <User className="h-4 w-4 mr-2" />
-            <span>Responsável: {ordem.responsavel}</span>
-          </div>
-        )}
-      </div>
+          
+          {ordem.dataPrevisao && (
+            <div className="flex items-center text-gray-600">
+              <Calendar className="h-4 w-4 mr-2" />
+              <span>Previsão: {formatarData(ordem.dataPrevisao)}</span>
+            </div>
+          )}
+          
+          {ordem.responsavel && (
+            <div className="flex items-center text-gray-600">
+              <User className="h-4 w-4 mr-2" />
+              <span>Responsável: {ordem.responsavel}</span>
+            </div>
+          )}
+        </div>
 
-      <div className="pt-4 border-t">
-        <div className="flex justify-between items-center">
-          <span className="text-lg font-semibold text-gray-900">
-            Valor Total: {formatarMoeda(ordem.valorTotal)}
-          </span>
+        <div className="pt-4 border-t">
+          <div className="flex justify-between items-center">
+            <span className="text-lg font-semibold text-gray-900">
+              Valor Total: {formatarMoeda(ordem.valorTotal)}
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Modal de reabertura */}
+      <ReabrirOrdemModal 
+        ordem={ordem} 
+        isOpen={reabrirModalOpen} 
+        onClose={() => setReabrirModalOpen(false)}
+        onSave={handleReabrirOrdem}
+      />
+    </>
   );
 }

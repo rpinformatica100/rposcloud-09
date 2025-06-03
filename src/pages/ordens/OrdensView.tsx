@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useOrdemData } from "@/hooks/ordens/useOrdemData";
@@ -75,7 +76,7 @@ const OrdensView = () => {
       <ClienteCard cliente={ordem.cliente} />
       <OrdemDescricoes ordem={ordem} />
       <OrdemItens itens={ordem.itens || []} valorTotal={ordem.valorTotal} />
-      <DetalhesFinalizacao ordem={ordem} />
+      {ordem.status === "concluida" && <DetalhesFinalizacao ordem={ordem} />}
 
       {/* Modal de finalização */}
       <FinalizarOrdemModal 
