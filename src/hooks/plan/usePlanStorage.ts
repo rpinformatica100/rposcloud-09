@@ -63,12 +63,15 @@ export function usePlanStorage() {
       startDate: userPlanStartDate
     });
 
-    // Corrigir mapeamento de planos para aceitar 'enterprise' e outros tipos
+    // Mapeamento corrigido para usar apenas os tipos válidos de PlanType
     const planTypeMapping: Record<string, PlanType> = {
       'trial_plan': 'trial_plan',
-      'basic': 'basic',
-      'professional': 'professional',
-      'enterprise': 'professional', // Mapear enterprise para professional
+      'basic': 'monthly',        // Mapear basic para monthly
+      'professional': 'yearly',   // Mapear professional para yearly
+      'enterprise': 'yearly',     // Mapear enterprise para yearly
+      'monthly': 'monthly',
+      'quarterly': 'quarterly',
+      'yearly': 'yearly',
       'free_trial': 'trial_plan'
     };
 
