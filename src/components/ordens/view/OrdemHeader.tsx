@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { OrdemServico, ItemOrdemServico } from "@/types";
 import { formatarData, formatarMoeda } from "@/lib/utils";
-import { Calendar, User, Edit, Printer, Download, Link2, Eye, MoreHorizontal } from "lucide-react";
+import { Calendar, User, Edit, Printer, Download, Link2, Eye, MoreHorizontal, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import PrintOrderButton from "@/components/ordens/PrintOrderButton";
+import { useToast } from "@/hooks/use-toast";
+import { getOrderHtml } from "@/lib/orderPrintUtils";
 
 interface OrdemHeaderProps {
   ordem: OrdemServico;
@@ -16,6 +17,7 @@ interface OrdemHeaderProps {
 
 export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderProps) {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -41,8 +43,90 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
     navigate(`/app/ordens/editar/${ordem.id}`);
   };
 
+  const handleVoltar = () => {
+    navigate('/app/ordens');
+  };
+
+  const handleVisualizarOS = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível abrir a janela de visualização. Verifique se o bloqueador de pop-ups está desativado.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    printWindow.document.write(getOrderHtml(ordem, itens, ordem.cliente, {}, false));
+    printWindow.document.close();
+  };
+
+  const handleImprimir = () => {
+    const printWindow = window.open('', '_blank');
+    
+    if (!printWindow) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível abrir a janela de impressão. Verifique se o bloqueador de pop-ups está desativado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    printWindow.document.write(getOrderHtml(ordem, itens, ordem.cliente, {}, true));
+    printWindow.document.close();
+  };
+
+  const handleBaixarPDF = () => {
+    const printWindow = window.open('', '_blank');
+    
+    if (!printWindow) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível abrir a janela para download. Verifique se o bloqueador de pop-ups está desativado.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    printWindow.document.write(getOrderHtml(ordem, itens, ordem.cliente, {}, true, true));
+    printWindow.document.close();
+  };
+
+  const handleCopiarLink = () => {
+    const host = window.location.origin;
+    const shareLink = `${host}/app/ordens/${ordem.id}`;
+    
+    navigator.clipboard.writeText(shareLink).then(() => {
+      toast({
+        title: "Link copiado!",
+        description: "O link da OS foi copiado para a área de transferência.",
+      });
+    }).catch(err => {
+      console.error("Falha ao copiar o link: ", err);
+      toast({
+        title: "Erro ao copiar",
+        description: "Não foi possível copiar o link. Tente novamente.",
+        variant: "destructive"
+      });
+    });
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="flex items-center justify-between mb-6">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={handleVoltar}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar
+        </Button>
+      </div>
+
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -85,19 +169,19 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-background">
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleVisualizarOS}>
                 <Eye className="mr-2 h-4 w-4" />
                 Visualizar OS
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleImprimir}>
                 <Printer className="mr-2 h-4 w-4" />
                 Imprimir
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleBaixarPDF}>
                 <Download className="mr-2 h-4 w-4" />
                 Baixar PDF
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleCopiarLink}>
                 <Link2 className="mr-2 h-4 w-4" />
                 Copiar Link
               </DropdownMenuItem>
