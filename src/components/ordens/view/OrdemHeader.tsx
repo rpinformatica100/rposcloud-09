@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { OrdemServico, ItemOrdemServico } from "@/types";
 import { formatarData, formatarMoeda } from "@/lib/utils";
-import { Calendar, User, Edit } from "lucide-react";
+import { Calendar, User, Edit, Printer, Download, Link2, Eye, MoreHorizontal } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import PrintOrderButton from "@/components/ordens/PrintOrderButton";
 
 interface OrdemHeaderProps {
@@ -42,7 +43,7 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
 
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6">
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             {ordem.numero}
@@ -75,10 +76,37 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
               Finalizar Ordem
             </Button>
           )}
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Mais opções</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-background">
+              <DropdownMenuItem>
+                <Eye className="mr-2 h-4 w-4" />
+                Visualizar OS
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Printer className="mr-2 h-4 w-4" />
+                Imprimir
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Download className="mr-2 h-4 w-4" />
+                Baixar PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Link2 className="mr-2 h-4 w-4" />
+                Copiar Link
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-4">
         <div className="flex items-center text-gray-600">
           <Calendar className="h-4 w-4 mr-2" />
           <span>Abertura: {formatarData(ordem.dataAbertura)}</span>
@@ -99,21 +127,11 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
         )}
       </div>
 
-      <div className="mt-4 pt-4 border-t">
-        <div className="flex justify-between items-center mb-4">
-          <span className="text-sm text-gray-600">Valor Total:</span>
+      <div className="pt-4 border-t">
+        <div className="flex justify-between items-center">
           <span className="text-lg font-semibold text-gray-900">
-            {formatarMoeda(ordem.valorTotal)}
+            Valor Total: {formatarMoeda(ordem.valorTotal)}
           </span>
-        </div>
-        
-        {/* Botões de impressão e compartilhamento */}
-        <div className="flex justify-end">
-          <PrintOrderButton 
-            ordem={ordem} 
-            itens={itens} 
-            cliente={ordem.cliente}
-          />
         </div>
       </div>
     </div>
