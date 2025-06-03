@@ -63,23 +63,34 @@ export function usePlanStorage() {
       startDate: userPlanStartDate
     });
 
-    if (userPlanType && PLAN_CONFIGS[userPlanType]) {
+    // Corrigir mapeamento de planos para aceitar 'enterprise' e outros tipos
+    const planTypeMapping: Record<string, PlanType> = {
+      'trial_plan': 'trial_plan',
+      'basic': 'basic',
+      'professional': 'professional',
+      'enterprise': 'professional', // Mapear enterprise para professional
+      'free_trial': 'trial_plan'
+    };
+
+    const mappedPlanType = planTypeMapping[userPlanType] || 'trial_plan';
+
+    if (userPlanType && PLAN_CONFIGS[mappedPlanType]) {
       const remainingDays = calculateRemainingDays(userPlanEndDate);
-      const status = determineStatus(userPlanEndDate, userPlanType);
+      const status = determineStatus(userPlanEndDate, mappedPlanType);
 
       const defaultPlan: UserPlan = {
         id: planKey,
         userId: user.id,
-        planType: userPlanType,
+        planType: mappedPlanType,
         status: status,
         startDate: userPlanStartDate || new Date().toISOString(),
         endDate: userPlanEndDate,
-        trialStartDate: userPlanType === 'trial_plan' ? (userPlanStartDate || new Date().toISOString()) : undefined,
-        trialEndDate: userPlanType === 'trial_plan' ? userPlanEndDate : undefined,
-        isTrialUsed: userPlanType === 'trial_plan',
+        trialStartDate: mappedPlanType === 'trial_plan' ? (userPlanStartDate || new Date().toISOString()) : undefined,
+        trialEndDate: mappedPlanType === 'trial_plan' ? userPlanEndDate : undefined,
+        isTrialUsed: mappedPlanType === 'trial_plan',
         remainingDays: remainingDays,
-        features: PLAN_CONFIGS[userPlanType],
-        isPaid: PLAN_METADATA[userPlanType]?.isPaid || false,
+        features: PLAN_CONFIGS[mappedPlanType],
+        isPaid: PLAN_METADATA[mappedPlanType]?.isPaid || false,
         billing: {
           autoRenewal: false,
         },
@@ -97,8 +108,32 @@ export function usePlanStorage() {
       return defaultPlan;
     }
 
-    console.warn(`Usuário ${user.id} tem tipo de plano inválido ('${user.plano}') no objeto do usuário. Não é possível criar plano padrão.`);
-    return null;
+    console.warn(`Usuário ${user.id} tem tipo de plano inválido ('${user.plano}') no objeto do usuário. Criando plano trial padrão.`);
+    
+    // Criar plano trial padrão como fallback
+    const fallbackEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const fallbackPlan: UserPlan = {
+      id: planKey,
+      userId: user.id,
+      planType: 'trial_plan',
+      status: 'trial',
+      startDate: new Date().toISOString(),
+      endDate: fallbackEndDate,
+      trialStartDate: new Date().toISOString(),
+      trialEndDate: fallbackEndDate,
+      isTrialUsed: false,
+      remainingDays: 7,
+      features: PLAN_CONFIGS.trial_plan,
+      isPaid: false,
+      billing: {
+        autoRenewal: false,
+      },
+    };
+
+    localStorage.setItem(planKey, JSON.stringify(fallbackPlan));
+    console.log('Plano trial fallback criado para usuário:', user.id, fallbackPlan);
+    
+    return fallbackPlan;
   };
 
   const savePlan = (plan: UserPlan): void => {

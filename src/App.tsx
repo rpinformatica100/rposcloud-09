@@ -44,7 +44,7 @@ const PagamentosList = lazy(() => import('./pages/admin/PagamentosList'));
 const ConfigAdmin = lazy(() => import('./pages/admin/ConfigAdmin'));
 const AdminRelatoriosPage = lazy(() => import('./pages/admin/AdminRelatoriosPage'));
 
-// Lazy load landing extra pages
+// Lazy load landing extra pages - Padronização com hífens
 const SobreNosPage = lazy(() => import('./pages/landing_extra/SobreNosPage'));
 const ContatoPage = lazy(() => import('./pages/landing_extra/ContatoPage'));
 const CentroAjudaPage = lazy(() => import('./pages/landing_extra/CentroAjudaPage'));
@@ -99,7 +99,7 @@ function App() {
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/success" element={<SuccessPage />} />
               
-              {/* Landing Extra Pages */}
+              {/* Landing Extra Pages - Rotas padronizadas com hífens */}
               <Route path="/sobre-nos" element={<SobreNosPage />} />
               <Route path="/contato" element={<ContatoPage />} />
               <Route path="/centro-ajuda" element={<CentroAjudaPage />} />
