@@ -25,7 +25,7 @@ export function ClienteCard({ cliente }: ClienteCardProps) {
               variant="ghost"
               size="sm"
               className="h-7 text-xs text-primary"
-              onClick={() => navigate(`/clientes/editar/${cliente.id}`)}
+              onClick={() => navigate(`/app/clientes/${cliente.id}/editar`)}
             >
               Ver perfil
             </Button>

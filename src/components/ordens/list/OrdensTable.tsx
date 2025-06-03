@@ -42,19 +42,19 @@ export function OrdensTable({ ordens, clientes, onExcluir }: OrdensTableProps) {
   };
 
   const handleRowClick = (ordemId: string) => {
-    navigate(`/ordens/${ordemId}`);
+    navigate(`/app/ordens/${ordemId}`);
   };
 
   const getActions = (ordem: OrdemServico) => [
     {
       label: "Visualizar",
       icon: Eye,
-      onClick: () => navigate(`/ordens/${ordem.id}`)
+      onClick: () => navigate(`/app/ordens/${ordem.id}`)
     },
     {
       label: "Editar", 
       icon: Edit,
-      onClick: () => navigate(`/ordens/editar/${ordem.id}`)
+      onClick: () => navigate(`/app/ordens/editar/${ordem.id}`)
     },
     {
       label: "Excluir",

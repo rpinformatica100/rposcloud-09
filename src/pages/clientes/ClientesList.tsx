@@ -68,14 +68,14 @@ const ClientesList = () => {
   };
 
   const handleRowClick = (clienteId: string) => {
-    navigate(`/clientes/${clienteId}`);
+    navigate(`/app/clientes/${clienteId}`);
   };
 
   const getActions = (cliente: ClienteRow) => [
     {
       label: "Editar",
       icon: Edit,
-      onClick: () => navigate(`/clientes/${cliente.id}/editar`)
+      onClick: () => navigate(`/app/clientes/${cliente.id}/editar`)
     },
     {
       label: "Excluir",
@@ -106,7 +106,7 @@ const ClientesList = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Clientes e Fornecedores</h1>
-        <Button onClick={() => navigate('/clientes/novo')}>
+        <Button onClick={() => navigate('/app/clientes/novo')}>
           <UserPlus className="mr-2 h-4 w-4" />
           Novo Cliente
         </Button>

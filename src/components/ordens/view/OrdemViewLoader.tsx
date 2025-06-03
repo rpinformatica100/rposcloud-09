@@ -28,7 +28,7 @@ export function OrdemViewLoader({ isLoading, error }: OrdemViewLoaderProps) {
         <p className="text-muted-foreground mb-4">
           Não foi possível carregar os dados da ordem de serviço.
         </p>
-        <Button onClick={() => navigate("/ordens")}>Voltar para lista</Button>
+        <Button onClick={() => navigate("/app/ordens")}>Voltar para lista</Button>
       </div>
     );
   }

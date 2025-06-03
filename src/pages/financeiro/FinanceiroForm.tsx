@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -49,7 +48,7 @@ const FinanceiroForm = () => {
         });
       }
     }
-  }, [id, isEdicao, navigate]);
+  }, [id, isEdicao, navigate, toast]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
