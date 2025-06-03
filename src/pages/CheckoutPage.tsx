@@ -3,17 +3,20 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, CreditCard, Smartphone, ArrowLeft, User, Shield } from "lucide-react";
+import { Loader2, CreditCard, Smartphone, ArrowLeft, User, Shield, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlan } from "@/contexts/PlanContext";
+import { PLAN_METADATA, PlanType } from "@/types/plan";
 
 export default function CheckoutPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const { user, profile, isAuthenticated } = useAuth();
+  const { handleCheckoutSuccess } = usePlan();
 
-  const planoId = searchParams.get('planoId');
+  const planoId = searchParams.get('planoId') as PlanType;
   const metodoPagamento = searchParams.get('metodo');
   const preco = searchParams.get('preco');
   const planoNome = searchParams.get('plano');
@@ -21,60 +24,103 @@ export default function CheckoutPage() {
   const userEmail = searchParams.get('userEmail');
   const userName = searchParams.get('userName');
 
+  // Validar dados do checkout
+  const isValidCheckout = planoId && metodoPagamento && preco && planoNome && PLAN_METADATA[planoId];
+
   useEffect(() => {
     if (!isAuthenticated) {
       toast.error("Você precisa estar logado para continuar");
-      navigate('/');
+      navigate('/login');
       return;
     }
 
-    if (!planoId || !metodoPagamento || !preco || !planoNome) {
+    if (!isValidCheckout) {
       toast.error("Dados do checkout inválidos");
-      navigate('/');
+      navigate('/app/planos');
+      return;
     }
-  }, [planoId, metodoPagamento, preco, planoNome, navigate, isAuthenticated]);
+  }, [isAuthenticated, isValidCheckout, navigate]);
 
-  const processarPagamento = () => {
+  const processarPagamento = async () => {
+    if (!isValidCheckout || !user) return;
+
     setLoading(true);
     
-    // Simular processamento do pagamento com dados do usuário
-    console.log("Processando pagamento para:", {
-      usuario: {
-        id: user?.id,
-        email: user?.email,
-        nome: profile?.nome
-      },
-      plano: {
-        id: planoId,
-        nome: planoNome,
-        preco: preco
-      },
-      metodo: metodoPagamento
-    });
-    
-    setTimeout(() => {
-      setLoading(false);
-      toast.success("Pagamento processado com sucesso!", {
-        description: "Você será redirecionado em instantes..."
+    try {
+      // Simular processamento do pagamento
+      console.log("Processando pagamento para:", {
+        usuario: {
+          id: user.id,
+          email: user.email,
+          nome: profile?.nome
+        },
+        plano: {
+          id: planoId,
+          nome: planoNome,
+          preco: preco
+        },
+        metodo: metodoPagamento
       });
       
+      // Simular delay de processamento
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Processar sucesso do checkout
+      await handleCheckoutSuccess(planoId);
+      
+      toast.success("Pagamento processado com sucesso!", {
+        description: "Seu plano foi ativado. Redirecionando..."
+      });
+      
+      // Redirecionar para app com confirmação
       setTimeout(() => {
-        navigate('/success');
+        navigate('/app?checkout=success');
       }, 2000);
-    }, 3000);
+      
+    } catch (error) {
+      console.error('Erro no checkout:', error);
+      toast.error("Erro ao processar pagamento", {
+        description: "Tente novamente ou entre em contato com o suporte."
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const voltarParaPlanos = () => {
-    navigate('/#planos');
+    navigate('/app/planos');
+  };
+
+  const cancelarCheckout = () => {
+    // Limpar intenção de checkout
+    localStorage.removeItem('checkout_intent');
+    toast.info("Checkout cancelado");
+    navigate('/app/planos');
   };
 
   if (!isAuthenticated) {
     return null;
   }
 
-  if (!planoId || !metodoPagamento || !preco || !planoNome) {
-    return null;
+  if (!isValidCheckout) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-red-600">Erro no Checkout</CardTitle>
+            <CardDescription>Dados inválidos detectados</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate('/app/planos')} className="w-full">
+              Voltar aos Planos
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
+
+  const planData = PLAN_METADATA[planoId];
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -107,11 +153,31 @@ export default function CheckoutPage() {
           </div>
 
           {/* Informações do plano */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-semibold mb-2">{planoNome}</h3>
+          <div className="bg-gray-50 p-4 rounded-lg border">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold">{planData.name}</h3>
+              <CheckCircle className="w-5 h-5 text-green-500" />
+            </div>
+            <p className="text-sm text-gray-600 mb-2">{planData.description}</p>
             <p className="text-2xl font-bold text-primary">
-              R$ {Number(preco).toFixed(2).replace('.', ',')}
+              R$ {planData.price.toFixed(2).replace('.', ',')}
             </p>
+            {planData.savings && (
+              <p className="text-sm text-green-600 font-medium">
+                Economia de {planData.savings}%
+              </p>
+            )}
+          </div>
+
+          {/* Resumo do que está incluído */}
+          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+            <h4 className="font-medium text-green-800 mb-2">Incluído no plano:</h4>
+            <ul className="text-sm text-green-700 space-y-1">
+              <li>• Funcionalidades completas</li>
+              <li>• Suporte técnico prioritário</li>
+              <li>• Backup automático</li>
+              <li>• Relatórios avançados</li>
+            </ul>
           </div>
 
           {/* Segurança */}
@@ -139,14 +205,25 @@ export default function CheckoutPage() {
               )}
             </Button>
             
-            <Button 
-              variant="outline" 
-              onClick={voltarParaPlanos}
-              className="w-full"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar aos Planos
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={voltarParaPlanos}
+                className="flex-1"
+                disabled={loading}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={cancelarCheckout}
+                className="flex-1"
+                disabled={loading}
+              >
+                Cancelar
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -57,6 +57,7 @@ const Layout = lazy(() => import('./components/layout/Layout'));
 const AssistenciaLayout = lazy(() => import('./components/layout/AssistenciaLayout'));
 const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
 const PlanGuard = lazy(() => import('./components/plan/PlanGuard'));
+import { PlanProvider } from './contexts/PlanContext';
 
 const queryClient = new QueryClient();
 
@@ -94,105 +95,107 @@ function App() {
           <Sonner />
           <BrowserRouter>
             <AuthProvider>
-              <ErrorBoundary>
-                <Suspense fallback={<PageLoader />}>
-                  <Routes>
-                    {/* Public routes */}
-                    <Route path="/" element={<Landing />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/checkout" element={<CheckoutPage />} />
-                    <Route path="/success" element={<SuccessPage />} />
-                    <Route path="/sobre" element={<SobreNosPage />} />
-                    <Route path="/contato" element={<ContatoPage />} />
-                    <Route path="/politica-privacidade" element={<PoliticaPrivacidadePage />} />
-                    <Route path="/termos-servico" element={<TermosServicoPage />} />
-                    <Route path="/centro-ajuda" element={<CentroAjudaPage />} />
-                    <Route path="/documentacao" element={<DocumentacaoTecnicaPage />} />
-                    <Route path="/integracoes" element={<IntegracoesPage />} />
+              <PlanProvider>
+                <ErrorBoundary>
+                  <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                      {/* Public routes */}
+                      <Route path="/" element={<Landing />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
+                      <Route path="/checkout" element={<CheckoutPage />} />
+                      <Route path="/success" element={<SuccessPage />} />
+                      <Route path="/sobre" element={<SobreNosPage />} />
+                      <Route path="/contato" element={<ContatoPage />} />
+                      <Route path="/politica-privacidade" element={<PoliticaPrivacidadePage />} />
+                      <Route path="/termos-servico" element={<TermosServicoPage />} />
+                      <Route path="/centro-ajuda" element={<CentroAjudaPage />} />
+                      <Route path="/documentacao" element={<DocumentacaoTecnicaPage />} />
+                      <Route path="/integracoes" element={<IntegracoesPage />} />
                     
-                    {/* Rota pública para visualização de OS compartilhada */}
-                    <Route path="/share/ordem/:id" element={<ShareOrder />} />
+                      {/* Rota pública para visualização de OS compartilhada */}
+                      <Route path="/share/ordem/:id" element={<ShareOrder />} />
 
-                    {/* Assistant/User protected routes */}
-                    <Route path="/app" element={<Layout />}>
-                      <Route path="" element={<Navigate to="/app/dashboard" replace />} />
-                      <Route path="dashboard" element={
-                        <PlanGuard>
-                          <Dashboard />
-                        </PlanGuard>
-                      } />
+                      {/* Assistant/User protected routes */}
+                      <Route path="/app" element={<Layout />}>
+                        <Route path="" element={<Navigate to="/app/dashboard" replace />} />
+                        <Route path="dashboard" element={
+                          <PlanGuard>
+                            <Dashboard />
+                          </PlanGuard>
+                        } />
                       
-                      {/* Orders routes */}
-                      <Route path="ordens" element={
-                        <PlanGuard>
-                          <OrdensList />
-                        </PlanGuard>
-                      } />
-                      <Route path="ordens/nova" element={
-                        <PlanGuard>
-                          <OrdensForm />
-                        </PlanGuard>
-                      } />
-                      <Route path="ordens/editar/:id" element={
-                        <PlanGuard>
-                          <OrdensForm />
-                        </PlanGuard>
-                      } />
-                      <Route path="ordens/:id" element={
-                        <PlanGuard>
-                          <OrdensView />
-                        </PlanGuard>
-                      } />
+                        {/* Orders routes */}
+                        <Route path="ordens" element={
+                          <PlanGuard>
+                            <OrdensList />
+                          </PlanGuard>
+                        } />
+                        <Route path="ordens/nova" element={
+                          <PlanGuard>
+                            <OrdensForm />
+                          </PlanGuard>
+                        } />
+                        <Route path="ordens/editar/:id" element={
+                          <PlanGuard>
+                            <OrdensForm />
+                          </PlanGuard>
+                        } />
+                        <Route path="ordens/:id" element={
+                          <PlanGuard>
+                            <OrdensView />
+                          </PlanGuard>
+                        } />
 
-                      {/* Clientes */}
-                      <Route path="clientes" element={<ClientesList />} />
-                      <Route path="clientes/novo" element={<ClientesForm />} />
-                      <Route path="clientes/:id/editar" element={<ClientesForm />} />
+                        {/* Clientes */}
+                        <Route path="clientes" element={<ClientesList />} />
+                        <Route path="clientes/novo" element={<ClientesForm />} />
+                        <Route path="clientes/:id/editar" element={<ClientesForm />} />
                       
-                      {/* Produtos */}
-                      <Route path="produtos" element={<ProdutosList />} />
-                      <Route path="produtos/novo" element={<ProdutosForm />} />
-                      <Route path="produtos/:id/editar" element={<ProdutosForm />} />
+                        {/* Produtos */}
+                        <Route path="produtos" element={<ProdutosList />} />
+                        <Route path="produtos/novo" element={<ProdutosForm />} />
+                        <Route path="produtos/:id/editar" element={<ProdutosForm />} />
                       
-                      {/* Financeiro */}
-                      <Route path="financeiro" element={<FinanceiroList />} />
-                      <Route path="financeiro/novo" element={<FinanceiroForm />} />
-                      <Route path="financeiro/:id/editar" element={<FinanceiroForm />} />
+                        {/* Financeiro */}
+                        <Route path="financeiro" element={<FinanceiroList />} />
+                        <Route path="financeiro/novo" element={<FinanceiroForm />} />
+                        <Route path="financeiro/:id/editar" element={<FinanceiroForm />} />
                       
-                      {/* Relatórios */}
-                      <Route path="relatorios" element={<RelatoriosPage />} />
+                        {/* Relatórios */}
+                        <Route path="relatorios" element={<RelatoriosPage />} />
                       
-                      {/* Planos */}
-                      <Route path="planos" element={<PlanosPage />} />
-                      <Route path="assinatura" element={<PlanoAssinatura />} />
+                        {/* Planos */}
+                        <Route path="planos" element={<PlanosPage />} />
+                        <Route path="assinatura" element={<PlanoAssinatura />} />
                       
-                      {/* Configurações */}
-                      <Route path="configuracoes" element={<ConfiguracoesList />} />
-                      <Route path="configuracoes/sistema" element={<ConfiguracoesSistema />} />
-                      <Route path="configuracoes/assistencia" element={<ConfiguracoesAssistencia />} />
-                      <Route path="configuracoes/perfil" element={<PerfilEmpresa />} />
-                    </Route>
+                        {/* Configurações */}
+                        <Route path="configuracoes" element={<ConfiguracoesList />} />
+                        <Route path="configuracoes/sistema" element={<ConfiguracoesSistema />} />
+                        <Route path="configuracoes/assistencia" element={<ConfiguracoesAssistencia />} />
+                        <Route path="configuracoes/perfil" element={<PerfilEmpresa />} />
+                      </Route>
 
-                    {/* Admin Routes */}
-                    <Route path="/admin" element={
-                      <ErrorBoundary>
-                        <AdminLayout />
-                      </ErrorBoundary>
-                    }>
-                      <Route index element={<AdminDashboard />} />
-                      <Route path="assistencias" element={<AssistenciasList />} />
-                      <Route path="planos" element={<PlanosList />} />
-                      <Route path="pagamentos" element={<PagamentosList />} />
-                      <Route path="relatorios" element={<AdminRelatoriosPage />} />
-                      <Route path="configuracoes" element={<ConfigAdmin />} />
-                    </Route>
+                      {/* Admin Routes */}
+                      <Route path="/admin" element={
+                        <ErrorBoundary>
+                          <AdminLayout />
+                        </ErrorBoundary>
+                      }>
+                        <Route index element={<AdminDashboard />} />
+                        <Route path="assistencias" element={<AssistenciasList />} />
+                        <Route path="planos" element={<PlanosList />} />
+                        <Route path="pagamentos" element={<PagamentosList />} />
+                        <Route path="relatorios" element={<AdminRelatoriosPage />} />
+                        <Route path="configuracoes" element={<ConfigAdmin />} />
+                      </Route>
 
-                    {/* 404 - Catch all */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
-              </ErrorBoundary>
+                      {/* 404 - Catch all */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
+                </ErrorBoundary>
+              </PlanProvider>
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>

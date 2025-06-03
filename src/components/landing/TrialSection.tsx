@@ -6,12 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Check, Gift, Clock, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePlanStatus } from '@/hooks/usePlanStatus';
+import { usePlanManager } from '@/hooks/usePlanManager';
 import AuthModal from '@/components/auth/AuthModal';
 
 export default function TrialSection() {
   const { isAuthenticated } = useAuth();
-  const { userPlan, activateTrial } = usePlanStatus();
+  const { userPlan, handleTrialActivation } = usePlanManager();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -35,17 +35,15 @@ export default function TrialSection() {
       return;
     }
 
-    // Ativar trial e redirecionar
-    activateTrial();
-    navigate('/app');
+    // Ativar trial
+    handleTrialActivation();
   };
 
   const handleAuthSuccess = () => {
     setAuthModalOpen(false);
     // Ativar trial após autenticação
     setTimeout(() => {
-      activateTrial();
-      navigate('/app');
+      handleTrialActivation();
     }, 1000);
   };
 

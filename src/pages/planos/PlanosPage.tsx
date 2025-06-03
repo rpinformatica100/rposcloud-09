@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,11 +17,11 @@ import {
 } from "lucide-react";
 import { formatarMoeda } from "@/lib/utils";
 import { toast } from "sonner";
-import { usePlanStatus } from "@/hooks/usePlanStatus";
+import { usePlanManager } from "@/hooks/usePlanManager";
 import { PlanType, PLAN_METADATA } from "@/types/plan";
 
 const PlanosPage = () => {
-  const { userPlan, upgradePlan } = usePlanStatus();
+  const { userPlan, handlePlanSelection, getPlanStatus } = usePlanManager();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [planoParaUpgrade, setPlanoParaUpgrade] = useState<any>(null);
 
@@ -98,12 +97,9 @@ const PlanosPage = () => {
     setUpgradeModalOpen(true);
   };
 
-  const confirmarUpgrade = () => {
+  const confirmarUpgrade = async () => {
     if (planoParaUpgrade) {
-      upgradePlan(planoParaUpgrade.planType);
-      toast.success(`Upgrade para ${planoParaUpgrade.nome} realizado!`, {
-        description: "Seu plano foi atualizado com sucesso."
-      });
+      await handlePlanSelection(planoParaUpgrade.planType);
       setUpgradeModalOpen(false);
       setPlanoParaUpgrade(null);
     }
@@ -117,6 +113,8 @@ const PlanosPage = () => {
     }
   };
 
+  const planStatus = getPlanStatus();
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -127,7 +125,7 @@ const PlanosPage = () => {
         {userPlan && (
           <div className="text-right">
             <p className="text-sm text-muted-foreground">Plano atual:</p>
-            <p className="font-semibold">{planNames[userPlan.planType] || planNames.trial_plan}</p>
+            <p className="font-semibold">{planStatus.name}</p>
             {userPlan.planType === 'trial_plan' && userPlan.remainingDays !== undefined && (
               <div className="flex items-center gap-1 text-yellow-600">
                 <Clock className="h-4 w-4" />
@@ -282,8 +280,8 @@ const PlanosPage = () => {
               </div>
               <p className="text-sm text-muted-foreground">
                 {(userPlan?.planType === 'trial_plan' || !userPlan)
-                  ? 'Seu período gratuito será convertido em uma assinatura paga.'
-                  : 'A alteração será aplicada imediatamente no próximo ciclo de faturamento.'
+                  ? 'Você será redirecionado para o checkout para finalizar a assinatura.'
+                  : 'A alteração será aplicada imediatamente após a confirmação do pagamento.'
                 }
               </p>
             </div>
@@ -293,7 +291,7 @@ const PlanosPage = () => {
               Cancelar
             </Button>
             <Button onClick={confirmarUpgrade}>
-              {(userPlan?.planType === 'trial_plan' || !userPlan) ? 'Assinar' : 'Confirmar Alteração'}
+              {(userPlan?.planType === 'trial_plan' || !userPlan) ? 'Ir para Checkout' : 'Confirmar Alteração'}
             </Button>
           </DialogFooter>
         </DialogContent>
