@@ -34,6 +34,7 @@ const PlanosPage = lazy(() => import('./pages/planos/PlanosPage'));
 const PlanoAssinatura = lazy(() => import('./pages/assinatura/PlanoAssinatura'));
 const CompletarCadastro = lazy(() => import('./pages/assinante/CompletarCadastro'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const ShareOrder = lazy(() => import('./pages/ShareOrder'));
 
 // Admin pages
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
@@ -109,6 +110,9 @@ function App() {
                     <Route path="/centro-ajuda" element={<CentroAjudaPage />} />
                     <Route path="/documentacao" element={<DocumentacaoTecnicaPage />} />
                     <Route path="/integracoes" element={<IntegracoesPage />} />
+                    
+                    {/* Rota pública para visualização de OS compartilhada */}
+                    <Route path="/share/ordem/:id" element={<ShareOrder />} />
 
                     {/* Assistant/User protected routes */}
                     <Route path="/app" element={<Layout />}>

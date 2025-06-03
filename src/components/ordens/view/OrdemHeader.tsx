@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { OrdemServico, ItemOrdemServico } from "@/types";
 import { formatarData, formatarMoeda } from "@/lib/utils";
-import { Calendar, User, AlertTriangle, Edit, Printer } from "lucide-react";
+import { Calendar, User, Edit } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import PrintOrderButton from "@/components/ordens/PrintOrderButton";
 
 interface OrdemHeaderProps {
   ordem: OrdemServico;
@@ -36,7 +37,6 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
   };
 
   const handleEditarOrdem = () => {
-    // Corrigir o redirecionamento para edição
     navigate(`/app/ordens/editar/${ordem.id}`);
   };
 
@@ -100,11 +100,20 @@ export function OrdemHeader({ ordem, itens, openFinalizarModal }: OrdemHeaderPro
       </div>
 
       <div className="mt-4 pt-4 border-t">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mb-4">
           <span className="text-sm text-gray-600">Valor Total:</span>
           <span className="text-lg font-semibold text-gray-900">
             {formatarMoeda(ordem.valorTotal)}
           </span>
+        </div>
+        
+        {/* Botões de impressão e compartilhamento */}
+        <div className="flex justify-end">
+          <PrintOrderButton 
+            ordem={ordem} 
+            itens={itens} 
+            cliente={ordem.cliente}
+          />
         </div>
       </div>
     </div>
