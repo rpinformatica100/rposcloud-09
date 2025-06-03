@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { ConfiguracaoRow, fetchConfiguracoes, upsertConfiguracoes } from "@/integrations/supabase/helpers";
+import { ConfiguracaoRow, fetchConfiguracoes, upsertConfiguracoes, getCurrentUserAssistenciaId } from "@/integrations/supabase/helpers";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Save, Upload, Image, Building, CheckCircle, Loader2, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -69,17 +69,25 @@ const PerfilEmpresa = () => {
     }));
   };
 
-  const createOrUpdateConfig = (chave: string, valor: string, descricao: string) => {
+  const createOrUpdateConfig = async (chave: string, valor: string, descricao: string) => {
     const existingConfig = configuracoes.find(c => c.chave === chave);
     
     if (existingConfig) {
       handleInputChange(existingConfig.id, valor);
     } else {
+      const assistenciaId = await getCurrentUserAssistenciaId();
+      if (!assistenciaId) {
+        toast.error("Erro: assistência não encontrada");
+        return;
+      }
+
       const newConfig: ConfiguracaoRow = {
         id: crypto.randomUUID(),
+        assistencia_id: assistenciaId,
         chave,
         valor,
         descricao,
+        tipo: 'text',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };

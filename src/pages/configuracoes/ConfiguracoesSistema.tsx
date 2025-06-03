@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ConfiguracaoRow, fetchConfiguracoes, upsertConfiguracoes } from "@/integrations/supabase/helpers";
+import { ConfiguracaoRow, fetchConfiguracoes, upsertConfiguracoes, getCurrentUserAssistenciaId } from "@/integrations/supabase/helpers";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Save, Settings, Shield, Database, Clock, AlertTriangle, Loader2, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -45,7 +45,7 @@ const ConfiguracoesSistema = () => {
     }
   });
 
-  const createOrUpdateConfig = (chave: string, valor: string, descricao: string) => {
+  const createOrUpdateConfig = async (chave: string, valor: string, descricao: string) => {
     const existingConfig = configuracoes.find(c => c.chave === chave);
     
     if (existingConfig) {
@@ -54,11 +54,19 @@ const ConfiguracoesSistema = () => {
       );
       setConfiguracoes(updatedConfigs);
     } else {
+      const assistenciaId = await getCurrentUserAssistenciaId();
+      if (!assistenciaId) {
+        toast.error("Erro: assistência não encontrada");
+        return;
+      }
+
       const newConfig: ConfiguracaoRow = {
         id: crypto.randomUUID(),
+        assistencia_id: assistenciaId,
         chave,
         valor,
         descricao,
+        tipo: 'text',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };

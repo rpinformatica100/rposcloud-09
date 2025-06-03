@@ -170,7 +170,7 @@ const FinanceiroView = () => {
               </span>
             </div>
 
-            {movimento.clienteId && (
+            {movimento.cliente && (
               <div className="pt-4 border-t">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <User className="h-4 w-4" />
