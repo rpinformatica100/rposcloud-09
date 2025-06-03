@@ -45,14 +45,14 @@ const ProdutosList = () => {
   };
 
   const handleRowClick = (produtoId: string) => {
-    navigate(`/produtos/${produtoId}`);
+    navigate(`/app/produtos/${produtoId}`);
   };
 
   const getActions = (produto: Produto) => [
     {
       label: "Editar",
       icon: Edit,
-      onClick: () => navigate(`/produtos/editar/${produto.id}`)
+      onClick: () => navigate(`/app/produtos/editar/${produto.id}`)
     },
     {
       label: "Excluir",
@@ -67,7 +67,7 @@ const ProdutosList = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Produtos e Serviços</h1>
-        <Button onClick={() => navigate('/produtos/novo')}>
+        <Button onClick={() => navigate('/app/produtos/novo')}>
           <Plus className="mr-2 h-4 w-4" />
           Novo Produto
         </Button>
