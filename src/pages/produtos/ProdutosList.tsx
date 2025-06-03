@@ -44,10 +44,6 @@ const ProdutosList = () => {
     }
   };
 
-  const handleRowClick = (produtoId: string) => {
-    navigate(`/app/produtos/${produtoId}`);
-  };
-
   const getActions = (produto: Produto) => [
     {
       label: "Editar",
@@ -127,8 +123,7 @@ const ProdutosList = () => {
                   {sortedData.map((produto) => (
                     <div 
                       key={produto.id} 
-                      className="grid grid-cols-1 md:grid-cols-5 p-4 border-t items-center hover:bg-muted/30 cursor-pointer"
-                      onClick={() => handleRowClick(produto.id)}
+                      className="grid grid-cols-1 md:grid-cols-5 p-4 border-t items-center hover:bg-muted/30"
                     >
                       <div className="md:col-span-2">
                         <div className="flex items-center gap-3">
@@ -168,7 +163,7 @@ const ProdutosList = () => {
                       <div className="hidden md:block font-medium">
                         {formatarMoeda(produto.preco)}
                       </div>
-                      <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex justify-end">
                         <ActionDropdownMenu actions={getActions(produto)} />
                       </div>
                     </div>

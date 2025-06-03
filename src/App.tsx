@@ -24,6 +24,7 @@ const ClientesForm = lazy(() => import('./pages/clientes/ClientesForm'));
 const ProdutosList = lazy(() => import('./pages/produtos/ProdutosList'));
 const ProdutosForm = lazy(() => import('./pages/produtos/ProdutosForm'));
 const FinanceiroList = lazy(() => import('./pages/financeiro/FinanceiroList'));
+const FinanceiroView = lazy(() => import('./pages/financeiro/FinanceiroView'));
 const FinanceiroForm = lazy(() => import('./pages/financeiro/FinanceiroForm'));
 const RelatoriosPage = lazy(() => import('./pages/relatorios/RelatoriosPage'));
 const ConfiguracoesList = lazy(() => import('./pages/configuracoes/ConfiguracoesList'));
@@ -160,6 +161,7 @@ function App() {
                         {/* Financeiro */}
                         <Route path="financeiro" element={<FinanceiroList />} />
                         <Route path="financeiro/novo" element={<FinanceiroForm />} />
+                        <Route path="financeiro/:id" element={<FinanceiroView />} />
                         <Route path="financeiro/:id/editar" element={<FinanceiroForm />} />
                       
                         {/* Relatórios */}

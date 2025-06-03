@@ -84,14 +84,14 @@ const FinanceiroList = () => {
   };
 
   const handleRowClick = (movimentoId: string) => {
-    navigate(`/financeiro/${movimentoId}`);
+    navigate(`/app/financeiro/${movimentoId}`);
   };
 
   const getActions = (movimento: MovimentoFinanceiro) => [
     {
       label: "Editar",
       icon: Edit,
-      onClick: () => navigate(`/financeiro/editar/${movimento.id}`)
+      onClick: () => navigate(`/app/financeiro/editar/${movimento.id}`)
     },
     {
       label: "Excluir",
@@ -117,7 +117,7 @@ const FinanceiroList = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Financeiro</h1>
-        <Button onClick={() => navigate("/financeiro/novo")}>
+        <Button onClick={() => navigate("/app/financeiro/novo")}>
           <Plus className="mr-2 h-4 w-4" />
           Novo Movimento
         </Button>
