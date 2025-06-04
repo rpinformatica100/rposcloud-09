@@ -1,12 +1,12 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Smartphone, User } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { CreditCard, Smartphone, User, Loader2 } from "lucide-react";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
+import { toast } from "sonner";
 
 interface ModalPagamentoProps {
   isOpen: boolean;
@@ -15,28 +15,81 @@ interface ModalPagamentoProps {
     id: number;
     nome: string;
     preco: number;
+    periodo: string;
   };
-  onCheckout: (checkout: any) => void;
+  onCheckout?: (checkout: any) => void;
 }
+
+// Price IDs do Stripe (você precisa criar estes produtos no Stripe Dashboard)
+const STRIPE_PRICE_IDS = {
+  monthly: "price_monthly_id", // Substitua pelos IDs reais do Stripe
+  quarterly: "price_quarterly_id",
+  yearly: "price_yearly_id"
+};
 
 export default function ModalPagamento({ isOpen, onClose, plano, onCheckout }: ModalPagamentoProps) {
   const [metodoPagamento, setMetodoPagamento] = useState<'stripe' | 'mercadopago'>('stripe');
-  const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const { user, profile, createCheckout } = useSupabaseAuth();
+
+  const getPlanType = () => {
+    if (plano.nome.toLowerCase().includes('anual')) return 'yearly';
+    if (plano.nome.toLowerCase().includes('trimestral')) return 'quarterly';
+    return 'monthly';
+  };
+
+  const handleStripeCheckout = async () => {
+    if (!user) {
+      toast.error("Você precisa estar logado para continuar");
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const planType = getPlanType();
+      const priceId = STRIPE_PRICE_IDS[planType as keyof typeof STRIPE_PRICE_IDS];
+      
+      if (!priceId) {
+        toast.error("Plano não configurado. Entre em contato com o suporte.");
+        setLoading(false);
+        return;
+      }
+
+      const { url, error } = await createCheckout(planType, priceId);
+      
+      if (error) {
+        console.error('Checkout error:', error);
+        toast.error("Erro ao criar checkout. Tente novamente.");
+        setLoading(false);
+        return;
+      }
+
+      if (url) {
+        // Abrir Stripe Checkout em nova aba
+        window.open(url, '_blank');
+        onClose();
+        toast.success("Redirecionando para o pagamento...");
+      }
+    } catch (error) {
+      console.error('Error creating checkout:', error);
+      toast.error("Erro inesperado. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMercadoPagoCheckout = () => {
+    toast.info("Mercado Pago será implementado em breve");
+    // TODO: Implementar Mercado Pago
+  };
 
   const handleCheckout = () => {
-    const params = new URLSearchParams({
-      planoId: plano.id.toString(),
-      metodo: metodoPagamento,
-      preco: plano.preco.toString(),
-      plano: plano.nome,
-      userId: user?.id || '',
-      userEmail: user?.email || '',
-      userName: profile?.nome || ''
-    });
-    
-    navigate(`/checkout?${params.toString()}`);
-    onClose();
+    if (metodoPagamento === 'stripe') {
+      handleStripeCheckout();
+    } else {
+      handleMercadoPagoCheckout();
+    }
   };
 
   return (
@@ -67,31 +120,44 @@ export default function ModalPagamento({ isOpen, onClose, plano, onCheckout }: M
                 <CreditCard className="w-5 h-5 mr-2 text-blue-600" />
                 <div>
                   <div className="font-medium">Cartão de Crédito</div>
-                  <div className="text-sm text-gray-500">Pagamento via Stripe</div>
+                  <div className="text-sm text-gray-500">Pagamento via Stripe (Recomendado)</div>
                 </div>
               </Label>
             </div>
             
-            <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-              <RadioGroupItem value="mercadopago" id="mercadopago" />
+            <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 opacity-50">
+              <RadioGroupItem value="mercadopago" id="mercadopago" disabled />
               <Label htmlFor="mercadopago" className="flex items-center cursor-pointer flex-1">
                 <Smartphone className="w-5 h-5 mr-2 text-green-600" />
                 <div>
                   <div className="font-medium">PIX</div>
-                  <div className="text-sm text-gray-500">Pagamento via Mercado Pago</div>
+                  <div className="text-sm text-gray-500">Em breve via Mercado Pago</div>
                 </div>
               </Label>
             </div>
           </RadioGroup>
 
           <div className="flex gap-2 pt-4">
-            <Button variant="outline" onClick={onClose} className="flex-1">
+            <Button variant="outline" onClick={onClose} className="flex-1" disabled={loading}>
               Cancelar
             </Button>
-            <Button onClick={handleCheckout} className="flex-1">
-              Continuar para Pagamento
+            <Button onClick={handleCheckout} className="flex-1" disabled={loading || !user}>
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                'Continuar para Pagamento'
+              )}
             </Button>
           </div>
+
+          {!user && (
+            <div className="text-center text-sm text-red-600 mt-2">
+              Você precisa estar logado para continuar com o pagamento
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

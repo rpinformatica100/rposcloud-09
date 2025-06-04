@@ -510,6 +510,99 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          cancelled_at: string | null
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          id: string
+          metadata: Json | null
+          plan_type: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          cancelled_at?: string | null
+          created_at?: string
+          current_period_end: string
+          current_period_start: string
+          id?: string
+          metadata?: Json | null
+          plan_type: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          cancelled_at?: string | null
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          id?: string
+          metadata?: Json | null
+          plan_type?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          created_at: string
+          currency: string | null
+          id: string
+          metadata: Json | null
+          payment_method: string | null
+          plan_type: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_session_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          completed_at?: string | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_method?: string | null
+          plan_type: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_method?: string | null
+          plan_type?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

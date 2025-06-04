@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +12,15 @@ interface Profile {
   plano_id?: string;
   status_plano?: string;
   data_vencimento_plano?: string;
+  stripe_customer_id?: string;
+}
+
+interface Subscription {
+  id: string;
+  plan_type: string;
+  status: string;
+  current_period_end: string;
+  stripe_subscription_id: string;
 }
 
 interface SupabaseAuthContextProps {
@@ -20,13 +28,18 @@ interface SupabaseAuthContextProps {
   session: Session | null;
   profile: Profile | null;
   assistencia: Assistencia | null;
+  subscription: Subscription | null;
   loading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isAssistencia: boolean;
+  hasActiveSubscription: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: any }>;
   signUp: (nome: string, email: string, password: string, tipo?: 'cliente' | 'assistencia') => Promise<{ error?: any }>;
   signOut: () => Promise<void>;
+  refreshSubscription: () => Promise<void>;
+  createCheckout: (planType: string, priceId: string) => Promise<{ url?: string; error?: any }>;
+  openCustomerPortal: () => Promise<{ url?: string; error?: any }>;
 }
 
 const SupabaseAuthContext = createContext<SupabaseAuthContextProps>({
@@ -34,13 +47,18 @@ const SupabaseAuthContext = createContext<SupabaseAuthContextProps>({
   session: null,
   profile: null,
   assistencia: null,
+  subscription: null,
   loading: true,
   isAuthenticated: false,
   isAdmin: false,
   isAssistencia: false,
+  hasActiveSubscription: false,
   signIn: async () => ({}),
   signUp: async () => ({}),
   signOut: async () => {},
+  refreshSubscription: async () => {},
+  createCheckout: async () => ({}),
+  openCustomerPortal: async () => ({}),
 });
 
 interface SupabaseAuthProviderProps {
@@ -52,6 +70,7 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [assistencia, setAssistencia] = useState<Assistencia | null>(null);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -65,9 +84,11 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
         if (session?.user) {
           // Buscar perfil do usuário
           await fetchUserProfile(session.user.id);
+          await fetchUserSubscription();
         } else {
           setProfile(null);
           setAssistencia(null);
+          setSubscription(null);
         }
         
         setLoading(false);
@@ -81,6 +102,7 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
       
       if (session?.user) {
         fetchUserProfile(session.user.id);
+        fetchUserSubscription();
       } else {
         setLoading(false);
       }
@@ -120,7 +142,8 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
         empresa: profileData.empresa,
         plano_id: profileData.plano_id,
         status_plano: profileData.status_plano,
-        data_vencimento_plano: profileData.data_vencimento_plano
+        data_vencimento_plano: profileData.data_vencimento_plano,
+        stripe_customer_id: profileData.stripe_customer_id
       };
 
       setProfile(profileFormatted);
@@ -154,6 +177,101 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
+    }
+  };
+
+  const fetchUserSubscription = async () => {
+    if (!user) return;
+
+    try {
+      const { data: subscriptionData, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.log('No active subscription found:', error);
+        setSubscription(null);
+        return;
+      }
+
+      setSubscription(subscriptionData);
+      console.log('Active subscription found:', subscriptionData);
+    } catch (error) {
+      console.error('Error fetching subscription:', error);
+      setSubscription(null);
+    }
+  };
+
+  const refreshSubscription = async () => {
+    if (!session) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription-status', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) {
+        console.error('Error checking subscription:', error);
+        return;
+      }
+
+      console.log('Subscription status refreshed:', data);
+      await fetchUserSubscription();
+      await fetchUserProfile(user!.id);
+    } catch (error) {
+      console.error('Error refreshing subscription:', error);
+    }
+  };
+
+  const createCheckout = async (planType: string, priceId: string) => {
+    if (!session) return { error: 'Not authenticated' };
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-stripe-checkout', {
+        body: { planType, priceId },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) {
+        console.error('Error creating checkout:', error);
+        return { error };
+      }
+
+      return { url: data.url };
+    } catch (error) {
+      console.error('Error in createCheckout:', error);
+      return { error };
+    }
+  };
+
+  const openCustomerPortal = async () => {
+    if (!session) return { error: 'Not authenticated' };
+
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) {
+        console.error('Error opening customer portal:', error);
+        return { error };
+      }
+
+      return { url: data.url };
+    } catch (error) {
+      console.error('Error in openCustomerPortal:', error);
+      return { error };
     }
   };
 
@@ -207,6 +325,7 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
   const isAuthenticated = !!user;
   const isAdmin = profile?.email === 'admin@sistema.com';
   const isAssistencia = profile?.tipo === 'assistencia';
+  const hasActiveSubscription = subscription?.status === 'active' && profile?.status_plano === 'active';
 
   return (
     <SupabaseAuthContext.Provider value={{
@@ -214,13 +333,18 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
       session,
       profile,
       assistencia,
+      subscription,
       loading,
       isAuthenticated,
       isAdmin,
       isAssistencia,
+      hasActiveSubscription,
       signIn,
       signUp,
       signOut,
+      refreshSubscription,
+      createCheckout,
+      openCustomerPortal,
     }}>
       {children}
     </SupabaseAuthContext.Provider>

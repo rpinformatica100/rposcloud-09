@@ -1,301 +1,287 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { 
-  CheckCircle, 
-  Star,
-  Zap,
-  ArrowUp,
-  Shield,
-  HeadphonesIcon,
-  BarChart3,
-  Users,
-  Database,
-  Clock
-} from "lucide-react";
-import { formatarMoeda } from "@/lib/utils";
+import { Check, Crown, RefreshCw, Settings, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { usePlanManager } from "@/hooks/usePlanManager";
-import { PlanType, PLAN_METADATA } from "@/types/plan";
+import ModalPagamento from "@/components/landing/ModalPagamento";
+
+const planosDisponiveis = [
+  {
+    id: 1,
+    nome: "Plano Mensal",
+    periodo: "monthly",
+    preco: 49.90,
+    destacado: false,
+    descricao: "Faturamento mensal - flexibilidade máxima",
+    features: [
+      "Acesso completo ao sistema",
+      "Suporte técnico",
+      "Atualizações incluídas",
+      "Backup automático"
+    ]
+  },
+  {
+    id: 2,
+    nome: "Plano Trimestral",
+    periodo: "quarterly",
+    preco: 129.90,
+    destacado: true,
+    descricao: "Faturamento trimestral - economia de 13%",
+    features: [
+      "Acesso completo ao sistema",
+      "Suporte técnico prioritário",
+      "Atualizações incluídas",
+      "Backup automático",
+      "13% de economia"
+    ]
+  },
+  {
+    id: 3,
+    nome: "Plano Anual",
+    periodo: "yearly",
+    preco: 399.90,
+    destacado: false,
+    descricao: "Faturamento anual - máxima economia de 33%",
+    features: [
+      "Acesso completo ao sistema",
+      "Suporte técnico VIP",
+      "Atualizações incluídas",
+      "Backup automático",
+      "33% de economia",
+      "Consultoria mensal"
+    ]
+  }
+];
 
 const PlanosPage = () => {
-  const { userPlan, handlePlanSelection, getPlanStatus } = usePlanManager();
-  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  const [planoParaUpgrade, setPlanoParaUpgrade] = useState<any>(null);
+  const { profile, subscription, hasActiveSubscription, refreshSubscription, openCustomerPortal } = useSupabaseAuth();
+  const [selectedPlano, setSelectedPlano] = useState<typeof planosDisponiveis[0] | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const planosDisponiveis = [
-    {
-      id: 1,
-      nome: "Mensal",
-      planType: "monthly" as PlanType,
-      preco: 49.90,
-      periodo: "mês",
-      descricao: "Faturamento mensal",
-      caracteristicas: [
-        { icon: Database, text: "Funcionalidades completas" },
-        { icon: Users, text: "Usuários ilimitados" },
-        { icon: Shield, text: "Backup automático" },
-        { icon: HeadphonesIcon, text: "Suporte técnico" },
-        { icon: BarChart3, text: "Relatórios avançados" }
-      ],
-      recomendado: false,
-      cor: "blue"
-    },
-    {
-      id: 2,
-      nome: "Trimestral", 
-      planType: "quarterly" as PlanType,
-      preco: 129.90,
-      periodo: "trimestre",
-      descricao: "Faturamento trimestral - economia de 13%",
-      caracteristicas: [
-        { icon: Database, text: "Funcionalidades completas" },
-        { icon: Users, text: "Usuários ilimitados" },
-        { icon: Shield, text: "Backup automático" },
-        { icon: HeadphonesIcon, text: "Suporte técnico" },
-        { icon: BarChart3, text: "Relatórios avançados" },
-        { icon: Zap, text: "Economia de 13%" }
-      ],
-      recomendado: true,
-      cor: "primary"
-    },
-    {
-      id: 3,
-      nome: "Anual",
-      planType: "yearly" as PlanType,
-      preco: 399.90,
-      periodo: "ano",
-      descricao: "Faturamento anual - economia de 33%",
-      caracteristicas: [
-        { icon: Database, text: "Funcionalidades completas" },
-        { icon: Users, text: "Usuários ilimitados" },
-        { icon: Shield, text: "Backup automático" },
-        { icon: HeadphonesIcon, text: "Suporte técnico" },
-        { icon: BarChart3, text: "Relatórios avançados" },
-        { icon: Zap, text: "Máxima economia - 33%" }
-      ],
-      recomendado: false,
-      cor: "purple"
-    }
-  ];
+  useEffect(() => {
+    // Auto-refresh ao carregar a página
+    handleRefreshSubscription();
+  }, []);
 
-  const planNames = {
-    trial_plan: 'Trial Gratuito',
-    monthly: 'Plano Mensal',
-    quarterly: 'Plano Trimestral',
-    yearly: 'Plano Anual'
-  };
-
-  const handleEscolherPlano = (plano: any) => {
-    if (userPlan?.planType === plano.planType) {
-      toast.info("Este já é seu plano atual");
-      return;
-    }
-    setPlanoParaUpgrade(plano);
-    setUpgradeModalOpen(true);
-  };
-
-  const confirmarUpgrade = async () => {
-    if (planoParaUpgrade) {
-      await handlePlanSelection(planoParaUpgrade.planType);
-      setUpgradeModalOpen(false);
-      setPlanoParaUpgrade(null);
+  const handleRefreshSubscription = async () => {
+    setRefreshing(true);
+    try {
+      await refreshSubscription();
+      toast.success("Status da assinatura atualizado");
+    } catch (error) {
+      console.error('Error refreshing subscription:', error);
+      toast.error("Erro ao atualizar status");
+    } finally {
+      setRefreshing(false);
     }
   };
 
-  const getCorBorda = (cor: string) => {
-    switch(cor) {
-      case "primary": return "border-primary ring-2 ring-primary/20";
-      case "purple": return "border-purple-500 ring-2 ring-purple-500/20";
-      default: return "border-blue-500 ring-2 ring-blue-500/20";
+  const handleManageSubscription = async () => {
+    setLoading(true);
+    try {
+      const { url, error } = await openCustomerPortal();
+      
+      if (error) {
+        toast.error("Erro ao abrir portal de gerenciamento");
+        console.error('Portal error:', error);
+        return;
+      }
+
+      if (url) {
+        window.open(url, '_blank');
+        toast.success("Abrindo portal de gerenciamento...");
+      }
+    } catch (error) {
+      console.error('Error opening customer portal:', error);
+      toast.error("Erro inesperado");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const planStatus = getPlanStatus();
+  const handleSelectPlano = (plano: typeof planosDisponiveis[0]) => {
+    setSelectedPlano(plano);
+    setIsModalOpen(true);
+  };
+
+  const getCurrentPlanType = () => {
+    if (!subscription) return null;
+    
+    const planMap: { [key: string]: string } = {
+      'monthly': 'Mensal',
+      'quarterly': 'Trimestral', 
+      'yearly': 'Anual'
+    };
+    
+    return planMap[subscription.plan_type] || subscription.plan_type;
+  };
+
+  const isCurrentPlan = (planoPeriodo: string) => {
+    return subscription?.plan_type === planoPeriodo;
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Escolha seu Plano</h1>
-          <p className="text-muted-foreground">Selecione o período de faturamento ideal para sua assistência técnica</p>
+          <h1 className="text-2xl font-bold tracking-tight">Planos e Assinatura</h1>
+          <p className="text-muted-foreground">Gerencie sua assinatura e escolha o melhor plano para sua assistência técnica.</p>
         </div>
-        {userPlan && (
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Plano atual:</p>
-            <p className="font-semibold">{planStatus.name}</p>
-            {userPlan.planType === 'trial_plan' && userPlan.remainingDays !== undefined && (
-              <div className="flex items-center gap-1 text-yellow-600">
-                <Clock className="h-4 w-4" />
-                <span className="text-sm">{userPlan.remainingDays} dias restantes</span>
-              </div>
-            )}
-          </div>
-        )}
+        
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefreshSubscription}
+            disabled={refreshing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            Atualizar Status
+          </Button>
+          
+          {hasActiveSubscription && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleManageSubscription}
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Settings className="h-4 w-4 mr-2" />
+              )}
+              Gerenciar Assinatura
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Trial Info */}
-      {userPlan?.planType === 'trial_plan' && (
-        <Card className="border-yellow-200 bg-yellow-50">
+      {/* Status da Assinatura Atual */}
+      {hasActiveSubscription && subscription && (
+        <Card className="border-green-200 bg-green-50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-yellow-700">
-              <Clock className="h-5 w-5" />
-              Período Gratuito Ativo
+            <CardTitle className="flex items-center gap-2 text-green-700">
+              <Crown className="h-5 w-5" />
+              Assinatura Ativa
             </CardTitle>
-            <CardDescription>
-              Você tem acesso completo a todas as funcionalidades por {userPlan.remainingDays || 7} dias restantes.
-            </CardDescription>
           </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <p className="text-sm text-green-600">Plano Atual</p>
+                <p className="font-semibold text-green-800">{getCurrentPlanType()}</p>
+              </div>
+              <div>
+                <p className="text-sm text-green-600">Status</p>
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  {subscription.status === 'active' ? 'Ativo' : subscription.status}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-sm text-green-600">Próximo Pagamento</p>
+                <p className="font-semibold text-green-800">
+                  {new Date(subscription.current_period_end).toLocaleDateString('pt-BR')}
+                </p>
+              </div>
+            </div>
+          </CardContent>
         </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {planosDisponiveis.map((plano) => (
-          <Card 
-            key={plano.nome} 
-            className={`relative transition-all duration-200 hover:shadow-lg ${
-              plano.recomendado ? getCorBorda(plano.cor) : ''
-            } ${userPlan?.planType === plano.planType ? 'border-green-500 ring-2 ring-green-500/20' : ''}`}
-          >
-            {plano.recomendado && (
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-primary text-primary-foreground">
-                  <Star className="h-3 w-3 mr-1" />
-                  Mais Popular
-                </Badge>
-              </div>
-            )}
-            
-            {userPlan?.planType === plano.planType && (
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-green-500 text-white">
-                  <CheckCircle className="h-3 w-3 mr-1" />
+      {/* Trial Information */}
+      {!hasActiveSubscription && profile?.status_plano === 'trial' && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardHeader>
+            <CardTitle className="text-yellow-700">Período de Teste</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-yellow-600">
+              Você está no período de teste gratuito. Assine um plano para continuar usando o sistema sem limitações.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Planos Disponíveis */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Planos Disponíveis</h2>
+        <div className="grid gap-6 md:grid-cols-3">
+          {planosDisponiveis.map((plano) => (
+            <Card 
+              key={plano.id} 
+              className={`relative ${plano.destacado ? 'border-2 border-primary' : ''} ${
+                isCurrentPlan(plano.periodo) ? 'ring-2 ring-green-500' : ''
+              }`}
+            >
+              {plano.destacado && (
+                <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-sm font-medium rounded-bl-md">
+                  Recomendado
+                </div>
+              )}
+              
+              {isCurrentPlan(plano.periodo) && (
+                <div className="absolute top-0 left-0 bg-green-500 text-white px-3 py-1 text-sm font-medium rounded-br-md">
                   Plano Atual
-                </Badge>
-              </div>
-            )}
+                </div>
+              )}
 
-            <CardHeader className="text-center pb-4">
-              <CardTitle className="text-xl flex items-center justify-center gap-2">
-                {plano.nome}
-              </CardTitle>
-              <CardDescription className="text-sm">
-                {plano.descricao}
-              </CardDescription>
-              <div className="mt-4">
-                <span className="text-3xl font-bold">{formatarMoeda(plano.preco)}</span>
-                <span className="text-muted-foreground">/{plano.periodo}</span>
-              </div>
-            </CardHeader>
-
-            <CardContent className="space-y-4">
-              <ul className="space-y-3">
-                {plano.caracteristicas.map((caracteristica, index) => (
-                  <li key={index} className="flex items-center gap-3 text-sm">
-                    <caracteristica.icon className="h-4 w-4 text-green-500 flex-shrink-0" />
-                    <span>{caracteristica.text}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Button 
-                className="w-full mt-6" 
-                variant={userPlan?.planType === plano.planType ? "outline" : plano.recomendado ? "default" : "outline"}
-                disabled={userPlan?.planType === plano.planType}
-                onClick={() => handleEscolherPlano(plano)}
-              >
-                {userPlan?.planType === plano.planType ? (
-                  "Plano Atual"
-                ) : (userPlan?.planType === 'trial_plan' || !userPlan) ? (
-                  <>
-                    <Zap className="h-4 w-4 mr-2" />
-                    Assinar Agora
-                  </>
-                ) : (
-                  <>
-                    <ArrowUp className="h-4 w-4 mr-2" />
-                    Alterar Plano
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  {plano.nome}
+                  {isCurrentPlan(plano.periodo) && <Crown className="h-5 w-5 text-green-500" />}
+                </CardTitle>
+                <div className="mt-2">
+                  <span className="text-3xl font-bold text-primary">
+                    R$ {plano.preco.toFixed(2).replace('.', ',')}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {plano.periodo === "monthly" ? " /mês" : 
+                     plano.periodo === "quarterly" ? " /trimestre" : 
+                     " /ano"}
+                  </span>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground">{plano.descricao}</p>
+                
+                <ul className="space-y-2">
+                  {plano.features.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <Button 
+                  className="w-full" 
+                  variant={isCurrentPlan(plano.periodo) ? "secondary" : plano.destacado ? "default" : "outline"}
+                  onClick={() => handleSelectPlano(plano)}
+                  disabled={isCurrentPlan(plano.periodo)}
+                >
+                  {isCurrentPlan(plano.periodo) ? "Plano Atual" : "Assinar Plano"}
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
-      {/* Funcionalidades Incluídas */}
-      <Card className="mt-8">
-        <CardHeader>
-          <CardTitle className="text-center">Todas as funcionalidades incluídas em qualquer plano</CardTitle>
-          <CardDescription className="text-center">
-            A diferença entre os planos é apenas o período de faturamento e a economia
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-            <div className="space-y-2">
-              <Database className="h-8 w-8 mx-auto text-green-500" />
-              <h3 className="font-semibold">Sistema Completo</h3>
-              <p className="text-sm text-muted-foreground">
-                Ordens de serviço, clientes, produtos e relatórios
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Shield className="h-8 w-8 mx-auto text-blue-500" />
-              <h3 className="font-semibold">Backup Automático</h3>
-              <p className="text-sm text-muted-foreground">
-                Seus dados sempre protegidos e seguros
-              </p>
-            </div>
-            <div className="space-y-2">
-              <HeadphonesIcon className="h-8 w-8 mx-auto text-purple-500" />
-              <h3 className="font-semibold">Suporte Técnico</h3>
-              <p className="text-sm text-muted-foreground">
-                Nossa equipe está aqui para ajudar você
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Modal de Confirmação */}
-      <Dialog open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {(userPlan?.planType === 'trial_plan' || !userPlan) ? 'Assinar Plano' : 'Alterar Plano'}
-            </DialogTitle>
-          </DialogHeader>
-          {planoParaUpgrade && (
-            <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="font-medium">
-                  {(userPlan?.planType === 'trial_plan' || !userPlan) ? 'Assinar:' : 'Alterar para:'} {planoParaUpgrade.nome}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Valor: {formatarMoeda(planoParaUpgrade.preco)}/{planoParaUpgrade.periodo}
-                </p>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {(userPlan?.planType === 'trial_plan' || !userPlan)
-                  ? 'Você será redirecionado para o checkout para finalizar a assinatura.'
-                  : 'A alteração será aplicada imediatamente após a confirmação do pagamento.'
-                }
-              </p>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setUpgradeModalOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={confirmarUpgrade}>
-              {(userPlan?.planType === 'trial_plan' || !userPlan) ? 'Ir para Checkout' : 'Confirmar Alteração'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Modal de Pagamento */}
+      {selectedPlano && (
+        <ModalPagamento
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          plano={selectedPlano}
+        />
+      )}
     </div>
   );
 };
