@@ -106,10 +106,27 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
       }
 
       console.log('Profile data:', profileData);
-      setProfile(profileData);
+      
+      // Validar e converter o tipo para o formato correto
+      const tipoValido = profileData.tipo === 'cliente' || profileData.tipo === 'assistencia' 
+        ? profileData.tipo as 'cliente' | 'assistencia'
+        : 'assistencia'; // fallback padrão
+
+      const profileFormatted: Profile = {
+        id: profileData.id,
+        nome: profileData.nome,
+        email: profileData.email,
+        tipo: tipoValido,
+        empresa: profileData.empresa,
+        plano_id: profileData.plano_id,
+        status_plano: profileData.status_plano,
+        data_vencimento_plano: profileData.data_vencimento_plano
+      };
+
+      setProfile(profileFormatted);
 
       // Se for assistência técnica, buscar dados da assistência
-      if (profileData?.tipo === 'assistencia') {
+      if (tipoValido === 'assistencia') {
         const { data: assistenciaData, error: assistenciaError } = await supabase
           .from('assistencias')
           .select('*')
