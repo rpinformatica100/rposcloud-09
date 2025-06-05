@@ -5,81 +5,31 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from '@tanstack/react-query';
 import ModalPagamento from './ModalPagamento';
-import AuthModal from '@/components/auth/AuthModal';
-import { PagamentoCheckout } from '@/types';
+import AuthModal from '@/components/landing/AuthModal';
 import { toast } from "sonner";
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
-
-type PlanoType = {
-  id: number;
-  nome: string;
-  periodo: "mensal" | "trimestral" | "anual";
-  preco: number;
-  destacado: boolean;
-  descricao: string;
-}
-
-// Função para buscar apenas planos pagos
-const fetchPlanos = async (): Promise<PlanoType[]> => {
-  return [
-    { 
-      id: 1, 
-      nome: "Plano Básico", 
-      periodo: "mensal",
-      preco: 49.90,
-      destacado: false,
-      descricao: "Ideal para pequenas assistências técnicas"
-    },
-    { 
-      id: 2, 
-      nome: "Plano Profissional", 
-      periodo: "trimestral",
-      preco: 129.90,
-      destacado: true,
-      descricao: "Para assistências em crescimento, economia de 15%"
-    },
-    { 
-      id: 3, 
-      nome: "Plano Enterprise", 
-      periodo: "anual",
-      preco: 399.90,
-      destacado: false,
-      descricao: "Recursos avançados, economia de 35%"
-    }
-  ];
-};
+import { planosDisponiveis, trialFeatures } from '@/data/planos';
+import type { PlanoData } from '@/data/planos';
 
 export default function PlanosSection() {
-  const { data: planos, isLoading, error } = useQuery({
-    queryKey: ['planos-pagos'],
-    queryFn: fetchPlanos
-  });
-
   const { isAuthenticated } = useSupabaseAuth();
   const [modalPagamentoAberto, setModalPagamentoAberto] = useState(false);
   const [authModalAberto, setAuthModalAberto] = useState(false);
-  const [planoSelecionado, setPlanoSelecionado] = useState<PlanoType | null>(null);
+  const [planoSelecionado, setPlanoSelecionado] = useState<PlanoData | null>(null);
 
-  // Features dos planos pagos
-  const paidFeatures = [
-    "Ordens de serviço ilimitadas",
-    "Cadastro ilimitado de clientes",
-    "Controle avançado de estoque",
-    "Relatórios detalhados e análises",
-    "Suporte técnico prioritário",
-    "Backup automático dos dados",
-    "Integração com sistemas externos"
-  ];
+  // Simular query para manter compatibilidade
+  const { data: planos, isLoading, error } = useQuery({
+    queryKey: ['planos-pagos'],
+    queryFn: () => Promise.resolve(planosDisponiveis)
+  });
 
-  const handleAssinaturaPaga = (plano: PlanoType) => {
+  const handleAssinaturaPaga = (plano: PlanoData) => {
     setPlanoSelecionado(plano);
     
     if (!isAuthenticated) {
-      // Salvar plano selecionado e abrir modal de autenticação
       localStorage.setItem('plano-pendente', JSON.stringify(plano));
       setAuthModalAberto(true);
     } else {
-      // Usuário já logado, abrir modal de pagamento diretamente
       setModalPagamentoAberto(true);
     }
   };
@@ -88,27 +38,11 @@ export default function PlanosSection() {
     setAuthModalAberto(false);
     toast.success("Login realizado com sucesso!");
     
-    // Após login bem-sucedido, abrir modal de pagamento automaticamente
     setTimeout(() => {
       setModalPagamentoAberto(true);
     }, 500);
   };
 
-  const handleCheckout = (checkout: PagamentoCheckout) => {
-    if (checkout.metodoPagamento === 'stripe') {
-      toast.info("Redirecionando para checkout Stripe...", {
-        description: `Plano: ${checkout.planoNome} - R$ ${checkout.preco.toFixed(2)}`
-      });
-      console.log("Checkout Stripe:", checkout);
-    } else {
-      toast.info("Redirecionando para PIX Mercado Pago...", {
-        description: `Plano: ${checkout.planoNome} - R$ ${checkout.preco.toFixed(2)}`
-      });
-      console.log("Checkout Mercado Pago:", checkout);
-    }
-  };
-
-  // Recuperar plano pendente após login/registro
   useEffect(() => {
     if (isAuthenticated) {
       const planoPendente = localStorage.getItem('plano-pendente');
@@ -118,7 +52,6 @@ export default function PlanosSection() {
           setPlanoSelecionado(plano);
           localStorage.removeItem('plano-pendente');
           
-          // Pequeno delay para garantir que o estado foi atualizado
           setTimeout(() => {
             setModalPagamentoAberto(true);
           }, 300);
@@ -175,14 +108,14 @@ export default function PlanosSection() {
                   <div className="mb-6">
                     <span className="text-4xl font-bold">R$ {plano.preco.toFixed(2).replace('.', ',')}</span>
                     <span className="text-gray-500">
-                      {plano.periodo === "mensal" ? " /mês" : 
-                       plano.periodo === "trimestral" ? " /trimestre" : 
+                      {plano.periodo === "monthly" ? " /mês" : 
+                       plano.periodo === "quarterly" ? " /trimestre" : 
                        " /ano"}
                     </span>
                   </div>
                   
                   <ul className="space-y-2 text-left">
-                    {paidFeatures.map((feature, index) => (
+                    {plano.features.map((feature, index) => (
                       <li key={index} className="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -206,7 +139,6 @@ export default function PlanosSection() {
           </div>
         )}
 
-        {/* Modal de Autenticação */}
         <AuthModal
           isOpen={authModalAberto}
           onClose={() => setAuthModalAberto(false)}
@@ -215,13 +147,11 @@ export default function PlanosSection() {
           plano={planoSelecionado || undefined}
         />
 
-        {/* Modal de Pagamento */}
         {planoSelecionado && (
           <ModalPagamento
             isOpen={modalPagamentoAberto}
             onClose={() => setModalPagamentoAberto(false)}
             plano={planoSelecionado}
-            onCheckout={handleCheckout}
           />
         )}
       </div>

@@ -12,13 +12,12 @@ import {
   Clock,
   Shield
 } from 'lucide-react';
-import { usePlanStatus } from '@/hooks/usePlanStatus';
-import { PlanType } from '@/types/plan';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { useNavigate } from 'react-router-dom';
 
 interface PlanGuardProps {
   children: React.ReactNode;
-  requiredPlan?: PlanType;
+  requiredPlan?: 'paid' | 'active';
   feature?: string;
   fallback?: 'alert' | 'modal' | 'redirect';
   showTrialBanner?: boolean;
@@ -31,26 +30,57 @@ export function PlanGuard({
   fallback = 'alert',
   showTrialBanner = true 
 }: PlanGuardProps) {
-  const { userPlan, shouldShowUpgradePrompt, getTrialProgressPercentage } = usePlanStatus();
+  const { profile, subscription, hasActiveSubscription } = useSupabaseAuth();
   const navigate = useNavigate();
 
-  console.log('PlanGuard - userPlan:', userPlan);
+  console.log('PlanGuard - profile:', profile);
+  console.log('PlanGuard - subscription:', subscription);
+  console.log('PlanGuard - hasActiveSubscription:', hasActiveSubscription);
 
-  // Se não há plano, bloquear acesso
-  if (!userPlan) {
-    console.log('PlanGuard - Nenhum plano encontrado, bloqueando acesso');
+  const getTrialDaysRemaining = () => {
+    if (!profile?.data_vencimento_plano) return 0;
+    const endDate = new Date(profile.data_vencimento_plano);
+    const today = new Date();
+    const diffTime = endDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
+  };
+
+  const isTrialExpired = () => {
+    return profile?.status_plano === 'trial' && getTrialDaysRemaining() <= 0;
+  };
+
+  const isInTrial = () => {
+    return profile?.status_plano === 'trial' && getTrialDaysRemaining() > 0;
+  };
+
+  const getTrialProgressPercentage = () => {
+    if (!isInTrial()) return 0;
+    const remainingDays = getTrialDaysRemaining();
+    return ((7 - remainingDays) / 7) * 100;
+  };
+
+  // Se o trial expirou, bloquear acesso
+  if (isTrialExpired()) {
+    console.log('PlanGuard - Trial expirado, bloqueando acesso');
     return (
       <Card className="max-w-md mx-auto mt-8">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" />
-            Acesso Restrito
+          <CardTitle className="flex items-center gap-2 text-red-600">
+            <AlertTriangle className="h-5 w-5" />
+            Período Gratuito Expirado
           </CardTitle>
           <CardDescription>
-            Você precisa de um plano ativo para acessar esta funcionalidade.
+            Seu período de teste de 7 dias expirou. Assine um plano para continuar.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <Alert className="border-red-200 bg-red-50">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Assine um plano agora para reativar todas as funcionalidades e não perder seus dados.
+            </AlertDescription>
+          </Alert>
           <Button onClick={() => navigate('/app/assinatura')} className="w-full">
             Ver Planos Disponíveis
           </Button>
@@ -59,94 +89,35 @@ export function PlanGuard({
     );
   }
 
-  // Verificar se o plano está bloqueado
-  if (userPlan.status === 'blocked') {
-    console.log('PlanGuard - Plano bloqueado');
-    return (
-      <Card className="max-w-md mx-auto mt-8">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-600">
-            <AlertTriangle className="h-5 w-5" />
-            Acesso Bloqueado
-          </CardTitle>
-          <CardDescription>
-            Sua conta foi bloqueada. Entre em contato com o suporte.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Alert className="border-red-200 bg-red-50">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              Entre em contato com o suporte para resolver esta situação.
-            </AlertDescription>
-          </Alert>
-          <Button onClick={() => navigate('/app/assinatura')} className="w-full">
-            Entrar em Contato
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Para planos expirados, mostrar tela de renovação mas permitir visualização
-  if (userPlan.status === 'expired') {
-    console.log('PlanGuard - Plano expirado, mostrando opção de renovação');
-    return (
-      <div>
-        <Alert className="mb-6 border-red-200 bg-red-50">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription className="flex items-center justify-between">
-            <div>
-              <strong>Plano Expirado:</strong> Renove seu plano para continuar usando todas as funcionalidades.
-            </div>
-            <Button 
-              size="sm" 
-              onClick={() => navigate('/app/assinatura')}
-              className="ml-4"
-            >
-              Renovar Agora
-            </Button>
-          </AlertDescription>
-        </Alert>
-        {children}
-      </div>
-    );
-  }
-
-  // Verificar se precisa de um plano específico
-  if (requiredPlan && userPlan.planType !== requiredPlan) {
-    const planNames = {
-      trial_plan: 'Trial Gratuito',
-      monthly: 'Mensal',
-      quarterly: 'Trimestral',
-      yearly: 'Anual'
-    };
-
-    console.log(`PlanGuard - Plano atual ${userPlan.planType} não atende requisito ${requiredPlan}`);
+  // Verificar se precisa de plano pago quando requerido
+  if (requiredPlan === 'paid' && !hasActiveSubscription) {
+    console.log('PlanGuard - Plano pago requerido mas não há assinatura ativa');
     return (
       <Card className="max-w-md mx-auto mt-8">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
-            Upgrade Necessário
+            Plano Pago Necessário
           </CardTitle>
           <CardDescription>
-            Esta funcionalidade requer o plano {planNames[requiredPlan]}.
+            Esta funcionalidade requer um plano pago ativo.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm">Plano Atual:</span>
-              <Badge variant="outline">{planNames[userPlan.planType]}</Badge>
+              <span className="text-sm">Status Atual:</span>
+              <Badge variant="outline">
+                {isInTrial() ? 'Trial Gratuito' : 'Sem Plano'}
+              </Badge>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm">Plano Necessário:</span>
-              <Badge>{planNames[requiredPlan]}</Badge>
+              <span className="text-sm">Necessário:</span>
+              <Badge>Plano Pago</Badge>
             </div>
             <Button onClick={() => navigate('/app/assinatura')} className="w-full">
               <Zap className="h-4 w-4 mr-2" />
-              Fazer Upgrade
+              Assinar Agora
             </Button>
           </div>
         </CardContent>
@@ -159,12 +130,12 @@ export function PlanGuard({
   return (
     <div>
       {/* Banner de trial se estiver no período gratuito */}
-      {showTrialBanner && userPlan.status === 'trial' && shouldShowUpgradePrompt() && (
+      {showTrialBanner && isInTrial() && getTrialDaysRemaining() <= 3 && (
         <Alert className="mb-6 border-yellow-200 bg-yellow-50">
           <Clock className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
             <div>
-              <strong>Período gratuito:</strong> {userPlan.remainingDays} dia(s) restante(s)
+              <strong>Período gratuito:</strong> {getTrialDaysRemaining()} dia(s) restante(s)
               <Progress 
                 value={getTrialProgressPercentage()} 
                 className="mt-2 h-2"
