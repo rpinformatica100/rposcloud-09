@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserPlus, LogIn, User, Gift } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { UserPlus, LogIn, User, Gift, Loader2 } from "lucide-react";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { toast } from "sonner";
 
 interface AuthModalProps {
@@ -23,7 +23,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login, registrar } = useAuth();
+  const { signIn, signUp } = useSupabaseAuth();
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginSenha, setLoginSenha] = useState("");
@@ -37,23 +37,18 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
     setLoading(true);
     
     try {
-      const success = await login(loginEmail, loginSenha);
-      if (success) {
+      const { error } = await signIn(loginEmail, loginSenha);
+      if (!error) {
         const message = trialContext 
           ? "Login realizado! Ativando seu trial gratuito..."
           : "Login realizado com sucesso!";
         
         toast.success(message, {
-          description: "Redirecionando para seu painel..."
+          description: "Bem-vindo de volta!"
         });
         onSuccess();
-        if (loginEmail === "admin@sistema.com") {
-          navigate("/admin");
-        } else {
-          navigate("/app");
-        }
       } else {
-        toast.error("Credenciais inválidas", {
+        toast.error("Erro ao fazer login", {
           description: "Verifique seu email e senha e tente novamente."
         });
       }
@@ -86,9 +81,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
     setLoading(true);
     
     try {
-      const tipoUsuario = 'assistencia';
-      const success = await registrar(registerNome, registerEmail, registerSenha, tipoUsuario);
-      if (success) {
+      const { error } = await signUp(registerNome, registerEmail, registerSenha, 'assistencia');
+      if (!error) {
         const message = trialContext 
           ? "Conta criada! Ativando seu trial gratuito de 7 dias..."
           : plano 
@@ -99,7 +93,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
           description: "Bem-vindo ao RP OS Cloud!"
         });
         onSuccess();
-        navigate("/app");
       } else {
         toast.error("Erro ao criar conta", {
           description: "Email pode já estar em uso. Tente outro email."
@@ -130,13 +123,13 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
 
   const getTitle = () => {
     if (trialContext) return 'Criar conta para trial gratuito';
-    if (plano) return 'Criar conta para assinar';
+    if (plano) return 'Acesse sua conta para continuar';
     return 'Acesse sua conta';
   };
 
   const getDescription = () => {
     if (trialContext) return 'Crie uma conta para ativar seu trial gratuito de 7 dias';
-    if (plano) return `Crie uma conta para assinar o ${plano.nome}`;
+    if (plano) return `Faça login ou crie uma conta para assinar o ${plano.nome}`;
     return 'Faça login ou crie uma conta para continuar';
   };
 
@@ -184,7 +177,10 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
-                  "Entrando..."
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Entrando...
+                  </>
                 ) : (
                   <>
                     <LogIn className="mr-2 h-4 w-4" />
@@ -202,7 +198,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
                   <p className={`text-sm font-medium ${trialContext ? 'text-blue-700' : 'text-green-700'}`}>
                     {trialContext 
                       ? 'Criando conta para Trial Gratuito de 7 dias'
-                      : `Criando conta como Assistência Técnica para o ${plano.nome}`
+                      : `Criando conta para assinar o ${plano.nome}`
                     }
                   </p>
                 </div>
@@ -259,7 +255,10 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
               
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
-                  "Criando conta..."
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Criando conta...
+                  </>
                 ) : (
                   <>
                     <UserPlus className="mr-2 h-4 w-4" />

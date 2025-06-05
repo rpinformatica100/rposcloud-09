@@ -8,8 +8,7 @@ import ModalPagamento from './ModalPagamento';
 import AuthModal from '@/components/auth/AuthModal';
 import { PagamentoCheckout } from '@/types';
 import { toast } from "sonner";
-import { useAuth } from '@/contexts/AuthContext';
-import { usePlanStatus } from '@/hooks/usePlanStatus';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 
 type PlanoType = {
   id: number;
@@ -56,8 +55,7 @@ export default function PlanosSection() {
     queryFn: fetchPlanos
   });
 
-  const { isAuthenticated } = useAuth();
-  const { userPlan } = usePlanStatus();
+  const { isAuthenticated } = useSupabaseAuth();
   const [modalPagamentoAberto, setModalPagamentoAberto] = useState(false);
   const [authModalAberto, setAuthModalAberto] = useState(false);
   const [planoSelecionado, setPlanoSelecionado] = useState<PlanoType | null>(null);
@@ -77,18 +75,23 @@ export default function PlanosSection() {
     setPlanoSelecionado(plano);
     
     if (!isAuthenticated) {
+      // Salvar plano selecionado e abrir modal de autenticação
       localStorage.setItem('plano-pendente', JSON.stringify(plano));
       setAuthModalAberto(true);
     } else {
+      // Usuário já logado, abrir modal de pagamento diretamente
       setModalPagamentoAberto(true);
     }
   };
 
   const handleAuthSuccess = () => {
     setAuthModalAberto(false);
+    toast.success("Login realizado com sucesso!");
+    
+    // Após login bem-sucedido, abrir modal de pagamento automaticamente
     setTimeout(() => {
-      window.location.href = '/assinatura';
-    }, 1000);
+      setModalPagamentoAberto(true);
+    }, 500);
   };
 
   const handleCheckout = (checkout: PagamentoCheckout) => {
@@ -114,9 +117,11 @@ export default function PlanosSection() {
           const plano = JSON.parse(planoPendente);
           setPlanoSelecionado(plano);
           localStorage.removeItem('plano-pendente');
+          
+          // Pequeno delay para garantir que o estado foi atualizado
           setTimeout(() => {
             setModalPagamentoAberto(true);
-          }, 500);
+          }, 300);
         } catch (error) {
           console.error('Erro ao recuperar plano pendente:', error);
           localStorage.removeItem('plano-pendente');
@@ -193,7 +198,7 @@ export default function PlanosSection() {
                     size="lg"
                     onClick={() => handleAssinaturaPaga(plano)}
                   >
-                    Assinar Agora
+                    {isAuthenticated ? "Assinar Agora" : "Fazer Login e Assinar"}
                   </Button>
                 </CardFooter>
               </Card>
