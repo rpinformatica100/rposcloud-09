@@ -20,11 +20,11 @@ interface ModalPagamentoProps {
   onCheckout?: (checkout: any) => void;
 }
 
-// Price IDs do Stripe (você precisa criar estes produtos no Stripe Dashboard)
+// Price IDs reais do Stripe
 const STRIPE_PRICE_IDS = {
-  monthly: "price_monthly_id", // Substitua pelos IDs reais do Stripe
-  quarterly: "price_quarterly_id",
-  yearly: "price_yearly_id"
+  monthly: "prod_SR9okYqkK5C7LK",
+  quarterly: "prod_SR9p499ZF8Zykx", 
+  yearly: "prod_SR9qAjs2itWOej"
 };
 
 export default function ModalPagamento({ isOpen, onClose, plano, onCheckout }: ModalPagamentoProps) {
