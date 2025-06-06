@@ -14,7 +14,6 @@ import ConfiguracoesPage from './pages/configuracoes/ConfiguracoesList';
 import AdminLayout from './components/layout/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AssistenciasPage from './pages/admin/AssistenciasList';
-import UsuariosPage from './pages/admin/UsuariosPage';
 import AdminConfiguracoesPage from './pages/admin/ConfigAdmin';
 import { Toaster } from "@/components/ui/toaster"
 import { SupabaseAuthProvider } from './contexts/SupabaseAuthContext';
@@ -48,7 +47,6 @@ function App() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="assistencias" element={<AssistenciasPage />} />
-              <Route path="usuarios" element={<UsuariosPage />} />
               <Route path="configuracoes" element={<AdminConfiguracoesPage />} />
             </Route>
           </Routes>
