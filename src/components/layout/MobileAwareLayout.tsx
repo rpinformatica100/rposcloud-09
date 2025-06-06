@@ -1,7 +1,7 @@
 
 import { Outlet } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import Sidebar from "./Sidebar";
+import { Sidebar } from "./Sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { SidebarInset } from "@/components/ui/sidebar";
 import MobileMenu from "./MobileMenu";

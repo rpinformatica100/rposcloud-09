@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useCallback } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import Sidebar from "./Sidebar";
+import { Sidebar } from "./Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
 import PlanNotification from "@/components/plan/PlanNotification";

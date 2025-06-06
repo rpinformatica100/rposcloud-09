@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import Sidebar from './Sidebar';
+import { Sidebar } from './Sidebar';
 import CadastroIncompleto from '@/components/CadastroIncompleto';
 import { useAuth } from '@/contexts/AuthContext';
 import { SidebarProvider } from "@/components/ui/sidebar";
