@@ -1,7 +1,7 @@
 
 import { supabase } from './client';
 import type { Database } from './types';
-import { Assistencia, OrdemServico, Cliente, ItemOrdemServico } from '@/types';
+import { Assistencia, OrdemServico, Cliente } from '@/types';
 
 // Type helpers for Supabase tables
 export type TablesInsert<T extends keyof Database['public']['Tables']> = 
@@ -97,67 +97,28 @@ export function mapDbClienteToApp(dbCliente: ClienteRow | any): Cliente {
   };
 }
 
-// Current user helpers
+// Current user helpers with proper RLS support
 export async function getCurrentUserAssistenciaId(): Promise<string | null> {
-  const { data: assistencia } = await supabase
-    .from('assistencias')
-    .select('id')
-    .single();
-  
-  return assistencia?.id || null;
-}
-
-// Mock functions for assistencia until integrated
-export async function fetchAssistencias(): Promise<Assistencia[]> {
-  const { data, error } = await supabase
-    .from('assistencias')
-    .select('*')
-    .order('nome');
-  
-  if (error) {
-    console.error('Error fetching assistencias:', error);
-    return [];
-  }
-
-  return data.map(row => ({
-    id: row.id,
-    nome: row.nome,
-    email: row.email,
-    plano: row.plano || "Premium",
-    status: (row.status || "Ativa") as "Ativa" | "Inativa" | "Pendente" | "Bloqueada",
-    dataRegistro: row.data_registro.split('T')[0],
-    telefone: row.telefone || "",
-    celular: row.celular || "",
-    responsavel: row.responsavel || ""
-  }));
-}
-
-export async function fetchAssistencia(id: string): Promise<Assistencia | null> {
-  const { data, error } = await supabase
-    .from('assistencias')
-    .select('*')
-    .eq('id', id)
-    .single();
-  
-  if (error) {
-    console.error('Error fetching assistencia:', error);
+  try {
+    const { data, error } = await supabase
+      .from('assistencias')
+      .select('id')
+      .limit(1)
+      .single();
+    
+    if (error) {
+      console.error('Erro ao buscar assistencia_id:', error);
+      return null;
+    }
+    
+    return data?.id || null;
+  } catch (error) {
+    console.error('Erro em getCurrentUserAssistenciaId:', error);
     return null;
   }
-
-  return {
-    id: data.id,
-    nome: data.nome,
-    email: data.email,
-    plano: data.plano || "Premium",
-    status: (data.status || "Ativa") as "Ativa" | "Inativa" | "Pendente" | "Bloqueada",
-    dataRegistro: data.data_registro.split('T')[0],
-    telefone: data.telefone || "",
-    celular: data.celular || "",
-    responsavel: data.responsavel || ""
-  };
 }
 
-// Data access helpers
+// Data access helpers with RLS support
 export async function fetchClientes() {
   const { data, error } = await supabase
     .from('clientes')
@@ -180,6 +141,15 @@ export async function fetchCliente(id: string) {
 }
 
 export async function insertCliente(cliente: ClienteInsert) {
+  // Ensure assistencia_id is set
+  if (!cliente.assistencia_id) {
+    const assistenciaId = await getCurrentUserAssistenciaId();
+    if (!assistenciaId) {
+      throw new Error('Não foi possível determinar a assistência do usuário');
+    }
+    cliente.assistencia_id = assistenciaId;
+  }
+
   const { data, error } = await supabase
     .from('clientes')
     .insert(cliente)
@@ -234,9 +204,20 @@ export async function updateConfiguracao(id: string, configuracao: ConfiguracaoU
 }
 
 export async function upsertConfiguracoes(configuracoes: ConfiguracaoInsert[]) {
+  // Ensure assistencia_id is set for all configurations
+  const assistenciaId = await getCurrentUserAssistenciaId();
+  if (!assistenciaId) {
+    throw new Error('Não foi possível determinar a assistência do usuário');
+  }
+
+  const configuracoesComAssistencia = configuracoes.map(config => ({
+    ...config,
+    assistencia_id: assistenciaId
+  }));
+
   const { data, error } = await supabase
     .from('configuracoes')
-    .upsert(configuracoes, { 
+    .upsert(configuracoesComAssistencia, { 
       onConflict: 'assistencia_id,chave',
       ignoreDuplicates: false 
     })
@@ -244,4 +225,58 @@ export async function upsertConfiguracoes(configuracoes: ConfiguracaoInsert[]) {
   
   if (error) throw error;
   return data;
+}
+
+// Assistencias helpers
+export async function fetchAssistencias(): Promise<Assistencia[]> {
+  const { data, error } = await supabase
+    .from('assistencias')
+    .select('*')
+    .order('nome');
+  
+  if (error) {
+    console.error('Error fetching assistencias:', error);
+    return [];
+  }
+
+  return data.map(row => ({
+    id: row.id,
+    nome: row.nome,
+    email: row.email,
+    plano: row.plano || "trial_plan",
+    status: (row.status || "Ativa") as "Ativa" | "Inativa" | "Pendente" | "Bloqueada",
+    dataRegistro: row.data_registro.split('T')[0],
+    telefone: row.telefone || "",
+    celular: row.celular || "",
+    responsavel: row.responsavel || "",
+    cadastroCompleto: row.cadastro_completo || false,
+    mensagemCadastroExibida: row.mensagem_cadastro_exibida || false
+  }));
+}
+
+export async function fetchAssistencia(id: string): Promise<Assistencia | null> {
+  const { data, error } = await supabase
+    .from('assistencias')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching assistencia:', error);
+    return null;
+  }
+
+  return {
+    id: data.id,
+    nome: data.nome,
+    email: data.email,
+    plano: data.plano || "trial_plan",
+    status: (data.status || "Ativa") as "Ativa" | "Inativa" | "Pendente" | "Bloqueada",
+    dataRegistro: data.data_registro.split('T')[0],
+    telefone: data.telefone || "",
+    celular: data.celular || "",
+    responsavel: data.responsavel || "",
+    cadastroCompleto: data.cadastro_completo || false,
+    mensagemCadastroExibida: data.mensagem_cadastro_exibida || false
+  };
 }

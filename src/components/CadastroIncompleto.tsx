@@ -4,10 +4,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, X, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const CadastroIncompleto = () => {
-  const { assistencia, atualizarPerfilAssistencia } = useAuth();
+  const { assistencia } = useSupabaseAuth();
   const [mostrarAlerta, setMostrarAlerta] = useState(false);
 
   useEffect(() => {
@@ -31,9 +32,18 @@ const CadastroIncompleto = () => {
     
     // Marcar que a mensagem já foi exibida para não mostrar novamente
     if (assistencia) {
-      await atualizarPerfilAssistencia({
-        mensagemCadastroExibida: true
-      });
+      try {
+        const { error } = await supabase
+          .from('assistencias')
+          .update({ mensagem_cadastro_exibida: true })
+          .eq('id', assistencia.id);
+        
+        if (error) {
+          console.error('Erro ao atualizar mensagem cadastro exibida:', error);
+        }
+      } catch (error) {
+        console.error('Erro ao fechar alerta:', error);
+      }
     }
   };
 
@@ -41,30 +51,19 @@ const CadastroIncompleto = () => {
     if (!assistencia) return 0;
     
     let camposPreenchidos = 0;
-    let totalCampos = 0;
+    let totalCampos = 6; // Campos básicos necessários
     
-    // Etapa 1: Dados básicos (4 campos)
-    totalCampos += 4;
-    if (assistencia.tipoPessoa) camposPreenchidos++;
+    // Verificar campos básicos
     if (assistencia.nome) camposPreenchidos++;
     if (assistencia.email) camposPreenchidos++;
     if (assistencia.telefone) camposPreenchidos++;
-    
-    // Etapa 2: Dados fiscais (varia por tipo)
-    if (assistencia.tipoPessoa === 'pessoa_fisica') {
-      totalCampos += 2; // CPF + endereço básico
-      if (assistencia.cpf) camposPreenchidos++;
-      if (assistencia.endereco) camposPreenchidos++;
-    } else {
-      totalCampos += 2; // CNPJ + endereço básico
-      if (assistencia.cnpj) camposPreenchidos++;
-      if (assistencia.endereco) camposPreenchidos++;
-    }
-    
-    // Etapa 3: Perfil profissional (2 campos mínimos)
-    totalCampos += 2;
-    if (assistencia.especialidades && assistencia.especialidades.length > 0) camposPreenchidos++;
     if (assistencia.responsavel) camposPreenchidos++;
+    
+    // Verificar documento (CPF ou CNPJ)
+    if ((assistencia as any).cpf || (assistencia as any).cnpj) camposPreenchidos++;
+    
+    // Verificar endereço básico
+    if ((assistencia as any).endereco) camposPreenchidos++;
     
     return Math.round((camposPreenchidos / totalCampos) * 100);
   };
@@ -100,7 +99,7 @@ const CadastroIncompleto = () => {
               size="sm" 
               className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
             >
-              <Link to="/completar-cadastro" className="flex items-center gap-2">
+              <Link to="/app/configuracoes" className="flex items-center gap-2">
                 Completar agora
                 <ArrowRight className="w-4 h-4" />
               </Link>
