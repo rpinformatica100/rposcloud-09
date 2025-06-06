@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
+import LandingNav from '@/components/landing/LandingNav';
 import HeroSection from '@/components/landing/HeroSection';
 import FeaturesSection from '@/components/landing/FeaturesSection';
 import PlanosSection from '@/components/landing/PlanosSection';
 import TestimonialsSection from '@/components/landing/TestimonialsSection';
-import TrialSection from '@/components/landing/TrialSection';
 import FAQSection from '@/components/landing/FAQSection';
 import CTASection from '@/components/landing/CTASection';
 import LandingFooter from '@/components/landing/LandingFooter';
@@ -23,12 +23,12 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <LandingNav />
       <HeroSection />
       <StatsSection />
       <FeaturesSection />
       <PlanosSection />
       <TestimonialsSection />
-      <TrialSection />
       <FAQSection />
       <CTASection />
       <LandingFooter />

@@ -10,9 +10,13 @@ import { toast } from "sonner";
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { planosDisponiveis, trialFeatures } from '@/data/planos';
 import type { PlanoData } from '@/data/planos';
+import { Check, Gift, Clock, Sparkles } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { usePlanManager } from '@/hooks/usePlanManager';
 
 export default function PlanosSection() {
-  const { isAuthenticated } = useSupabaseAuth();
+  const { isAuthenticated } = useAuth();
+  const { userPlan, handleTrialActivation } = usePlanManager();
   const [modalPagamentoAberto, setModalPagamentoAberto] = useState(false);
   const [authModalAberto, setAuthModalAberto] = useState(false);
   const [planoSelecionado, setPlanoSelecionado] = useState<PlanoData | null>(null);
@@ -34,12 +38,32 @@ export default function PlanosSection() {
     }
   };
 
+  const handleStartTrial = () => {
+    if (!isAuthenticated) {
+      setAuthModalAberto(true);
+      return;
+    }
+
+    // Se já tem um plano ativo, redirecionar para o dashboard
+    if (userPlan && userPlan.status !== 'expired') {
+      window.location.href = '/app';
+      return;
+    }
+
+    // Ativar trial
+    handleTrialActivation();
+  };
+
   const handleAuthSuccess = () => {
     setAuthModalAberto(false);
     toast.success("Login realizado com sucesso!");
     
     setTimeout(() => {
-      setModalPagamentoAberto(true);
+      if (planoSelecionado) {
+        setModalPagamentoAberto(true);
+      } else {
+        handleTrialActivation();
+      }
     }, 500);
   };
 
@@ -68,12 +92,12 @@ export default function PlanosSection() {
       <div className="container px-4 md:px-6 mx-auto">
         <div className="flex flex-col items-center justify-center space-y-4 text-center mb-10">
           <div className="space-y-2">
-            <Badge variant="outline" className="border-primary text-primary animate-fade-in">Planos Comerciais</Badge>
+            <Badge variant="outline" className="border-primary text-primary animate-fade-in">Planos & Teste Grátis</Badge>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl animate-fade-in">
-              Planos para fazer seu negócio crescer
+              Escolha o plano ideal para sua assistência técnica
             </h2>
             <p className="max-w-[700px] text-gray-500 md:text-xl/relaxed dark:text-gray-400 animate-fade-in mx-auto">
-              Escolha o plano ideal para sua assistência técnica e tenha acesso a todos os recursos avançados.
+              Comece com nosso teste grátis de 7 dias ou escolha um dos planos comerciais para fazer seu negócio crescer.
             </p>
           </div>
         </div>
@@ -91,7 +115,57 @@ export default function PlanosSection() {
         )}
 
         {planos && planos.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 max-w-7xl mx-auto">
+            {/* Plano Trial - Primeiro Card */}
+            <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-lg hover-scale border-2 border-blue-500">
+              <div className="absolute top-0 right-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-1 rounded-bl-lg font-medium animate-fade-in">
+                <Clock className="w-4 h-4 inline mr-1" />
+                7 Dias Grátis
+              </div>
+              
+              <CardHeader className="text-center pb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <Gift className="w-6 h-6 text-white" />
+                </div>
+                <CardTitle className="text-2xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Teste Grátis
+                </CardTitle>
+                <CardDescription>Experimente todas as funcionalidades</CardDescription>
+              </CardHeader>
+              
+              <CardContent className="text-center space-y-4">
+                <div className="mb-4">
+                  <span className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    R$ 0
+                  </span>
+                  <span className="text-gray-500 text-sm block">por 7 dias</span>
+                </div>
+                
+                <ul className="space-y-2 text-left text-sm">
+                  {trialFeatures.map((feature, index) => (
+                    <li key={index} className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-xs">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+              
+              <CardFooter>
+                <Button 
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700" 
+                  size="lg"
+                  onClick={handleStartTrial}
+                >
+                  <Gift className="w-4 h-4 mr-2" />
+                  {isAuthenticated ? "Ativar Teste" : "Começar Grátis"}
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* Planos Pagos */}
             {planos.map((plano) => (
               <Card key={plano.id} 
                 className={`relative overflow-hidden transition-all duration-300 hover:shadow-lg hover-scale ${plano.destacado ? "border-2 border-primary" : ""}`}>
