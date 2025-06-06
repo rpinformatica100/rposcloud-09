@@ -3,7 +3,6 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from "@/components/theme-provider"
 import LandingPage from './pages/Landing';
-import TrialPage from './pages/TrialPage';
 import SupabaseLayout from './components/layout/SupabaseLayout';
 import DashboardPage from './pages/Dashboard';
 import OrdensPage from './pages/ordens/OrdensList';
@@ -31,7 +30,6 @@ function App() {
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<LandingPage />} />
-            <Route path="/trial" element={<TrialPage />} />
 
             {/* Protected app routes */}
             <Route path="/app" element={<SupabaseLayout />}>
