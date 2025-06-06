@@ -17,6 +17,7 @@ import AssistenciasPage from './pages/admin/AssistenciasList';
 import AdminConfiguracoesPage from './pages/admin/ConfigAdmin';
 import { Toaster } from "@/components/ui/toaster"
 import { SupabaseAuthProvider } from './contexts/SupabaseAuthContext';
+import { PlanProvider } from './contexts/PlanContext';
 import OrdemViewPage from './pages/ordens/OrdensView';
 import PlanoAssinatura from './pages/assinatura/PlanoAssinatura';
 
@@ -26,30 +27,32 @@ function App() {
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
         <Toaster />
         <SupabaseAuthProvider>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<LandingPage />} />
+          <PlanProvider>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<LandingPage />} />
 
-            {/* Protected app routes */}
-            <Route path="/app" element={<SupabaseLayout />}>
-              <Route index element={<DashboardPage />} />
-              <Route path="ordens" element={<OrdensPage />} />
-              <Route path="ordens/:id" element={<OrdemViewPage />} />
-              <Route path="clientes" element={<ClientesPage />} />
-              <Route path="produtos" element={<ProdutosPage />} />
-              <Route path="financeiro" element={<FinanceiroPage />} />
-              <Route path="relatorios" element={<RelatoriosPage />} />
-              <Route path="assinatura" element={<PlanoAssinatura />} />
-              <Route path="configuracoes" element={<ConfiguracoesPage />} />
-            </Route>
+              {/* Protected app routes */}
+              <Route path="/app" element={<SupabaseLayout />}>
+                <Route index element={<DashboardPage />} />
+                <Route path="ordens" element={<OrdensPage />} />
+                <Route path="ordens/:id" element={<OrdemViewPage />} />
+                <Route path="clientes" element={<ClientesPage />} />
+                <Route path="produtos" element={<ProdutosPage />} />
+                <Route path="financeiro" element={<FinanceiroPage />} />
+                <Route path="relatorios" element={<RelatoriosPage />} />
+                <Route path="assinatura" element={<PlanoAssinatura />} />
+                <Route path="configuracoes" element={<ConfiguracoesPage />} />
+              </Route>
 
-            {/* Admin routes */}
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminDashboard />} />
-              <Route path="assistencias" element={<AssistenciasPage />} />
-              <Route path="configuracoes" element={<AdminConfiguracoesPage />} />
-            </Route>
-          </Routes>
+              {/* Admin routes */}
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="assistencias" element={<AssistenciasPage />} />
+                <Route path="configuracoes" element={<AdminConfiguracoesPage />} />
+              </Route>
+            </Routes>
+          </PlanProvider>
         </SupabaseAuthProvider>
       </ThemeProvider>
     </BrowserRouter>
