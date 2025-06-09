@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
+import { useSupabaseHelpers } from "@/hooks/useSupabaseHelpers";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
@@ -43,6 +44,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const ConfiguracoesAssistencia = () => {
   const { assistencia, profile } = useSupabaseAuth();
+  const { updateUserAssistencia } = useSupabaseHelpers();
   const [uploading, setUploading] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -54,6 +56,21 @@ const ConfiguracoesAssistencia = () => {
       setLogoUrl(assistencia.logo);
     }
   }, [assistencia]);
+
+  // Função para atualizar perfil da assistência
+  const atualizarPerfilAssistencia = async (dados: any) => {
+    try {
+      const { data, error } = await updateUserAssistencia(dados);
+      if (error) {
+        console.error('Erro ao atualizar assistência:', error);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('Erro ao atualizar assistência:', error);
+      return false;
+    }
+  };
 
   // Função para verificar se o cadastro está completo
   const verificarCadastroCompleto = (dados: any) => {
