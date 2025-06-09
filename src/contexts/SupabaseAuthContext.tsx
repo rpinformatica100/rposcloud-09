@@ -75,25 +75,16 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
-
     // Configurar listener de mudanças de autenticação
     const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (!mounted) return;
-        
         console.log('Auth state change:', event, session?.user?.email);
         
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user && mounted) {
-          // Buscar dados do usuário de forma assíncrona
-          setTimeout(() => {
-            if (mounted) {
-              fetchUserData(session.user.id);
-            }
-          }, 100);
+        if (session?.user) {
+          await fetchUserData(session.user.id);
         } else {
           setProfile(null);
           setAssistencia(null);
@@ -108,7 +99,6 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!mounted) return;
         
         setSession(session);
         setUser(session?.user ?? null);
@@ -119,16 +109,13 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
       } catch (error) {
         console.error('Error initializing auth:', error);
       } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
     initializeAuth();
 
     return () => {
-      mounted = false;
       authSubscription.unsubscribe();
     };
   }, []);
@@ -208,7 +195,6 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
 
   const signIn = async (email: string, password: string) => {
     console.log('Attempting sign in for:', email);
-    setLoading(true);
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -228,8 +214,6 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
   };
 
   const signUp = async (nome: string, email: string, password: string, tipo: 'cliente' | 'assistencia' = 'assistencia') => {
-    setLoading(true);
-    
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
