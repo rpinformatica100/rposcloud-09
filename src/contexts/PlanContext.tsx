@@ -2,31 +2,20 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { UserPlan, PlanType, PLAN_CONFIGS, PLAN_METADATA } from '@/types/plan';
 import { usePlanCalculations } from '@/hooks/plan/usePlanCalculations';
-import { usePlanStorage } from '@/hooks/plan/usePlanStorage';
-import { StateManager } from '@/utils/stateManager';
 import { useSupabaseAuth } from './SupabaseAuthContext';
 import { toast } from 'sonner';
 
 interface PlanContextType {
-  // Estado atual
   userPlan: UserPlan | null;
   loading: boolean;
-  
-  // Ações de plano
   activateTrial: () => Promise<boolean>;
   upgradePlan: (planType: PlanType) => Promise<boolean>;
   cancelPlan: () => Promise<boolean>;
-  
-  // Checkout
   startCheckout: (planType: PlanType) => Promise<string | null>;
   handleCheckoutSuccess: (planType: PlanType) => Promise<void>;
-  
-  // Verificações
   isFeatureAllowed: (feature: string) => boolean;
   shouldShowUpgradePrompt: () => boolean;
   getTrialProgressPercentage: () => number;
-  
-  // Recovery e sync
   refreshPlanStatus: () => Promise<void>;
   recoverPendingCheckout: () => void;
 }
@@ -40,21 +29,18 @@ interface PlanProviderProps {
 export function PlanProvider({ children }: PlanProviderProps) {
   const { user, isAuthenticated, profile, subscription } = useSupabaseAuth();
   const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   
   const { shouldShowUpgradePrompt, getTrialProgressPercentage, calculateRemainingDays } = usePlanCalculations();
-  const stateManager = StateManager.getInstance();
 
   // Carregar plano do usuário baseado no Supabase
   const loadUserPlanData = async () => {
     if (!isAuthenticated || !user || !profile) {
       setUserPlan(null);
-      setLoading(false);
       return;
     }
 
     try {
-      // Converter dados do Supabase para UserPlan
       const planType = (profile.plano_id || 'trial_plan') as PlanType;
       const status = profile.status_plano || 'trial';
       
@@ -85,22 +71,16 @@ export function PlanProvider({ children }: PlanProviderProps) {
     } catch (error) {
       console.error('Erro ao carregar plano:', error);
       setUserPlan(null);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Ativar trial (usando dados do Supabase)
+  // Ativar trial
   const activateTrial = async (): Promise<boolean> => {
     if (!user || !profile) return false;
 
     try {
       console.log(`Ativando trial para usuário ${user.email}`);
-      
-      // Trial já está ativo por padrão quando o usuário se cadastra
-      // Apenas atualizar o estado local
       await loadUserPlanData();
-      
       console.log('Trial ativado com sucesso');
       return true;
     } catch (error) {
@@ -117,11 +97,7 @@ export function PlanProvider({ children }: PlanProviderProps) {
     
     try {
       console.log(`Fazendo upgrade para ${newPlanType}`);
-      
-      // No ambiente real, isso seria feito via Stripe/Supabase
-      // Por enquanto, simular o upgrade
       await loadUserPlanData();
-      
       console.log('Upgrade realizado com sucesso');
       return true;
     } catch (error) {
@@ -136,7 +112,6 @@ export function PlanProvider({ children }: PlanProviderProps) {
 
     try {
       console.log('Cancelando plano');
-      // Implementar cancelamento via Supabase/Stripe
       await loadUserPlanData();
       return true;
     } catch (error) {
@@ -251,14 +226,10 @@ export function PlanProvider({ children }: PlanProviderProps) {
 
   // Efeitos
   useEffect(() => {
-    loadUserPlanData();
-  }, [user, isAuthenticated, profile, subscription]);
-
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      recoverPendingCheckout();
+    if (isAuthenticated && user && profile) {
+      loadUserPlanData();
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, profile]);
 
   const value: PlanContextType = {
     userPlan,

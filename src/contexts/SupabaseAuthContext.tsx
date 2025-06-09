@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -74,17 +75,25 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     // Configurar listener de mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+        
         console.log('Auth state change:', event, session?.user?.email);
+        
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user) {
-          // Buscar perfil do usuário
-          await fetchUserProfile(session.user.id);
-          await fetchUserSubscription();
+        if (session?.user && mounted) {
+          // Buscar dados do usuário de forma assíncrona
+          setTimeout(() => {
+            if (mounted) {
+              fetchUserData(session.user.id);
+            }
+          }, 100);
         } else {
           setProfile(null);
           setAssistencia(null);
@@ -96,25 +105,36 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
     );
 
     // Verificar sessão existente
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-        fetchUserSubscription();
-      } else {
-        setLoading(false);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!mounted) return;
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await fetchUserData(session.user.id);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+      authSubscription.unsubscribe();
+    };
   }, []);
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserData = async (userId: string) => {
     try {
-      console.log('Fetching profile for user:', userId);
-      
       // Buscar perfil
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
@@ -127,18 +147,13 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
         return;
       }
 
-      console.log('Profile data:', profileData);
-      
-      // Validar e converter o tipo para o formato correto
-      const tipoValido = profileData.tipo === 'cliente' || profileData.tipo === 'assistencia' 
-        ? profileData.tipo as 'cliente' | 'assistencia'
-        : 'assistencia'; // fallback padrão
-
       const profileFormatted: Profile = {
         id: profileData.id,
         nome: profileData.nome,
         email: profileData.email,
-        tipo: tipoValido,
+        tipo: (profileData.tipo === 'cliente' || profileData.tipo === 'assistencia') 
+          ? profileData.tipo as 'cliente' | 'assistencia'
+          : 'assistencia',
         empresa: profileData.empresa,
         plano_id: profileData.plano_id,
         status_plano: profileData.status_plano,
@@ -149,17 +164,14 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
       setProfile(profileFormatted);
 
       // Se for assistência técnica, buscar dados da assistência
-      if (tipoValido === 'assistencia') {
+      if (profileFormatted.tipo === 'assistencia') {
         const { data: assistenciaData, error: assistenciaError } = await supabase
           .from('assistencias')
           .select('*')
-          .eq('email', profileData.email)
+          .eq('user_id', userId)
           .single();
 
-        if (assistenciaError) {
-          console.error('Error fetching assistencia:', assistenciaError);
-        } else {
-          console.log('Assistencia data:', assistenciaData);
+        if (!assistenciaError && assistenciaData) {
           setAssistencia({
             id: assistenciaData.id,
             nome: assistenciaData.nome,
@@ -175,58 +187,83 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
           });
         }
       }
-    } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
-    }
-  };
 
-  const fetchUserSubscription = async () => {
-    if (!user) return;
-
-    try {
-      const { data: subscriptionData, error } = await supabase
+      // Buscar assinatura
+      const { data: subscriptionData } = await supabase
         .from('subscriptions')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
 
+      if (subscriptionData) {
+        setSubscription(subscriptionData);
+      }
+    } catch (error) {
+      console.error('Error in fetchUserData:', error);
+    }
+  };
+
+  const signIn = async (email: string, password: string) => {
+    console.log('Attempting sign in for:', email);
+    setLoading(true);
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
       if (error) {
-        console.log('No active subscription found:', error);
-        setSubscription(null);
-        return;
+        console.error('Sign in error:', error);
       }
 
-      setSubscription(subscriptionData);
-      console.log('Active subscription found:', subscriptionData);
+      return { error };
     } catch (error) {
-      console.error('Error fetching subscription:', error);
-      setSubscription(null);
+      console.error('Sign in exception:', error);
+      return { error };
+    }
+  };
+
+  const signUp = async (nome: string, email: string, password: string, tipo: 'cliente' | 'assistencia' = 'assistencia') => {
+    setLoading(true);
+    
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            nome,
+            tipo,
+          },
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
+
+      if (error) {
+        console.error('Sign up error:', error);
+      }
+
+      return { error };
+    } catch (error) {
+      console.error('Sign up exception:', error);
+      return { error };
+    }
+  };
+
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Sign out error:', error);
     }
   };
 
   const refreshSubscription = async () => {
-    if (!session) return;
-
-    try {
-      const { data, error } = await supabase.functions.invoke('check-subscription-status', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (error) {
-        console.error('Error checking subscription:', error);
-        return;
-      }
-
-      console.log('Subscription status refreshed:', data);
-      await fetchUserSubscription();
-      await fetchUserProfile(user!.id);
-    } catch (error) {
-      console.error('Error refreshing subscription:', error);
+    if (user) {
+      await fetchUserData(user.id);
     }
   };
 
@@ -272,53 +309,6 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
     } catch (error) {
       console.error('Error in openCustomerPortal:', error);
       return { error };
-    }
-  };
-
-  const signIn = async (email: string, password: string) => {
-    console.log('Attempting sign in for:', email);
-    setLoading(true);
-    
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      console.error('Sign in error:', error);
-      setLoading(false);
-    }
-
-    return { error };
-  };
-
-  const signUp = async (nome: string, email: string, password: string, tipo: 'cliente' | 'assistencia' = 'assistencia') => {
-    setLoading(true);
-    
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          nome,
-          tipo,
-        },
-        emailRedirectTo: `${window.location.origin}/`
-      }
-    });
-
-    if (error) {
-      console.error('Sign up error:', error);
-      setLoading(false);
-    }
-
-    return { error };
-  };
-
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Sign out error:', error);
     }
   };
 

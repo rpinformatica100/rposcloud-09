@@ -21,23 +21,28 @@ const SupabaseLogin = () => {
     setIsLoading(true);
     
     try {
+      console.log('Tentando fazer login com:', email);
       const { error } = await signIn(email, senha);
+      
       if (!error) {
         toast.success("Login realizado com sucesso", {
           description: "Bem-vindo ao RP OS Cloud",
         });
         
+        // Redirecionamento baseado no email
         if (email === "admin@sistema.com") {
           navigate("/admin");
         } else {
           navigate("/app");
         }
       } else {
+        console.error('Erro de login:', error);
         toast.error("Erro ao fazer login", {
           description: error.message || "Verifique suas credenciais e tente novamente",
         });
       }
     } catch (error) {
+      console.error('Exceção durante login:', error);
       toast.error("Erro ao fazer login", {
         description: "Ocorreu um erro ao processar sua solicitação",
       });
@@ -66,7 +71,7 @@ const SupabaseLogin = () => {
         
         <Card>
           <CardHeader>
-            <CardTitle>Login - Supabase</CardTitle>
+            <CardTitle>Login</CardTitle>
             <CardDescription>
               Entre com suas credenciais para acessar o sistema
             </CardDescription>
@@ -96,7 +101,7 @@ const SupabaseLogin = () => {
               </div>
               
               <div className="space-y-3 p-4 bg-gray-50 rounded-lg border">
-                <Label className="text-sm font-medium text-gray-700">Usuários de Teste (Supabase):</Label>
+                <Label className="text-sm font-medium text-gray-700">Usuários de Teste:</Label>
                 <div className="grid grid-cols-1 gap-2">
                   <Button 
                     type="button" 

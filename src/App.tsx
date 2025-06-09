@@ -3,6 +3,8 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from "@/components/theme-provider"
 import LandingPage from './pages/Landing';
+import SupabaseLogin from './pages/SupabaseLogin';
+import SupabaseRegister from './pages/SupabaseRegister';
 import SupabaseLayout from './components/layout/SupabaseLayout';
 import DashboardPage from './pages/Dashboard';
 import OrdensPage from './pages/ordens/OrdensList';
@@ -31,6 +33,8 @@ function App() {
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<LandingPage />} />
+              <Route path="/supabase-login" element={<SupabaseLogin />} />
+              <Route path="/supabase-register" element={<SupabaseRegister />} />
 
               {/* Protected app routes */}
               <Route path="/app" element={<SupabaseLayout />}>
