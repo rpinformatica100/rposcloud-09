@@ -1,7 +1,7 @@
 
 import React, { useEffect, useMemo, useCallback } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Sidebar } from "./Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
@@ -9,7 +9,7 @@ import PlanNotification from "@/components/plan/PlanNotification";
 import { usePerformance } from "@/hooks/usePerformance";
 
 const Layout = React.memo(() => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading } = useSupabaseAuth();
   const navigate = useNavigate();
   
   // Monitor performance

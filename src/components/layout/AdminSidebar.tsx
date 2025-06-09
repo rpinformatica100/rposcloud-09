@@ -1,6 +1,5 @@
-
 import { NavLink, Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import {
   Sidebar as SidebarContainer,
   SidebarContent,
@@ -24,7 +23,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const AdminSidebar = () => {
   const { state } = useSidebar();
-  const { profile, logout } = useAuth();
+  const { profile, signOut } = useSupabaseAuth();
   
   const isCollapsed = state === "collapsed";
   
@@ -39,7 +38,7 @@ const AdminSidebar = () => {
   ];
 
   const handleLogout = () => {
-    logout();
+    signOut();
     window.location.href = "/";
   };
   

@@ -2,12 +2,12 @@
 import { Outlet } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Sidebar } from "./Sidebar";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { SidebarInset } from "@/components/ui/sidebar";
 import MobileMenu from "./MobileMenu";
 
 const MobileAwareLayout = () => {
-  const { profile } = useAuth();
+  const { profile } = useSupabaseAuth();
 
   return (
     <SidebarProvider>

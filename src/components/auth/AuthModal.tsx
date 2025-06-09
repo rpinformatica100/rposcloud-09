@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserPlus, LogIn, Loader2 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { toast } from "sonner";
 
 interface AuthModalProps {
@@ -35,15 +34,15 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
   const [registerSenha, setRegisterSenha] = useState("");
   const [confirmSenha, setConfirmSenha] = useState("");
   
-  const { login, registrar } = useAuth();
+  const { signIn, signUp } = useSupabaseAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      const success = await login(loginEmail, loginSenha);
-      if (success) {
+      const { error } = await signIn(loginEmail, loginSenha);
+      if (!error) {
         toast.success("Login realizado com sucesso!");
         onSuccess();
         onClose();
@@ -73,10 +72,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultTab = 'lo
     setIsLoading(true);
     
     try {
-      // Quando vem de um plano, sempre registra como assistência técnica
-      const tipoUsuario = plano ? 'assistencia' : 'assistencia';
-      const success = await registrar(registerNome, registerEmail, registerSenha, tipoUsuario);
-      if (success) {
+      const success = await signUp(registerNome, registerEmail, registerSenha, 'assistencia');
+      if (!success.error) {
         toast.success("Conta criada com sucesso!");
         onSuccess();
         onClose();

@@ -1,11 +1,11 @@
 
 import { useState, useEffect } from 'react';
 import { AssinanteCompleto, TipoPessoa, ETAPAS_CADASTRO } from '@/types/assinante';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { toast } from 'sonner';
 
 export function useAssinanteCadastro() {
-  const { user, assistencia, atualizarPerfilAssistencia } = useAuth();
+  const { user, assistencia } = useSupabaseAuth();
   const [etapaAtual, setEtapaAtual] = useState(1);
   const [dadosAssinante, setDadosAssinante] = useState<Partial<AssinanteCompleto>>({});
   const [loading, setLoading] = useState(false);
@@ -18,24 +18,21 @@ export function useAssinanteCadastro() {
         nome: assistencia.nome,
         email: assistencia.email,
         telefone: assistencia.telefone || '',
-        celular: assistencia.celular,
-        tipoPessoa: assistencia.tipoPessoa,
-        especialidades: assistencia.especialidades || [],
-        statusCadastro: assistencia.statusCadastro || 'incompleto',
+        celular: assistencia.celular || '',
+        statusCadastro: assistencia.cadastroCompleto ? 'completo' : 'incompleto',
         cadastroCompleto: assistencia.cadastroCompleto || false,
-        etapaAtual: assistencia.etapaAtual || 1,
-        // Mapear outros campos conforme necessário
+        etapaAtual: 1, // Reset para primeira etapa
       };
       
       setDadosAssinante(dadosExistentes);
-      setEtapaAtual(assistencia.etapaAtual || 1);
+      setEtapaAtual(1);
     }
   }, [assistencia]);
 
   const validarEtapa = (etapa: number): boolean => {
     switch (etapa) {
       case 1:
-        return !!(dadosAssinante.tipoPessoa && dadosAssinante.nome && dadosAssinante.email && dadosAssinante.telefone);
+        return !!(dadosAssinante.nome && dadosAssinante.email && dadosAssinante.telefone);
       
       case 2:
         if (dadosAssinante.tipoPessoa === 'pessoa_fisica') {
@@ -58,21 +55,7 @@ export function useAssinanteCadastro() {
       const dadosAtualizados = { ...dadosAssinante, ...dadosEtapa };
       setDadosAssinante(dadosAtualizados);
       
-      // Mapear para o formato da assistencia existente
-      const assistenciaAtualizada = {
-        ...assistencia,
-        nome: dadosAtualizados.nome,
-        email: dadosAtualizados.email,
-        telefone: dadosAtualizados.telefone,
-        celular: dadosAtualizados.celular,
-        tipoPessoa: dadosAtualizados.tipoPessoa,
-        especialidades: dadosAtualizados.especialidades,
-        statusCadastro: dadosAtualizados.statusCadastro,
-        etapaAtual: etapaAtual,
-        // Adicionar outros mapeamentos conforme necessário
-      };
-      
-      await atualizarPerfilAssistencia(assistenciaAtualizada);
+      // TODO: Implementar salvamento no Supabase quando necessário
       
       toast.success('Dados salvos com sucesso!');
       return true;

@@ -1,17 +1,17 @@
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { LogOut } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 
 interface SidebarProfileProps {
   isCollapsed: boolean;
 }
 
 const SidebarProfile = ({ isCollapsed }: SidebarProfileProps) => {
-  const { profile, logout, assistencia } = useAuth();
+  const { profile, signOut, assistencia } = useSupabaseAuth();
   
   const handleLogout = () => {
-    logout();
+    signOut();
     window.location.href = "/login";
   };
   

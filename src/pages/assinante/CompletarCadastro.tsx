@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, ArrowLeft, ArrowRight, X } from 'lucide-react';
 import { useAssinanteCadastro } from '@/hooks/useAssinanteCadastro';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import EtapaDadosBasicos from '@/components/assinante/EtapaDadosBasicos';
 import EtapaDadosFiscais from '@/components/assinante/EtapaDadosFiscais';
 import EtapaPerfilProfissional from '@/components/assinante/EtapaPerfilProfissional';
@@ -20,7 +19,7 @@ import {
 
 const CompletarCadastro = () => {
   const navigate = useNavigate();
-  const { atualizarPerfilAssistencia } = useAuth();
+  const { assistencia } = useSupabaseAuth();
   const [showExitDialog, setShowExitDialog] = useState(false);
   
   const {
@@ -48,17 +47,7 @@ const CompletarCadastro = () => {
   };
 
   const handleSairCadastro = async () => {
-    // Marcar que o usuário escolheu sair do cadastro
-    await atualizarPerfilAssistencia({
-      mensagemCadastroExibida: true,
-      // Salvar progresso atual para não perder dados
-      progressoCadastro: {
-        etapaAtual,
-        dados: dadosAssinante,
-        dataUltimaTentativa: new Date().toISOString()
-      }
-    });
-    
+    // TODO: Marcar que o usuário escolheu sair do cadastro no Supabase
     setShowExitDialog(false);
     navigate('/app');
   };

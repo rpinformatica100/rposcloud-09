@@ -1,16 +1,15 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, Gift, Clock, Sparkles } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { usePlanManager } from '@/hooks/usePlanManager';
 import AuthModal from '@/components/auth/AuthModal';
 
 export default function TrialSection() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useSupabaseAuth();
   const { userPlan, handleTrialActivation } = usePlanManager();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const navigate = useNavigate();

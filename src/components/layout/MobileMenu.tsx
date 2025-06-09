@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, Cloud, LogOut, ChevronDown } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import {
   LayoutDashboard,
   Users,
@@ -19,7 +18,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const MobileMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { profile, logout } = useAuth();
+  const { profile, signOut } = useSupabaseAuth();
   const [configExpanded, setConfigExpanded] = useState(false);
 
   const menuItems = [
@@ -42,7 +41,7 @@ const MobileMenu = () => {
   };
 
   const handleLogout = () => {
-    logout();
+    signOut();
     setIsOpen(false);
     window.location.href = "/";
   };

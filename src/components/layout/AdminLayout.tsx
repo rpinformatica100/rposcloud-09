@@ -1,14 +1,14 @@
 
 import { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import AdminSidebar from "./AdminSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const AdminLayout = () => {
-  const { isAuthenticated, isAdmin, loading } = useAuth();
+  const { isAuthenticated, isAdmin, loading } = useSupabaseAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
