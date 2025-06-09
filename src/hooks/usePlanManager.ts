@@ -1,13 +1,13 @@
 
 import { useNavigate } from 'react-router-dom';
 import { usePlan } from '@/contexts/PlanContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { PlanType, PLAN_METADATA } from '@/types/plan';
 import { toast } from 'sonner';
 
 export function usePlanManager() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useSupabaseAuth();
   const {
     userPlan,
     loading,
@@ -24,12 +24,11 @@ export function usePlanManager() {
   // Ativar trial com redirecionamento
   const handleTrialActivation = async (): Promise<void> => {
     if (!isAuthenticated) {
-      // Salvar intenção para após login
       localStorage.setItem('pending_action', JSON.stringify({
         type: 'activate_trial',
         timestamp: Date.now()
       }));
-      navigate('/login?redirect=trial');
+      navigate('/supabase-login?redirect=trial');
       return;
     }
 
@@ -50,17 +49,15 @@ export function usePlanManager() {
   // Processo de upgrade/assinatura
   const handlePlanSelection = async (planType: PlanType): Promise<void> => {
     if (!isAuthenticated) {
-      // Salvar intenção para após login
       localStorage.setItem('pending_action', JSON.stringify({
         type: 'select_plan',
         planType,
         timestamp: Date.now()
       }));
-      navigate('/login?redirect=plans');
+      navigate('/supabase-login?redirect=plans');
       return;
     }
 
-    // Se já é o plano atual
     if (userPlan?.planType === planType) {
       toast.info('Este já é seu plano atual');
       return;
@@ -87,7 +84,6 @@ export function usePlanManager() {
     try {
       const action = JSON.parse(pendingAction);
       
-      // Verificar se não é muito antiga (1 hora)
       if (Date.now() - action.timestamp > 3600000) {
         localStorage.removeItem('pending_action');
         return;

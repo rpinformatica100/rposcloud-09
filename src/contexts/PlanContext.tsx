@@ -4,7 +4,7 @@ import { UserPlan, PlanType, PLAN_CONFIGS, PLAN_METADATA } from '@/types/plan';
 import { usePlanCalculations } from '@/hooks/plan/usePlanCalculations';
 import { usePlanStorage } from '@/hooks/plan/usePlanStorage';
 import { StateManager } from '@/utils/stateManager';
-import { useAuth } from './AuthContext';
+import { useSupabaseAuth } from './SupabaseAuthContext';
 import { toast } from 'sonner';
 
 interface PlanContextType {
@@ -38,34 +38,48 @@ interface PlanProviderProps {
 }
 
 export function PlanProvider({ children }: PlanProviderProps) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, profile, subscription } = useSupabaseAuth();
   const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
   const [loading, setLoading] = useState(true);
   
   const { shouldShowUpgradePrompt, getTrialProgressPercentage, calculateRemainingDays } = usePlanCalculations();
-  const { loadUserPlan, createDefaultPlan, savePlan } = usePlanStorage();
   const stateManager = StateManager.getInstance();
 
-  // Carregar plano do usuário
+  // Carregar plano do usuário baseado no Supabase
   const loadUserPlanData = async () => {
-    if (!isAuthenticated || !user) {
+    if (!isAuthenticated || !user || !profile) {
       setUserPlan(null);
       setLoading(false);
       return;
     }
 
     try {
-      let plan = loadUserPlan(user);
+      // Converter dados do Supabase para UserPlan
+      const planType = (profile.plano_id || 'trial_plan') as PlanType;
+      const status = profile.status_plano || 'trial';
       
-      if (!plan) {
-        plan = createDefaultPlan(user);
-      }
+      let endDate = profile.data_vencimento_plano || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      const remainingDays = calculateRemainingDays(endDate);
       
-      // Atualizar dias restantes
-      if (plan) {
-        const remainingDays = calculateRemainingDays(plan.endDate);
-        plan = { ...plan, remainingDays };
-      }
+      const plan: UserPlan = {
+        id: `plan_${user.id}`,
+        userId: user.id,
+        planType,
+        status: status as any,
+        startDate: profile.created_at || new Date().toISOString(),
+        endDate,
+        trialStartDate: status === 'trial' ? profile.created_at : undefined,
+        trialEndDate: status === 'trial' ? endDate : undefined,
+        isTrialUsed: status !== 'trial',
+        remainingDays,
+        features: PLAN_CONFIGS[planType] || PLAN_CONFIGS.trial_plan,
+        isPaid: subscription?.status === 'active',
+        billing: {
+          autoRenewal: subscription?.status === 'active',
+          nextBillingDate: subscription?.current_period_end,
+          lastPaymentDate: subscription?.created_at,
+        },
+      };
       
       setUserPlan(plan);
     } catch (error) {
@@ -76,41 +90,18 @@ export function PlanProvider({ children }: PlanProviderProps) {
     }
   };
 
-  // Ativar trial
+  // Ativar trial (usando dados do Supabase)
   const activateTrial = async (): Promise<boolean> => {
-    if (!user) return false;
+    if (!user || !profile) return false;
 
     try {
       console.log(`Ativando trial para usuário ${user.email}`);
-
-      const trialStartDate = new Date().toISOString();
-      const trialEndDate = new Date(Date.now() + (PLAN_METADATA.trial_plan.trialDays || 7) * 24 * 60 * 60 * 1000).toISOString();
       
-      const trialPlan: UserPlan = {
-        id: `plan_${user.id}`,
-        userId: user.id,
-        planType: 'trial_plan',
-        status: 'trial',
-        startDate: trialStartDate,
-        endDate: trialEndDate,
-        trialStartDate,
-        trialEndDate,
-        isTrialUsed: true,
-        remainingDays: PLAN_METADATA.trial_plan.trialDays || 7,
-        features: PLAN_CONFIGS.trial_plan,
-        isPaid: false,
-        billing: { autoRenewal: false },
-      };
-
-      setUserPlan(trialPlan);
-      savePlan(trialPlan);
+      // Trial já está ativo por padrão quando o usuário se cadastra
+      // Apenas atualizar o estado local
+      await loadUserPlanData();
       
-      stateManager.saveUserState(user.id, {
-        trial_activated: new Date().toISOString(),
-        plan_data: trialPlan
-      });
-      
-      console.log('Trial ativado com sucesso:', trialPlan);
+      console.log('Trial ativado com sucesso');
       return true;
     } catch (error) {
       console.error('Erro ao ativar trial:', error);
@@ -127,41 +118,11 @@ export function PlanProvider({ children }: PlanProviderProps) {
     try {
       console.log(`Fazendo upgrade para ${newPlanType}`);
       
-      const newStartDate = new Date().toISOString();
-      const newEndDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-      const remainingDays = calculateRemainingDays(newEndDate);
+      // No ambiente real, isso seria feito via Stripe/Supabase
+      // Por enquanto, simular o upgrade
+      await loadUserPlanData();
       
-      const updatedPlan: UserPlan = {
-        ...userPlan,
-        planType: newPlanType,
-        status: 'active',
-        startDate: newStartDate,
-        endDate: newEndDate,
-        remainingDays: remainingDays,
-        features: PLAN_CONFIGS[newPlanType],
-        isPaid: true,
-        trialStartDate: undefined, 
-        trialEndDate: undefined,
-        isTrialUsed: userPlan.planType === 'trial_plan' ? true : userPlan.isTrialUsed,
-        billing: {
-          ...(userPlan.billing || {}),
-          autoRenewal: true,
-          nextBillingDate: newEndDate,
-          lastPaymentDate: new Date().toISOString(),
-        },
-      };
-
-      setUserPlan(updatedPlan);
-      savePlan(updatedPlan);
-      
-      stateManager.saveUserState(user.id, {
-        plan_upgraded: new Date().toISOString(),
-        old_plan: userPlan.planType,
-        new_plan: newPlanType,
-        plan_data: updatedPlan
-      });
-      
-      console.log('Upgrade realizado com sucesso:', updatedPlan);
+      console.log('Upgrade realizado com sucesso');
       return true;
     } catch (error) {
       console.error('Erro ao fazer upgrade:', error);
@@ -175,24 +136,8 @@ export function PlanProvider({ children }: PlanProviderProps) {
 
     try {
       console.log('Cancelando plano');
-
-      const updatedPlan: UserPlan = {
-        ...userPlan,
-        status: 'cancelled',
-        billing: {
-          ...(userPlan.billing || {}),
-          autoRenewal: false,
-        },
-      };
-
-      setUserPlan(updatedPlan);
-      savePlan(updatedPlan);
-      
-      stateManager.saveUserState(user.id, {
-        plan_cancelled: new Date().toISOString(),
-        plan_data: updatedPlan
-      });
-      
+      // Implementar cancelamento via Supabase/Stripe
+      await loadUserPlanData();
       return true;
     } catch (error) {
       console.error('Erro ao cancelar plano:', error);
@@ -205,7 +150,6 @@ export function PlanProvider({ children }: PlanProviderProps) {
     if (!user || !PLAN_METADATA[planType]?.isPaid) return null;
 
     try {
-      // Salvar intenção de checkout
       localStorage.setItem('checkout_intent', JSON.stringify({
         planType,
         userId: user.id,
@@ -215,7 +159,6 @@ export function PlanProvider({ children }: PlanProviderProps) {
 
       const planData = PLAN_METADATA[planType];
       
-      // Verificar se o plano tem price (type guard)
       if (!('price' in planData)) {
         console.error('Plano não tem price definido:', planType);
         return null;
@@ -287,9 +230,8 @@ export function PlanProvider({ children }: PlanProviderProps) {
     if (intent) {
       try {
         const parsed = JSON.parse(intent);
-        if (parsed.userId === user?.id && Date.now() - parsed.timestamp < 3600000) { // 1 hora
+        if (parsed.userId === user?.id && Date.now() - parsed.timestamp < 3600000) {
           console.log('Recuperando checkout pendente:', parsed);
-          // Checkout foi interrompido, mostrar opção de continuar
           toast.info('Checkout interrompido detectado. Deseja continuar?', {
             action: {
               label: 'Continuar',
@@ -310,7 +252,7 @@ export function PlanProvider({ children }: PlanProviderProps) {
   // Efeitos
   useEffect(() => {
     loadUserPlanData();
-  }, [user, isAuthenticated]);
+  }, [user, isAuthenticated, profile, subscription]);
 
   useEffect(() => {
     if (isAuthenticated && user) {

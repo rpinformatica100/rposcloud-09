@@ -5,17 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from '@tanstack/react-query';
 import ModalPagamento from './ModalPagamento';
-import AuthModal from '@/components/landing/AuthModal';
+import SupabaseAuthModal from '@/components/auth/SupabaseAuthModal';
 import { toast } from "sonner";
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { planosDisponiveis, trialFeatures } from '@/data/planos';
 import type { PlanoData } from '@/data/planos';
 import { Check, Gift, Clock, Sparkles } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
 import { usePlanManager } from '@/hooks/usePlanManager';
 
 export default function PlanosSection() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useSupabaseAuth();
   const { userPlan, handleTrialActivation } = usePlanManager();
   const [modalPagamentoAberto, setModalPagamentoAberto] = useState(false);
   const [authModalAberto, setAuthModalAberto] = useState(false);
@@ -213,7 +212,7 @@ export default function PlanosSection() {
           </div>
         )}
 
-        <AuthModal
+        <SupabaseAuthModal
           isOpen={authModalAberto}
           onClose={() => setAuthModalAberto(false)}
           onSuccess={handleAuthSuccess}
