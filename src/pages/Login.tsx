@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { signIn } = useSupabaseAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,8 +21,8 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      const success = await login(email, senha);
-      if (success) {
+      const { error } = await signIn(email, senha);
+      if (!error) {
         toast.success("Login realizado com sucesso", {
           description: "Bem-vindo ao RP OS Cloud",
         });

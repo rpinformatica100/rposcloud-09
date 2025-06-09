@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Loader2, CreditCard, Smartphone, ArrowLeft, User, Shield, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { usePlan } from "@/contexts/PlanContext";
 import { PLAN_METADATA, PlanType } from "@/types/plan";
 
@@ -13,7 +13,7 @@ export default function CheckoutPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const { user, profile, isAuthenticated } = useAuth();
+  const { user, profile, isAuthenticated } = useSupabaseAuth();
   const { handleCheckoutSuccess } = usePlan();
 
   const planoId = searchParams.get('planoId') as PlanType;

@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ const Register = () => {
   const [senha, setSenha] = useState("");
   const [confirmSenha, setConfirmSenha] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { registrar } = useAuth();
+  const { signUp } = useSupabaseAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,8 +29,8 @@ const Register = () => {
     setIsLoading(true);
     
     try {
-      const success = await registrar(nome, email, senha);
-      if (success) {
+      const { error } = await signUp(nome, email, senha, 'assistencia');
+      if (!error) {
         toast.success("Conta criada com sucesso!", {
           description: "Redirecionando para o sistema...",
         });

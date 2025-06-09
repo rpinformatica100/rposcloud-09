@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +32,7 @@ import {
   Info 
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
@@ -41,7 +42,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, For
 import { useToast } from "@/hooks/use-toast";
 
 const ConfiguracoesAssistencia = () => {
-  const { assistencia, atualizarPerfilAssistencia } = useAuth();
+  const { assistencia, profile } = useSupabaseAuth();
   const [uploading, setUploading] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);

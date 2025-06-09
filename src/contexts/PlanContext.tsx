@@ -66,9 +66,9 @@ export function PlanProvider({ children }: PlanProviderProps) {
         userId: user.id,
         planType,
         status: status as any,
-        startDate: profile.created_at || new Date().toISOString(),
+        startDate: new Date().toISOString(),
         endDate,
-        trialStartDate: status === 'trial' ? profile.created_at || new Date().toISOString() : undefined,
+        trialStartDate: status === 'trial' ? new Date().toISOString() : undefined,
         trialEndDate: status === 'trial' ? endDate : undefined,
         isTrialUsed: status !== 'trial',
         remainingDays,
@@ -77,7 +77,7 @@ export function PlanProvider({ children }: PlanProviderProps) {
         billing: {
           autoRenewal: subscription?.status === 'active',
           nextBillingDate: subscription?.current_period_end,
-          lastPaymentDate: subscription?.created_at || new Date().toISOString(),
+          lastPaymentDate: new Date().toISOString(),
         },
       };
       

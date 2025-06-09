@@ -1,13 +1,13 @@
 
 import ConfiguracoesSimplesForm from "@/components/configuracoes/ConfiguracoesSimplesForm";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Navigate } from "react-router-dom";
 
 const ConfiguracoesList = () => {
-  const { isAssistencia } = useAuth();
+  const { assistencia } = useSupabaseAuth();
 
   // Se for uma assistência, redirecionar para a página de configurações de assistência
-  if (isAssistencia) {
+  if (assistencia) {
     return <Navigate to="/app/configuracoes/assistencia" replace />;
   }
 
